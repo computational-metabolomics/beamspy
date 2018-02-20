@@ -1,0 +1,1 @@
+label	mass	ion_mode[M+H]+	1.00728	pos[M+Na]+	22.98922	pos[M+K]+	38.96316	pos
