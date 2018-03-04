@@ -137,7 +137,7 @@ def main():
     parser_amf.add_argument('-d', '--db', type=str, required=True,
                             help="Sqlite database to write results")
 
-    parser_amf.add_argument('-c', '--mf-db', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
+    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
                             help="Molecular formulae database (reference)")
 
     parser_amf.add_argument('-a', '--adducts-library', required=True,

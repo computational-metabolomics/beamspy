@@ -26,7 +26,7 @@ python -m beams annotate-mf \
 --peaklist tests/test_data/variableMetadata.txt \
 --intensity-matrix tests/test_data/dataMatrix.txt \
 --db tests/test_results/results.sqlite \
---mf-db beams/data/db_mf.txt \
+--db-mf beams/data/db_mf.txt \
 --adducts-library beams/data/adducts.txt \
 --ion-mode pos \
 --ppm 3.0
