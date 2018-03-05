@@ -164,7 +164,7 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 
     df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
     df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
-    pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on).to_csv("test_out_df.txt", sep="\t")
+    # pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on).to_csv("test_out_df.txt", sep="\t")
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
 
 
