@@ -149,8 +149,8 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
-    parser_amf.add_argument('-z', '--max-mz', type=float, required=False,
-                            help="Maximum m/z value to assign a molecular formula(e).")
+    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=None,
+                            help="Maximum m/z value to assign molecular formula(e).")
 
 
     #################################
@@ -237,7 +237,7 @@ def main():
     if args.step == "annotate-mf":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
-        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.mf_db)
+        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf, max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
