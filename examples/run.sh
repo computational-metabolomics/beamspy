@@ -17,8 +17,12 @@ python -m beams annotate-peak-patterns \
 --db tests/test_results/results.sqlite \
 --adducts \
 --adducts-library beams/data/adducts.txt \
+--adducts-library beams/data/adducts_differences.txt \
 --isotopes \
 --isotopes-library beams/data/isotopes.txt \
+--multiple-charged-ions \
+--multiple-charged-ions-library beams/data/multiple_charged_ions.txt \
+--multiple-charged-ions-library beams/data/multiple_charged_differences.txt \
 --ion-mode pos \
 --ppm 5.0
 

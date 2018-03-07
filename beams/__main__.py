@@ -117,6 +117,15 @@ def main():
     parser_app.add_argument('-f', '--isotopes-library', action='append', required=False,
                              help="List of isotopes")
 
+    parser_app.add_argument('-r', '--multiple-charged-ions', action='store_true', required=False,
+                             help="Annotate multiple-charged ions")
+
+    parser_app.add_argument('-s', '--multiple-charged-ions-library', action='append', required=False,
+                             help="List of multiple charged ions")
+
+    parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
+                             help="Annotate oligomers")
+
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
                              help="Define the ion mode of the libraries")
 
@@ -225,14 +234,39 @@ def main():
             inp = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
 
         if args.adducts:
-            for a in args.adducts_library:
-                lib = in_out.read_adducts(a, args.ion_mode)
-                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            for i, a in enumerate(args.adducts_library):
+                try:
+                    lib = in_out.read_adducts(a, args.ion_mode)
+                except:
+                    lib = in_out.read_mass_differences(a, args.ion_mode)
+                if i > 0:
+                    add = True
+                else:
+                    add = False
+                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+
 
         if args.isotopes:
             for i in args.isotopes_library:
                 lib = in_out.read_isotopes(i, args.ion_mode)
                 annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+
+        if args.multiple_charged_ions:
+            for i, m in enumerate(args.multiple_charged_ions_library):
+                try:
+                    lib = in_out.read_multiple_charged_ions(m, args.ion_mode)
+                except:
+                    lib = in_out.read_mass_differences(m, args.ion_mode)
+
+                if i > 0:
+                    add = True
+                else:
+                    add = False
+
+                annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+
+        if args.oligomers:
+            annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
     if args.step == "annotate-mf":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
