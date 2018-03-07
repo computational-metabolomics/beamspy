@@ -126,11 +126,11 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
             charge_x = 1
             charge_y = 2
         if "ion_mode" not in row:
-            mass_differences.add(row["label_x"], row["label_y"], charge_x, charge_y, row["mass_difference"])
+            mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            mass_differences.add(row["label_x"], row["label_y"], charge_x, charge_y, row["mass_difference"])
+            mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            mass_differences.add(row["label_x"], row["label_y"], charge_x, charge_y, row["mass_difference"])
+            mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
     return mass_differences
 
 

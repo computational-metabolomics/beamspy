@@ -1,0 +1,1 @@
+label_x	label_y	mass_difference	charge_x	charge_y	ion_mode[M+H]+	[M+Na]+	21.981945	1	1	pos

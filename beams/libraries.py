@@ -271,9 +271,8 @@ class MassDifferences:
         out += "label_x\tlabel_y\tmass_difference\tcharge_x\tcharge_y\n"
         for item in self.lib:
             label_x, label_y = item.items()[0][0], item.items()[1][0]
-            out += "{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(label_x, label_y,
-                                                         item[label_x]["charge"], item[label_y]["charge"],
-                                                         item["mass_difference"])
+            out += "{}\t{}\t{}\t{}\t{}\n".format(label_x, label_y, item["mass_difference"],
+                                                 item[label_x]["charge"], item[label_y]["charge"])
         return out
 
 
