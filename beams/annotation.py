@@ -251,20 +251,21 @@ class DbMolecularFormulaeMemory:
         return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
 
 
-def annotate_adducts(source, db_out, ppm, lib):
+def annotate_adducts(source, db_out, ppm, lib, add=False):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
 
-    cursor.execute("DROP TABLE IF EXISTS adduct_pairs")
+    if not add:
+        cursor.execute("DROP TABLE IF EXISTS adduct_pairs")
 
-    cursor.execute("""CREATE TABLE adduct_pairs (
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   label_a char(15) DEFAULT NULL,
-                   label_b char(15) DEFAULT NULL,
-                   ppm_error float DEFAULT NULL,
-                   PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
+        cursor.execute("""CREATE TABLE adduct_pairs (
+                       peak_id_a int(11) DEFAULT NULL,
+                       peak_id_b int(11) DEFAULT NULL,
+                       label_a char(15) DEFAULT NULL,
+                       label_b char(15) DEFAULT NULL,
+                       ppm_error float DEFAULT NULL,
+                       PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
 
@@ -274,13 +275,15 @@ def annotate_adducts(source, db_out, ppm, lib):
     if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
         for i, graph in enumerate(source):
             for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
-                cursor.execute("""insert into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
+                cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
                                values (?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
                                                        assignment["label_a"], assignment["label_b"], float(assignment["ppm_error"])))
 
     elif isinstance(source, pd.core.frame.DataFrame):
+        print lib_pairs
+        raw_input()
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
-            cursor.execute("""insert into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
+            cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
                            values (?,?,?,?,?)""", (source.iloc[assignment["peak_id_a"]][0], source.iloc[assignment["peak_id_b"]][0],
                                                    assignment["label_a"], assignment["label_b"], assignment["ppm_error"]))
     conn.commit()
@@ -440,22 +443,23 @@ def annotate_artifacts(source, db_out, diff):
     return
 
 
-def annotate_multiple_charged_ions(source, db_out, ppm, lib):
+def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
 
-    cursor.execute("DROP TABLE IF EXISTS multiple_charged_ions")
+    if not add:
+        cursor.execute("DROP TABLE IF EXISTS multiple_charged_ions")
 
-    cursor.execute("""CREATE TABLE multiple_charged_ions (
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   label_a char(15) DEFAULT NULL,
-                   label_b char(15) DEFAULT NULL,
-                   charge_a int(11) DEFAULT NULL,
-                   charge_b int(11) DEFAULT NULL,
-                   ppm_error float DEFAULT NULL,
-                   PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b));""")
+        cursor.execute("""CREATE TABLE multiple_charged_ions (
+                       peak_id_a int(11) DEFAULT NULL,
+                       peak_id_b int(11) DEFAULT NULL,
+                       label_a char(15) DEFAULT NULL,
+                       label_b char(15) DEFAULT NULL,
+                       charge_a int(11) DEFAULT NULL,
+                       charge_b int(11) DEFAULT NULL,
+                       ppm_error float DEFAULT NULL,
+                       PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
 
@@ -465,13 +469,13 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib):
     if (isinstance(source, list) or isinstance(source, np.ndarray)) and isinstance(source[0], nx.classes.graph.Graph):
         for graph in source:
             for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
-                cursor.execute("""insert into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
+                cursor.execute("""INSERT OR REPLACE into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
                                values (?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"], assignment["label_a"], assignment["label_b"],
                                                            assignment["charge_a"], assignment["charge_b"], assignment["ppm_error"]))
 
     elif isinstance(source, pd.core.frame.DataFrame):
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
-            cursor.execute("""insert into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
+            cursor.execute("""INSERT OR REPLACE into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
                            values (?,?,?,?,?,?,?)""", (source[assignment["peak_id_a"]][0], source[assignment["peak_id_b"]][0],
                                                        assignment["label_a"], assignment["label_b"], assignment["charge_a"], assignment["charge_b"], assignment["ppm_error"]))
     conn.commit()
