@@ -1,4 +1,4 @@
-beams group-features^
+python -m beams group-features^
  --peaklist "C:\beams_v0.1.0\tests\test_data\variableMetadata.txt"^
  --intensity-matrix "C:\beams_v0.1.0\tests\test_data\dataMatrix.txt"^
  --gml "C:\beams_v0.1.0\tests\test_results\graph.gml"^
@@ -8,7 +8,7 @@ beams group-features^
  --coeff-threshold 0.7^
  --pvalue-threshold 0.01
 
-beams annotate-peak-patterns^
+python -m beams annotate-peak-patterns^
  --peaklist "C:\beams_v0.1.0\tests\test_data\variableMetadata.txt"^
  --intensity-matrix "C:\beams_v0.1.0\tests\test_data\dataMatrix.txt"^
  --gml "C:\beams_v0.1.0\tests\test_results\graph.gml"^
