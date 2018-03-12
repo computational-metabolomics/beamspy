@@ -88,6 +88,8 @@ def main():
     parser_gf.add_argument('-g', '--gml-file', type=str, required=True,
                            help="Tab-delimited intensity matrix")
 
+    parser_gf.add_argument('-n', '--ncpus', type=int, required=False,
+                           help="Number of central processing units (CPUs).")
 
     #################################
     # ANNOTATE PEAK PATTERS
@@ -158,7 +160,7 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
-    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=None,
+    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=700.0,
                             help="Maximum m/z value to assign molecular formula(e).")
 
 
@@ -221,9 +223,9 @@ def main():
 
     if args.step == "group-features":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
-        graph = grouping.group_features(df, db_out=args.db, max_rt_diff=args.max_rt_diff, coeff_thres=args.coeff_threshold,
-                                        pvalue_thres=args.pvalue_threshold, method=args.method)
-        print graph
+        graph = grouping.group_features(df, db_out=args.db, max_rt_diff=args.max_rt_diff,
+                                        coeff_thres=args.coeff_threshold, pvalue_thres=args.pvalue_threshold,
+                                        method=args.method, ncpus=args.ncpus)
         nx.write_gml(graph, str(args.gml_file))
 
     if args.step == "annotate-peak-patterns":

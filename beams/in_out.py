@@ -144,6 +144,7 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
         df = df.T
 
     df_peaklist = df[[mapping["name"], mapping["mz"], mapping["rt"]]]
+    df_peaklist["name"] = df_peaklist["name"].astype(str)
     df_matrix = df.iloc[:, df.columns.get_loc(first_sample):]
     df_peaklist = df_peaklist.assign(intensity=pd.Series(df_matrix.median(axis=1, skipna=True).values))
     return pd.concat([df_peaklist, df_matrix], axis=1)
@@ -161,8 +162,11 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 
     df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
     df_peaklist.columns = ["name", "mz", "rt"]
+    df_peaklist["name"] = df_peaklist["name"].astype(str)
 
     df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
+    df_matrix["name"] = df_matrix["name"].astype(str)
+
     df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
     # pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on).to_csv("test_out_df.txt", sep="\t")
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
@@ -175,6 +179,7 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
         if mapping["name"] in df_peaklist.columns.values:
             df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["name", "mz", "intensity"]
+            df_peaklist["name"] = df_peaklist["name"].astype(str)
         else:
             df_peaklist = df_peaklist[[mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "intensity"]
@@ -182,4 +187,5 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
         df_peaklist.insert(2, "rt", 0.0)
     else:
         df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
+        df_peaklist["name"] = df_peaklist["name"].astype(str)
     return df_peaklist

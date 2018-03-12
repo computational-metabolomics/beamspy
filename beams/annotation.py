@@ -13,6 +13,7 @@ from urlparse import urlparse
 import requests
 from in_out import mf_dict_to_str
 import pandas as pd
+import time
 
 
 def calculate_mz_tolerance(mass, ppm):
@@ -280,8 +281,6 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
                                                        assignment["label_a"], assignment["label_b"], float(assignment["ppm_error"])))
 
     elif isinstance(source, pd.core.frame.DataFrame):
-        print lib_pairs
-        raw_input()
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
             cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
                            values (?,?,?,?,?)""", (source.iloc[assignment["peak_id_a"]][0], source.iloc[assignment["peak_id_b"]][0],
@@ -508,11 +507,12 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     lewis INTEGER DEFAULT NULL,
                     senior INTEGER DEFAULT NULL,
                     double_bond_equivalents INTEGER DEFAULT NULL,
-                    primary key  (mz, adduct, C, H, N, O, P, S)
+                    primary key  (id, mz, adduct, C, H, N, O, P, S)
                     );""")
 
     if os.path.isfile(db_in):
         conn_mem = DbMolecularFormulaeMemory(db_in)
+        max_mz = None
     else:
         url = '{}/mass_range'.format(db_in)
         url_test = '{}//mass?mass=180.06339&tol=0.0&unit=ppm&rules=1'.format(db_in)
@@ -532,6 +532,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         if max_mz is not None and mz > max_mz:  # TODO
             continue
 
+        values = []
         for adduct in lib_adducts.lib:
 
             if mz - lib_adducts.lib[adduct] > 0.5:
@@ -540,6 +541,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct], rules)
                 else:
                     params = {"lower": min_tol - lib_adducts.lib[adduct], "upper": max_tol - lib_adducts.lib[adduct], "rules": int(rules)}
+                    print mz, adduct
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
 
@@ -553,8 +555,12 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     del record["ExactMass"]
                     record["molecular_formula"] = mf_dict_to_str(record)
                     record["adduct"] = adduct
-                    cursor.execute("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""".format(
-                                   ",".join(map(str, record.keys()))), record.values())
+                    values.append(record.values())
+
+        time.sleep(0.05)
+        if len(values) > 0:
+            cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                               """.format(",".join(map(str, record.keys()))), values)
     conn.commit()
     conn.close()
     return
