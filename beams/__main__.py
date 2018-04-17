@@ -30,14 +30,14 @@ def main():
 
     parser_gf = subparsers.add_parser('group-features', help='Group features.')
 
-    parser_app = subparsers.add_parser('annotate-peak-patterns', help='Annotate peak patterns, molecular formulae and metabolites')
+    parser_app = subparsers.add_parser('annotate-peak-patterns', help='Annotate peak patterns, molecular formulae and metabolites.')
 
-    parser_amf = subparsers.add_parser('annotate-mf', help='Annotate molecular formulae')
+    parser_amf = subparsers.add_parser('annotate-mf', help='Annotate molecular formulae.')
 
-    parser_am = subparsers.add_parser('annotate-compounds', help='Annotate metabolites')
+    parser_am = subparsers.add_parser('annotate-compounds', help='Annotate metabolites.')
 
 
-    parser_sr = subparsers.add_parser('summary-results', help='Summarise results')
+    parser_sr = subparsers.add_parser('summary-results', help='Summarise results.')
 
 
     #################################
@@ -45,10 +45,10 @@ def main():
     #################################
 
     parser_fi.add_argument('-l', '--peaklist',
-                           type=str, required=True, help="Tab-delimited peaklist")
+                           type=str, required=True, help="Tab-delimited peaklist.")
 
     parser_fi.add_argument('-m', '--intensity-matrix',
-                           type=str, required=True, help="Tab-delimited intensity matrix")
+                           type=str, required=True, help="Tab-delimited intensity matrix.")
 
     parser_fi.add_argument('-o', '--output', type=str, required=True,
                            help="Filename / Path to save the merged peaklist and intensity matrix.")
@@ -62,31 +62,31 @@ def main():
     #################################
 
     parser_gf.add_argument('-l', '--peaklist',
-                           type=str, required=True, help="Tab-delimited peaklist")
+                           type=str, required=True, help="Tab-delimited peaklist.")
 
     parser_gf.add_argument('-i', '--intensity-matrix',
-                           type=str, required=False, help="Tab-delimited intensity matrix")
+                           type=str, required=False, help="Tab-delimited intensity matrix.")
 
     #parser_gf.add_argument('-x', '--xset-matrix',
     #                       type=str, required=False, help="Tab-delimited intensity matrix")
 
     parser_gf.add_argument('-d', '--db', type=str, required=True,
-                           help="Sqlite database to write results")
+                           help="Sqlite database to write results.")
 
     parser_gf.add_argument('-r', '--max-rt-diff', default=5.0, type=float, required=True,
-                           help="Maximum difference in retention time between two peaks")
+                           help="Maximum difference in retention time between two peaks.")
 
     parser_gf.add_argument('-m', '--method', default="pearson", choices=["pearson", "spearman"], required=True,
-                           help="Method to apply for grouping features")
+                           help="Method to apply for grouping features.")
 
     parser_gf.add_argument('-c', '--coeff-threshold', default=0.7, type=float, required=True,
-                           help="Threshold for correlation coefficient")
+                           help="Threshold for correlation coefficient.")
 
     parser_gf.add_argument('-p', '--pvalue-threshold', default=0.01, type=float, required=True,
-                           help="Threshold for p-value")
+                           help="Threshold for p-value.")
 
     parser_gf.add_argument('-g', '--gml-file', type=str, required=True,
-                           help="Tab-delimited intensity matrix")
+                           help="Write graph to GraphML format.")
 
     parser_gf.add_argument('-n', '--ncpus', type=int, required=False,
                            help="Number of central processing units (CPUs).")
@@ -96,40 +96,40 @@ def main():
     #################################
 
     parser_app.add_argument('-l', '--peaklist', type=str, required=True,
-                             help="Tab-delimited peaklist")
+                             help="Tab-delimited peaklist.")
 
     parser_app.add_argument('-i', '--intensity-matrix', type=str, required=False,
-                             help="Tab-delimited intensity matrix")
+                             help="Tab-delimited intensity matrix.")
 
     parser_app.add_argument('-g', '--gml-file', type=str, required=False,
-                             help="Tab-delimited intensity matrix")
+                             help="Correlation graph in GraphML format.")
 
     parser_app.add_argument('-d', '--db', type=str, required=True,
-                             help="Sqlite database to write results")
+                             help="Sqlite database to write results.")
 
     parser_app.add_argument('-a', '--adducts', action='store_true', required=False,
-                             help="Annotate adducts")
+                             help="Annotate adducts.")
 
     parser_app.add_argument('-b', '--adducts-library', action='append', required=False,
-                             help="Annotate adducts")
+                             help="List of adducts.")
 
     parser_app.add_argument('-e', '--isotopes', action='store_true', required=False,
-                             help="Annotate isotopes")
+                             help="Annotate isotopes.")
 
     parser_app.add_argument('-f', '--isotopes-library', action='append', required=False,
-                             help="List of isotopes")
+                             help="List of isotopes.")
 
     parser_app.add_argument('-r', '--multiple-charged-ions', action='store_true', required=False,
-                             help="Annotate multiple-charged ions")
+                             help="Annotate multiple-charged ions.")
 
     parser_app.add_argument('-s', '--multiple-charged-ions-library', action='append', required=False,
-                             help="List of multiple charged ions")
+                             help="List of multiple charged ions.")
 
     parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
-                             help="Annotate oligomers")
+                             help="Annotate oligomers.")
 
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries")
+                             help="Define the ion mode of the libraries.")
 
     parser_app.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                              help="Mass tolerance in parts per million.")
@@ -140,22 +140,22 @@ def main():
     #################################
 
     parser_amf.add_argument('-l', '--peaklist', type=str, required=True,
-                            help="Tab-delimited peaklist")
+                            help="Tab-delimited peaklist.")
 
     parser_amf.add_argument('-i', '--intensity-matrix', type=str, required=False,
-                            help="Tab-delimited intensity matrix")
+                            help="Tab-delimited intensity matrix.")
 
     parser_amf.add_argument('-d', '--db', type=str, required=True,
-                            help="Sqlite database to write results")
+                            help="Sqlite database to write results.")
 
     parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
-                            help="Molecular formulae database (reference)")
+                            help="Molecular formulae database (reference).")
 
     parser_amf.add_argument('-a', '--adducts-library', required=True,
-                            help="List of adducts to search for")
+                            help="List of adducts to search for.")
 
     parser_amf.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries")
+                             help="Define the ion mode of the libraries.")
 
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
@@ -169,24 +169,24 @@ def main():
     #################################
 
     parser_am.add_argument('-l', '--peaklist', type=str, required=True,
-                           help="Tab-delimited peaklist")
+                           help="Tab-delimited peaklist.")
 
     parser_am.add_argument('-i', '--intensity-matrix', type=str, required=False,
-                           help="Tab-delimited intensity matrix")
+                           help="Tab-delimited intensity matrix.")
 
     parser_am.add_argument('-d', '--db', type=str, required=True,
-                           help="Sqlite database to write results")
+                           help="Sqlite database to write results.")
 
-    parser_am.add_argument('-c', '--db-compounds', type=str, required=True, help="Metabolite database (reference)")
+    parser_am.add_argument('-c', '--db-compounds', type=str, required=True, help="Metabolite database (reference).")
 
     parser_am.add_argument('-n', '--db-name', type=str, default="", required=False,
-                           help="Name compound / metabolite database (within --db-compounds)")
+                           help="Name compound / metabolite database (within --db-compounds).")
 
     parser_am.add_argument('-a', '--adducts-library', required=True,
-                           help="List of adducts to search for")
+                           help="List of adducts to search for.")
 
     parser_am.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries")
+                             help="Define the ion mode of the libraries.")
 
     parser_am.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                            help="Mass tolerance in parts per million.")
@@ -199,16 +199,22 @@ def main():
                            help="Tab-delimited peaklist")
 
     parser_sr.add_argument('-i', '--intensity-matrix', type=str, required=False,
-                           help="Tab-delimited intensity matrix")
+                           help="Tab-delimited intensity matrix.")
 
     parser_sr.add_argument('-o', '--output', type=str, required=False,
                            help="Summary file")
 
     parser_sr.add_argument('-d', '--db', type=str, required=True,
-                           help="Sqlite database to write results")
+                           help="Sqlite database to write results.")
 
     parser_sr.add_argument('-s', '--sep', default="tab", choices=["tab", "comma"], required=True,
                            help="Values on each line of the file are separated by this character.")
+
+    parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=True,
+                           help="Digits after the decimal point for m/z values.")
+
+    parser_sr.add_arggument('-c', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
+                           help="Add a column and covert the retention time to seconds or minutes.")
 
     args = parser.parse_args()
 
@@ -281,7 +287,8 @@ def main():
         annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_in=args.db_compounds, db_name=args.db_name)
 
     if args.step == "summary-results":
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+
+        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.convert_rt, args.ndigits_mz)
         df_out = annotation.summary(df, db=args.db)
         df_out.to_csv(args.output, sep=separators[args.sep], index=False)
 

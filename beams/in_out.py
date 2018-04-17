@@ -92,7 +92,7 @@ def read_compounds(filename, separator="\t"):
             record.update(atom_counts[0])
             record["exact_mass"] = f.calc_mass()[0]
             record["compound_id"] = row.compound_id
-            record["compound_name"] = row.name
+            record["compound_name"] = row.compound_name
             record["molecular_formula"] = mf_dict_to_str(record)
             records.append(record)
         else:
@@ -179,7 +179,11 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
     df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator)
-    if "rt" in mapping and mapping["rt"] is not None:
+
+    if mapping["mz"] not in df_peaklist.columns.values or mapping["intensity"] not in df_peaklist.columns.values:
+        raise ValueError("Incorrect mapping of columns: {}".format(str(mapping)))
+
+    if ("rt" in mapping and mapping["rt"] not in df_peaklist.columns.values) or "rt" not in mapping:
         if mapping["name"] in df_peaklist.columns.values:
             df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["name", "mz", "intensity"]
@@ -187,9 +191,26 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
         else:
             df_peaklist = df_peaklist[[mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "intensity"]
-            df_peaklist.insert(0, "name", df_peaklist[mapping["mz"]].astype(str))
+            df_peaklist.insert(0, "name", df_peaklist[mapping["mz"]].astype(str).str.replace(".","_"))
         df_peaklist.insert(2, "rt", 0.0)
+    elif "rt" in mapping:
+        if mapping["name"] in df_peaklist.columns.values:
+            df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
+            df_peaklist.columns = ["name", "mz", "intensity"]
+            df_peaklist["name"] = df_peaklist["name"].astype(str)
+        else:
+            df_peaklist = df_peaklist[[mapping["mz"], mapping["rt"], mapping["intensity"]]]
+            df_peaklist.columns = ["mz", "rt", "intensity"]
+
+            names = "M" + df_peaklist["mz"].round().astype(int).astype(str).str.cat(df_peaklist["rt"].round().astype(int).astype(str), sep="T")
+            for n in names.copy():
+                idxs = names.index[names == n].tolist()
+                if len(idxs) > 1:
+                    for i, idx_t in enumerate(idxs):
+                        names[idx_t] = names[idx_t] + "_" + str(i + 1)
+            df_peaklist.insert(0, "name", names)
     else:
         df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
         df_peaklist["name"] = df_peaklist["name"].astype(str)
+
     return df_peaklist

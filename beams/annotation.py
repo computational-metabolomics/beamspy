@@ -632,7 +632,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_in, db_name):
     return
 
 
-def summary(df, db):
+def summary(df, db, single_row=False, convert_rt=None, ndigits_mz=None):
 
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
@@ -841,15 +841,59 @@ def summary(df, db):
                {}
                {}
                ORDER BY peaklist.rt""".format(pl_columns, mf_cpc_columns, union_mf_sub_query, unions_cpd_sub_query)
+
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
-
     conn.commit()
 
-    df_out = pd.read_sql("select * from summary", conn)
-    df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+    if single_row:
 
+        if flag_cpd:
+            concat_str = """
+                         group_concat(
+                             molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
+                             '||'
+                         ) as annotation
+                         """
+        elif flag_mf:
+            concat_str = """
+                         group_concat(
+                             molecular_formula || '::' || adduct || '::' || exact_mass || '::' || round(ppm_error, 2), 
+                             '||'
+                         ) as annotation
+                         """
+        else:
+            concat_str = ""
+
+        if ("groups",) in tables:
+            groups_str = "group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges, "
+        else:
+            groups_str = ""
+
+        query = """SELECT DISTINCT name, mz, rt, {}label,
+                   {}
+                   from summary
+                   GROUP BY NAME
+                   """.format(groups_str, concat_str)
+        df_out = pd.read_sql(query, conn)
+        df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+    else:
+        df_out = pd.read_sql("select * from summary", conn)
+        df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+
+    if convert_rt == "min" and "rt" in df_out.columns.values:
+        rt_min = df_out["rt"] / 60.0
+        df_out.insert(loc=df_out.columns.get_loc("rt")+1, column='rt_min', value=rt_min.round(2))
+    elif convert_rt == "sec" and "rt" in df_out.columns.values:
+        rt_sec = df_out["rt"] * 60.0
+        df_out.insert(loc=df_out.columns.get_loc("rt")+1, column='rt_sec', value=rt_sec.round(1))
+    elif convert_rt is not None:
+        raise ValueError("Provide min, sec or None for convert_rt")
+
+    if isinstance(ndigits_mz, int):
+        df_out["mz"] = df_out["mz"].round(ndigits_mz)
+    elif ndigits_mz is not None:
+        raise ValueError("Provide integer or None for ndigits_mz")
 
     conn.close()
     return df_out
-
