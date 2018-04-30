@@ -22,6 +22,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Annotation package of LC-MS and DIMS data',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                     # formatter_class=RawTextHelpFormatter)
 
     subparsers = parser.add_subparsers(dest='step')
 
@@ -129,7 +130,7 @@ def main():
                              help="Annotate oligomers.")
 
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries.")
+                             help="Ion mode of the libraries.")
 
     parser_app.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                              help="Mass tolerance in parts per million.")
@@ -155,7 +156,7 @@ def main():
                             help="List of adducts to search for.")
 
     parser_amf.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries.")
+                             help="Ion mode of the libraries.")
 
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
@@ -186,7 +187,7 @@ def main():
                            help="List of adducts to search for.")
 
     parser_am.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
-                             help="Define the ion mode of the libraries.")
+                             help="Ion mode of the libraries.")
 
     parser_am.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                            help="Mass tolerance in parts per million.")
@@ -202,19 +203,22 @@ def main():
                            help="Tab-delimited intensity matrix.")
 
     parser_sr.add_argument('-o', '--output', type=str, required=False,
-                           help="Summary file")
+                           help="Output file for the summary")
 
     parser_sr.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database to write results.")
 
     parser_sr.add_argument('-s', '--sep', default="tab", choices=["tab", "comma"], required=True,
-                           help="Values on each line of the file are separated by this character.")
+                           help="Values on each line of the output are separated by this character.")
+
+    parser_sr.add_argument('-r', '--single-row', default="tab", required=False,
+                           help="Concatenate the annotations for each spectral feature and represent in a single row.")
 
     parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=True,
                            help="Digits after the decimal point for m/z values.")
 
-    parser_sr.add_arggument('-c', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
-                           help="Add a column and covert the retention time to seconds or minutes.")
+    parser_sr.add_argument('-c', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
+                           help="Covert the retention time to seconds or minutes. An additional column will be added.")
 
     args = parser.parse_args()
 
@@ -288,7 +292,7 @@ def main():
 
     if args.step == "summary-results":
 
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.convert_rt, args.ndigits_mz)
+        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.single_row, args.convert_rt, args.ndigits_mz)
         df_out = annotation.summary(df, db=args.db)
         df_out.to_csv(args.output, sep=separators[args.sep], index=False)
 
