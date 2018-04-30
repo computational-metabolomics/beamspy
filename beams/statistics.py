@@ -70,7 +70,8 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
 
     for i in range(n):
 
-        intens_i = df.iloc[i, ncols:-1].values
+        intens_i = df.iloc[i, ncols:].values
+
         if pd.notnull(intens_i).sum() < 4:
             continue
 
@@ -83,7 +84,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
 
             if rt_diff <= max_rt_diff and max_rt_diff is not None:
 
-                intens_j = df.iloc[j, ncols:-1].values
+                intens_j = df.iloc[j, ncols:].values
                 nas = np.logical_or(pd.isnull(intens_i), pd.isnull(intens_j))
                 intens_filt_i, intens_filt_j = intens_i[~nas], intens_j[~nas]
 
