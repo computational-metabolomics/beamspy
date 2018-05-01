@@ -206,13 +206,16 @@ def main():
                            help="Output file for the summary")
 
     parser_sr.add_argument('-d', '--db', type=str, required=True,
-                           help="Sqlite database to write results.")
+                           help="Sqlite database that contains the results from the previous steps.")
 
     parser_sr.add_argument('-s', '--sep', default="tab", choices=["tab", "comma"], required=True,
                            help="Values on each line of the output are separated by this character.")
 
-    parser_sr.add_argument('-r', '--single-row', default="tab", required=False,
+    parser_sr.add_argument('-r', '--single-row', action="store_true",
                            help="Concatenate the annotations for each spectral feature and represent in a single row.")
+
+    parser_sr.add_argument('-r', '--single-column', action="store_true",
+                           help="Concatenate the annotations for each spectral feature and keep seperate columns for molecular formula, adduct, name, etc.")
 
     parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=True,
                            help="Digits after the decimal point for m/z values.")
@@ -292,7 +295,7 @@ def main():
 
     if args.step == "summary-results":
 
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.single_row, args.convert_rt, args.ndigits_mz)
+        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.single_row, args.single_column, args.convert_rt, args.ndigits_mz)
         df_out = annotation.summary(df, db=args.db)
         df_out.to_csv(args.output, sep=separators[args.sep], index=False)
 

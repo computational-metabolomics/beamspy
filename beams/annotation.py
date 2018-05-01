@@ -632,7 +632,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_in, db_name):
     return
 
 
-def summary(df, db, single_row=False, convert_rt=None, ndigits_mz=None):
+def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndigits_mz=None):
 
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
@@ -849,19 +849,37 @@ def summary(df, db, single_row=False, convert_rt=None, ndigits_mz=None):
     if single_row:
 
         if flag_cpd:
-            concat_str = """
-                         group_concat(
-                             molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
-                             '||'
-                         ) as annotation
-                         """
+            if single_column:
+                concat_str = """
+                             group_concat(
+                                 molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
+                                 '||'
+                             ) as annotation
+                             """
+            else:
+                concat_str = """
+                             group_concat(molecular_formula, '||') as molecular_formula,
+                             group_concat(adduct, '||') as adduct, 
+                             group_concat(ifnull(compound_name, "None"), '||') as compound_name, 
+                             group_concat(ifnull(compound_id, "None"), '||') as compound_id,
+                             group_concat(exact_mass, '||') as exact_mass,
+                             group_concat(round(ppm_error, 2), '||') as ppm_error
+                             """
         elif flag_mf:
-            concat_str = """
-                         group_concat(
-                             molecular_formula || '::' || adduct || '::' || exact_mass || '::' || round(ppm_error, 2), 
-                             '||'
-                         ) as annotation
-                         """
+            if single_column:
+                concat_str = """
+                             group_concat(
+                                 molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
+                                 '||'
+                             ) as annotation
+                             """
+            else:
+                concat_str = """
+                             group_concat(molecular_formula, '||') as molecular_formula, 
+                             group_concat(adduct, '||') as adduct,
+                             group_concat(exact_mass, '||') as exact_mass,
+                             group_concat(round(ppm_error, 2), '||') as ppm_error
+                             """
         else:
             concat_str = ""
 
@@ -877,6 +895,9 @@ def summary(df, db, single_row=False, convert_rt=None, ndigits_mz=None):
                    """.format(groups_str, concat_str)
         df_out = pd.read_sql(query, conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+        if flag_cpd:
+            df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})
+            df_out["compound_name"] = df_out["compound_name"].replace({"None": ""})
     else:
         df_out = pd.read_sql("select * from summary", conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
