@@ -214,13 +214,13 @@ def main():
     parser_sr.add_argument('-r', '--single-row', action="store_true",
                            help="Concatenate the annotations for each spectral feature and represent in a single row.")
 
-    parser_sr.add_argument('-r', '--single-column', action="store_true",
+    parser_sr.add_argument('-c', '--single-column', action="store_true",
                            help="Concatenate the annotations for each spectral feature and keep seperate columns for molecular formula, adduct, name, etc.")
 
     parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=True,
                            help="Digits after the decimal point for m/z values.")
 
-    parser_sr.add_argument('-c', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
+    parser_sr.add_argument('-t', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
                            help="Covert the retention time to seconds or minutes. An additional column will be added.")
 
     args = parser.parse_args()
