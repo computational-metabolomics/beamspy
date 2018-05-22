@@ -541,7 +541,6 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct], rules)
                 else:
                     params = {"lower": min_tol - lib_adducts.lib[adduct], "upper": max_tol - lib_adducts.lib[adduct], "rules": int(rules)}
-                    print mz, adduct
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
 
