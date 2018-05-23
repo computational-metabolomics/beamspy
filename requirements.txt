@@ -3,3 +3,4 @@ scipy>=1.0.0
 networkx>=2.0
 requests>=2.18.4
 pandas>=0.22.0
+python-qt5;platform_system == "Windows"
