@@ -895,8 +895,11 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         df_out = pd.read_sql(query, conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
         if flag_cpd:
-            df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})
-            df_out["compound_name"] = df_out["compound_name"].replace({"None": ""})
+            if not single_column:
+                df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})
+                df_out["compound_name"] = df_out["compound_name"].replace({"None": ""})
+            else:
+                df_out["annotation"] = df_out["annotation"].replace({"None": ""})
     else:
         df_out = pd.read_sql("select * from summary", conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
