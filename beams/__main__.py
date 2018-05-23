@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import argparse
-import networkx as nx
 from . import __version__
+import argparse
+import sys
+import networkx as nx
 import in_out
 import grouping
 import annotation
@@ -37,9 +38,9 @@ def main():
 
     parser_am = subparsers.add_parser('annotate-compounds', help='Annotate metabolites.')
 
-
     parser_sr = subparsers.add_parser('summary-results', help='Summarise results.')
 
+    parser_gui = subparsers.add_parser('start-gui', help='Start GUI.')
 
     #################################
     # FORMAT INPUTS
@@ -294,11 +295,18 @@ def main():
         annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_in=args.db_compounds, db_name=args.db_name)
 
     if args.step == "summary-results":
-
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix, args.single_row, args.single_column, args.convert_rt, args.ndigits_mz)
-        df_out = annotation.summary(df, db=args.db)
+        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        df_out = annotation.summary(df, db=args.db, single_row=args.single_row, single_column=args.single_column, convert_rt=args.convert_rt, ndigits_mz=args.ndigits_mz)
         df_out.to_csv(args.output, sep=separators[args.sep], index=False)
 
+    if args.step == "start-gui":
+        from PyQt5 import QtWidgets
+        from gui import BeamsApp
+        app = QtWidgets.QApplication(sys.argv)
+        app.setStyle(QtWidgets.QStyleFactory.create("fusion"))
+        form = BeamsApp()
+        form.show()
+        app.exec_()
 
 """
     fn_peaklist = "../tests/test_data/variableMetadata.txt"
