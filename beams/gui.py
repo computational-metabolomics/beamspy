@@ -9,7 +9,7 @@ import grouping
 import annotation
 from PyQt5 import QtCore, QtGui, QtWidgets
 import qt.form as form
-import pkg_resources, sqlite3
+import sqlite3
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
@@ -249,7 +249,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 self.spinBox_mz_digits.setEnabled(False)
 
     def add_databases(self):
-        path = pkg_resources.resource_filename(__name__, 'data')
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         dbs = [fn for fn in os.listdir(path) if fn.endswith('.sqlite')]
         conn = sqlite3.connect(os.path.join(path, dbs[0]))
         cursor = conn.cursor()
@@ -319,7 +319,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
                 if self.lineEdit_adduct_library.text() == "Use default":
                     path = 'data/adducts.txt'
-                    p = pkg_resources.resource_filename(__name__, path)
+                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                     lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
 
                 elif os.path.isfile(self.lineEdit_adduct_library.text()):
@@ -338,7 +338,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print "Isotopes....",
                 if self.lineEdit_isotopes.text() == "Use default":
                     path = 'data/isotopes.txt'
-                    p = pkg_resources.resource_filename(__name__, path)
+                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                     lib = in_out.read_isotopes(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
 
                 elif os.path.isfile(self.lineEdit_isotopes.text()):
@@ -352,7 +352,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print "Multiple charged ions....",
                 if self.lineEdit_multiple_charged.text() == "Use default":
                     path = 'data/multiple_charged_ions.txt'
-                    p = pkg_resources.resource_filename(__name__, path)
+                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                     lib = in_out.read_multiple_charged_ions(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 elif os.path.isfile(self.lineEdit_multiple_charged.text()):
                     lib = in_out.read_multiple_charged_ions(self.lineEdit_multiple_charged.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
@@ -365,7 +365,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print "Oligomers....",
                 if self.lineEdit_default_adduct_library.text() == "Use default":
                     path = 'data/adducts.txt'
-                    p = pkg_resources.resource_filename(__name__, path)
+                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                     lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 elif os.path.isfile(self.lineEdit_default_adduct_library.text()):
                     try:
@@ -386,7 +386,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             df = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
             if self.lineEdit_default_adduct_library.text() == "Use default":
                 path = 'data/adducts.txt'
-                p = pkg_resources.resource_filename(__name__, path)
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
             elif os.path.isfile(self.lineEdit_default_adduct_library.text()):
                 try:
@@ -422,7 +422,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             if self.lineEdit_default_adduct_library.text() == "Use default":
                 path = 'data/adducts.txt'
-                p = pkg_resources.resource_filename(__name__, path)
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
             elif os.path.isfile(self.lineEdit_default_adduct_library.text()):
                 try:
@@ -438,7 +438,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(), db_out=self.lineEdit_sql_database.text(), db_in=self.lineEdit_filename_reference.text(), db_name=None)
             else:
                 path = 'data/BEAMS_DB.sqlite'
-                path_db = pkg_resources.resource_filename(__name__, path)
+                path_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 print path_db
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(), db_out=self.lineEdit_sql_database.text(), db_in=path_db, db_name=db_name.text())
