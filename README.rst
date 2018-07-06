@@ -1,12 +1,12 @@
-beams
-========
+BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
+===============================================================
 |Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc|
 
-BEAMS is a Python Package to annotate LC-MS and DIMS data
+BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
 
-- **Documentation:** https://computational-metabolomics.github.io/beams
-- **Source:** https://github.com/computational-metabolomics/beams
-- **Bug reports:** https://github.com/computational-metabolomics/beams/issues
+- |documentation|
+- |source|
+- |bug reports|
 
 Installation
 --------
@@ -14,7 +14,7 @@ Installation
 Conda_
 ~~~~~~~
 
-1. Install Conda_ (For example: `Miniconda Python distribution <http://conda.pydata.org/miniconda.html>`__).
+1. Install |miniconda|. Follow the steps described |conda_install|.
 2. Run the following commands to install BEAMS.
 
 Windows-64
@@ -63,14 +63,14 @@ License
 
 Released under the GNU General Public License v3.0 (see `LICENSE` file)::
 
-   Copyright (C) 2017 BEAMS Developers
+   Copyright (C) 2018 BEAMS Developers
    Ralf J.M. Weber <r.j.weber@bham.ac.uk>   
    Han Zhang <aynhzhanghan@gmail.com>
 
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.com/computational-metabolomics/beams
 
-.. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/computational-metabolomics/mzml2isa.svg?style=flat&maxAge=3600&label=AppVeyor
+.. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=AppVeyor
    :target: https://ci.appveyor.com/project/computational-metabolomics/beams
 
 .. |Py versions| image:: https://img.shields.io/pypi/pyversions/beams.svg?style=flat&maxAge=3600
@@ -91,5 +91,26 @@ Released under the GNU General Public License v3.0 (see `LICENSE` file)::
 .. |RTD doc| image:: https://img.shields.io/badge/documentation-RTD-71B360.svg?style=flat&maxAge=3600
    :target: http://beams.readthedocs.io/en/latest/beams/index.html
 
+.. |documentation| raw:: html
+
+   <a href="https://computational-metabolomics.github.io/beams" target="_blank">Documentation</a>
+
+.. |source| raw:: html
+
+   <a href="https://github.com/computational-metabolomics/beams/tree/dev/beams" target="_blank">Source</a>
+
+.. |bug reports| raw:: html
+
+   <a href="https://github.com/computational-metabolomics/beams/issues" target="_blank">Bug reports</a>
+
+.. |conda_install| raw:: html
+
+   <a href="https://conda.io/docs/user-guide/install" target="_blank">here</a>
+
+.. |miniconda| raw:: html
+
+   <a href="http://conda.pydata.org/miniconda.html" target="_blank">Miniconda</a>
+
 .. _pip: https://pip.pypa.io/
 .. _Conda: http://conda.pydata.org/docs/
+
