@@ -4,4 +4,4 @@ include requirements*.txt
 include examples/*.*
 include tests/*.py
 include tests/data/*.*
-include data/*.*
+include beams/data/*.*
