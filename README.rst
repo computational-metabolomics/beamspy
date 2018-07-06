@@ -68,7 +68,7 @@ Released under the GNU General Public License v3.0 (see `LICENSE` file)::
    Han Zhang <aynhzhanghan@gmail.com>
 
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=Travis-CI
-   :target: https://travis-ci.org/computational-metabolomics/beams
+   :target: https://travis-ci.com/computational-metabolomics/beams
 
 .. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/computational-metabolomics/mzml2isa.svg?style=flat&maxAge=3600&label=AppVeyor
    :target: https://ci.appveyor.com/project/computational-metabolomics/beams
