@@ -2,7 +2,7 @@ beams
 ========
 |Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc|
 
-beams is a Python Package to annotate LC-MS and DIMS data
+BEAMS is a Python Package to annotate LC-MS and DIMS data
 
 - **Documentation:** https://computational-metabolomics.github.io/beams
 - **Source:** https://github.com/computational-metabolomics/beams
@@ -15,24 +15,23 @@ Conda_
 ~~~~~~~
 
 1. Install Conda_ (For example: `Miniconda Python distribution <http://conda.pydata.org/miniconda.html>`__).
-2. Run the following commands to install beams.
-
-Linux-64 and OSx
-
-::
-
-    $ conda create -n beams python=2.7 numpy=1.13.0 scipy=0.19.1 c conda-forge
-    $ source activate beams  
-    $ pip install git+https://github.com/computational-metabolomics/beams.git
+2. Run the following commands to install BEAMS.
 
 Windows-64
 
 ::
 
-    $ conda create -n beams python=2.7 numpy=1.13.0 scipy=0.19.1 -c conda-forge
+    $ conda create -n beams python=2.7 -y --name beams python=2.7 numpy scipy networkx requests pandas -c conda-forge
     $ activate beams
-    $ pip install git+https://github.com/computational-metabolomics/beams.git
+    $ pip install git+https://github.com/computational-metabolomics/beams.git@dev
 
+Linux-64 and OSx
+
+::
+
+    $ conda create -n beams python=2.7 -y --name beams python=2.7 numpy scipy networkx requests pandas pyqt -c conda-forge
+    $ source activate beams
+    $ pip install git+https://github.com/computational-metabolomics/beams.git@dev
 
 Usage
 ------
@@ -42,7 +41,14 @@ Command line
 
 ::
 
-    $ python -m beams --help
+    $ beams --help
+
+GUI
+~~~~~~~~~~~~~
+
+::
+
+    $ beams start-gui
 
 Bugs
 ----
@@ -57,10 +63,9 @@ License
 
 Released under the GNU General Public License v3.0 (see `LICENSE` file)::
 
-   Copyright (C) 2017 putmetid Developers
-   Han Zhang <aynhzhanghan@gmail.com>
+   Copyright (C) 2017 BEAMS Developers
    Ralf J.M. Weber <r.j.weber@bham.ac.uk>   
-   
+   Han Zhang <aynhzhanghan@gmail.com>
 
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.org/computational-metabolomics/beams
