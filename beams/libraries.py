@@ -93,7 +93,7 @@ class Adducts:
             if name in self.lib:
                 self.lib.remove(name)
             else:
-                print "Entry not in library"
+                print("Entry not in library")
 
     def __str__(self):
         out = "Adducts in library\n"
@@ -143,7 +143,7 @@ class Isotopes:
                 if label_x in item or label_y in item:
                     self.lib.remove(item)
             else:
-                print "Entry not in library"
+                print("Entry not in library")
 
     def __str__(self):
         out = "Isotopes in library:\n"
@@ -180,7 +180,7 @@ class MultipleChargedDifferences:
             if name in self.lib:
                 self.lib.remove(name)
             else:
-                print "Entry not in library"
+                print("Entry not in library")
 
     def __str__(self):
         out = "Multiple charge ions in library\n"
@@ -222,7 +222,7 @@ class MultipleChargedIons:
             if name in self.lib:
                 self.lib.remove(name)
             else:
-                print "Entry not in library"
+                print("Entry not in library")
 
     def __str__(self):
         out = "Multiple charge ions in library\n"
@@ -263,7 +263,7 @@ class MassDifferences:
                 if label_x in item or label_y in item:
                     self.lib.remove(item)
             else:
-                print "Entry not in library"
+                print("Entry not in library")
 
     def __str__(self):
         out = "Mass differences in library:\n"
@@ -278,7 +278,7 @@ class MassDifferences:
 
 class Formula:
 
-    def __init__(self, formula, atoms, adducts, isotopes = []):
+    def __init__(self, formula, atoms, adducts, isotopes=[]):
 
         self.atoms = atoms
         self.adducts = adducts
@@ -352,7 +352,7 @@ class Formula:
 
         if len(self.temp_formula) > 0:
             if debug == 1:
-                print "Wrong Format Before:", self.formula, "After:", self.temp_formula
+                print("Wrong Format Before:", self.formula, "After:", self.temp_formula)
             for atom in self.atoms.lib:
                 self.count_atoms[atom] = 0
             for adduct in self.adducts.lib:

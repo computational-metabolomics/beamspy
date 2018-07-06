@@ -93,7 +93,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                     pairs.append([intens_filt_i, intens_filt_j])
 
                     if len(pairs) == block * ncpus:
-                        print "Calculating correlations for {} pairs (subset)".format(len(pairs))
+                        print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
                         coeffs = _cc_pp_(pairs, method, ncpus)
                         for k in range(len(coeffs)):
                             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
@@ -103,7 +103,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                 break
 
     if len(pairs) > 0:
-        print "Calculating correlations for {} pairs (subset)".format(len(pairs))
+        print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
         coeffs = _cc_pp_(pairs, method, ncpus)
         for k in range(len(coeffs)):
             if coeffs[k][0] > coeff_thres and (coeffs[k][1] < pvalue_thres or pvalue_thres is None):
@@ -162,13 +162,13 @@ def main():
     df = df[0:50]
     coeffs = correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=None, method="pearson")
     end = time.time()
-    print 'Multithreaded %f %i' % (end - start, len(coeffs))
+    print('Multithreaded %f %i' % (end - start, len(coeffs)))
 
     start = time.time()
     graphs = correlation_graphs(coeffs, db_out)
 
     end = time.time()
-    print 'Graphs %f %i' % (end - start, len(graphs))
+    print('Graphs %f %i' % (end - start, len(graphs)))
 
 if __name__ == "__main__":
     main()

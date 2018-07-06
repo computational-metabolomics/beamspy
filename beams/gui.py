@@ -289,7 +289,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         lib_ion_mode = {"Positive": "pos", "Negative": "neg"}
 
         if self.checkBox_group_features.isChecked():
-            print "Grouping features...."
+            print("Grouping features....")
             if self.comboBox_grouping_method.currentText() == "Pearson correlation":
                 method = "pearson"
             else:
@@ -304,10 +304,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                             method=method,
                                             ncpus=None)
             nx.write_gml(graph, str(self.lineEdit_graph.text()))
-            print "Done"
-            print
+            print("Done")
+            print("")
         if self.checkBox_annotate_peak_patterns.isChecked():
-            print "Annotating peak patterns...."
+            print("Annotating peak patterns....")
             if str(self.lineEdit_graph.text()) != "":
                 inp = nx.read_gml(str(self.lineEdit_graph.text()))
             else:
@@ -315,7 +315,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             if self.checkBox_adduct_library.isChecked():
 
-                print "Adducts....",
+                print("Adducts...."),
 
                 if self.lineEdit_adduct_library.text() == "Use default":
                     path = 'data/adducts.txt'
@@ -332,10 +332,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts or 'Use default'", QtWidgets.QMessageBox.Ok)
                 annotation.annotate_adducts(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
-                print "Done"
+                print("Done")
 
             if self.checkBox_isotopes.isChecked():
-                print "Isotopes....",
+                print("Isotopes...."),
                 if self.lineEdit_isotopes.text() == "Use default":
                     path = 'data/isotopes.txt'
                     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
@@ -346,10 +346,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for isotopes or 'Use default'", QtWidgets.QMessageBox.Ok)
                 annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
-                print "Done"
+                print("Done")
 
             if self.checkBox_multiple_charged.isChecked():
-                print "Multiple charged ions....",
+                print("Multiple charged ions...."),
                 if self.lineEdit_multiple_charged.text() == "Use default":
                     path = 'data/multiple_charged_ions.txt'
                     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
@@ -359,10 +359,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for multiple charged ions or 'Use default'", QtWidgets.QMessageBox.Ok)
                 annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
-                print "Done"
+                print("Done")
 
             if self.checkBox_oligomers.isChecked():
-                print "Oligomers....",
+                print("Oligomers...."),
                 if self.lineEdit_default_adduct_library.text() == "Use default":
                     path = 'data/adducts.txt'
                     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
@@ -378,11 +378,11 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
                 inp = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
                 annotation.annotate_oligomers(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib, maximum=self.spinBox_max_monomer_units.value())
-                print "Done"
+                print("Done")
             print
 
         if self.checkBox_annotate_molecular_formulae.isChecked():
-            print "Annotating molecular formulae....",
+            print("Annotating molecular formulae...."),
             df = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
             if self.lineEdit_default_adduct_library.text() == "Use default":
                 path = 'data/adducts.txt'
@@ -414,10 +414,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                    db_in=db_in,
                                                    rules=rules,
                                                    max_mz=max_mz)
-            print "Done"
-            print
+            print("Done")
+            print("")
         if self.checkBox_annotate_compounds.isChecked():
-            print "Annotating compounds....",
+            print("Annotating compounds...."),
             df = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
 
             if self.lineEdit_default_adduct_library.text() == "Use default":
@@ -439,14 +439,14 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             else:
                 path = 'data/BEAMS_DB.sqlite'
                 path_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                print path_db
+                print(path_db)
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(), db_out=self.lineEdit_sql_database.text(), db_in=path_db, db_name=db_name.text())
-            print "Done"
+            print("Done")
             print
 
         if self.checkBox_create_summary.isChecked():
-            print "Creating summary....",
+            print("Creating summary...."),
             if self.checkBox_convert_rt.isChecked():
                 lib = {"Seconds": "sec", "Minutes": "min"}
                 convert_rt = lib[self.comboBox_convert_rt.currentText()]
@@ -480,7 +480,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             separators = {"tab": "\t", "comma": ","}
             df_out.to_csv(self.lineEdit_summary_filename.text(), sep=separators[self.comboBox_separator.currentText()], index=False)
-            print "Done"
-            print
+            print("Done")
+            print("")
 
         self.close()

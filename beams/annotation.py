@@ -380,7 +380,7 @@ def annotate_oligomers(peaklist, db_out, ppm, lib, maximum=2):
                     min_tol_b, max_tol_b = calculate_mz_tolerance(peaklist.iloc[j][1], ppm)
 
                     if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
-                        #print peaklist.iloc[i][1], peaklist.iloc[j][1], adduct
+                        #print(peaklist.iloc[i][1], peaklist.iloc[j][1], adduct)
                         break
 
                     min_tol_a = min_tol_a - lib.lib[adduct]

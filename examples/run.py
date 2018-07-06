@@ -24,7 +24,7 @@ def main():
     db_out = "../tests/test_data/results.sqlite"
 
     #df = df[0:700]
-    #print df
+    #print(df)
     #graph = group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=None, method="pearson")
 
     #nx.write_gml(graph, "../tests/test_data/graph.gml")
@@ -38,9 +38,9 @@ def main():
     fn_cpds = "../beams/data/trimMMD_sortMF.txt"
     fn_sql_db = "../beams/data/MIDB_260916.sqlite"
 
-    print lib_isotopes
-    print lib_adducts
-    print lib_multiple_charged_ions
+    print(lib_isotopes)
+    print(lib_adducts)
+    print(lib_multiple_charged_ions)
 
     ppm = 5.0
 
