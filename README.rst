@@ -4,7 +4,7 @@ BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
 
 BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
 
-- |documentation|
+- Documentation (Available soon)
 - |source|
 - |bug reports|
 
