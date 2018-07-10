@@ -7,10 +7,10 @@ import pandas as pd
 def mf_dict_to_str(d):
     mf = ""
     for atom in ["C", "H", "N", "O", "P", "S"]:
-        if d[atom] > 0:
+        if d[atom] > 1:
             mf += atom + str(d[atom])
         elif d[atom] == 1:
-            mf += str(d[atom])
+            mf += atom
     return mf
 
 
