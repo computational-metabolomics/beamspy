@@ -338,7 +338,11 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
             y = abundances[assignment["label_a"]]["abundance"] * source.iloc[assignment["peak_id_b"]][3]
             x = abundances[assignment["label_b"]]["abundance"] * source.iloc[assignment["peak_id_a"]][3]
-            atoms = y/x
+            
+            if x == 0.0 or y == 0.0:
+                atoms = None
+            else:
+                atoms = y/x
 
             cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, atoms, ppm_error)
                            values (?,?,?,?,?,?)""", (source.iloc[assignment["peak_id_a"]][0], source.iloc[assignment["peak_id_b"]][0],
