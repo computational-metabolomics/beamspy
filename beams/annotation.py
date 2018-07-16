@@ -791,21 +791,54 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         unions_cpd_sub_query = ""
 
     if flag_mf and flag_cpd:
-        mf_cpc_columns = "".join(map(str, [", mf.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", ct.compound_name as compound_name, ct.compound_id as compound_id"
-        unions_cpd_sub_query += " ON mf.molecular_formula = ct.molecular_formula AND mf.adduct = ct.adduct"
+
+        unions_cpd_query = "CREATE TEMP TABLE compounds AS select * from "
+        unions_cpd_query += " union select * from ".join(map(str, cpd_tables))
+        print unions_cpd_query
+
+        cursor.execute(unions_cpd_query)
+        unions_cpd_sub_query = ""
+
+        query = """CREATE TEMP TABLE mf_cd as
+                   SELECT mf.id, mf.exact_mass, mf.ppm_error, mf.adduct, mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
+                   mf.molecular_formula, cpds.compound_name, cpds.compound_id
+                   FROM molecular_formulae as mf
+                   LEFT JOIN compounds as cpds
+                   ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
+                   UNION
+                   SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.adduct, cpds.C, cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
+                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id
+                   FROM compounds as cpds
+                   LEFT JOIN molecular_formulae as mf
+                   ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
+                   WHERE mf.molecular_formula IS NULL"""
+
+        cursor.execute(query)
+
+        # mf_cpc_columns = "".join(map(str, [", mf.{} as {}".format(c, c) for c in columns]))
+        # mf_cpc_columns += ", ct.compound_name as compound_name, ct.compound_id as compound_id"
+        # unions_cpd_sub_query += " ON mf.molecular_formula = ct.molecular_formula AND mf.adduct = ct.adduct"
+        # if flag_amo:
+        #    union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON (peaklist.name = mf.id and peak_labels.label = mf.adduct)"
+        #     union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf.id and label = mf.adduct))"
+        # else:
+        #     union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON peaklist.name = mf.id"
+
+        mf_cpc_columns = "".join(map(str, [", mf_cd.{} as {}".format(c, c) for c in columns]))
+        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id"
         if flag_amo:
-            union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON (peaklist.name = mf.id and peak_labels.label = mf.adduct)"
-            union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL)"
+            union_mf_sub_query = "LEFT JOIN mf_cd ON (peaklist.name = mf_cd.id and peak_labels.label = mf_cd.adduct)"
+            union_mf_sub_query += " OR (peaklist.name = mf_cd.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf_cd.id and label = mf_cd.adduct))"
         else:
-            union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON peaklist.name = mf.id"
+            union_mf_sub_query = "LEFT JOIN mf_cd ON peaklist.name = mf_cd.id"
+
 
     elif not flag_mf and flag_cpd:
         mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
         mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id"
         if flag_amo:
             unions_cpd_sub_query += " ON (peaklist.name = ct.id AND peak_labels.label = adduct)"
-            unions_cpd_sub_query += " OR (peaklist.name = ct.id AND peak_labels.label is NULL)"
+            unions_cpd_sub_query += " OR (peaklist.name = ct.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = ct.id and label = ct.adduct))"
         else:
             unions_cpd_sub_query += " ON peaklist.name = ct.id"
         union_mf_sub_query = ""
@@ -815,7 +848,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         if flag_amo:
             union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf"
             union_mf_sub_query += " ON (peaklist.name = mf.id AND peak_labels.label = mf.adduct)"
-            union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL)"
+            union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf.id and label = mf.adduct))"
         else:
             union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf"
             union_mf_sub_query += " ON peaklist.name = mf.id"
@@ -839,7 +872,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                ON peaklist.name = peak_labels.peak_id
                {}
                {}
-               ORDER BY peaklist.rt""".format(pl_columns, mf_cpc_columns, union_mf_sub_query, unions_cpd_sub_query)
+               ORDER BY peaklist.rt, peaklist.mz""".format(pl_columns, mf_cpc_columns, union_mf_sub_query, unions_cpd_sub_query)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
