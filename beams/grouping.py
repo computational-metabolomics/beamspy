@@ -25,15 +25,20 @@ def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=No
                    mz_diff decimal(12,2) DEFAULT NULL,                 
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
-    coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, block, ncpus)
-    graph = statistics.correlation_graphs(coeffs, df)
+    df_coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, block, ncpus)
+    graph = statistics.correlation_graphs(df_coeffs, df)
     sub_graphs = list(nx.weakly_connected_component_subgraphs(graph))
     for i in range(len(sub_graphs)):
+        sub_graphs[i].graph["group_id"] = i + 1 # not stored in output - place holder
+        sub_graph_edges = []
         for edge in sub_graphs[i].edges(data=True):
-            cursor.execute("""insert into groups (group_id, peak_id_a, peak_id_b, degree_a, degree_b, 
-                              r_value, p_value, rt_diff, mz_diff) values (?,?,?,?,?,?,?,?,?)""", (
-                              i+1, str(edge[0]), str(edge[1]), sub_graphs[i].degree(edge[0]), sub_graphs[i].degree(edge[1]),
-                              round(float(edge[2]["rvalue"]), 2), float(edge[2]["pvalue"]), float(edge[2]["rtdiff"]), float(edge[2]["mzdiff"])))
+            sub_graph_edges.append((i+1,
+                                    str(edge[0]), str(edge[1]),
+                                    sub_graphs[i].degree(edge[0]), sub_graphs[i].degree(edge[1]),
+                                    round(float(edge[2]["rvalue"]), 2), float(edge[2]["pvalue"]),
+                                    float(edge[2]["rtdiff"]), float(edge[2]["mzdiff"])))
+        cursor.executemany("""insert into groups (group_id, peak_id_a, peak_id_b, degree_a, degree_b,
+                              r_value, p_value, rt_diff, mz_diff) values (?,?,?,?,?,?,?,?,?)""", sub_graph_edges)
     conn.commit()
     conn.close()
     return graph

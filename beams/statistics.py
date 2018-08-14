@@ -65,7 +65,10 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
     if ncpus is None:
         ncpus = cpu_count() - 1
 
-    coefs_pvalues, pairs, peaks = [], [], []
+    column_names = ["name_a", "name_b", "r_value", "p_value"]
+    df_coeffs = pd.DataFrame(columns=column_names)
+
+    pairs, peaks = [], []
     n = len(df.iloc[:, 0])
 
     for i in range(n):
@@ -97,7 +100,8 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                         coeffs = _cc_pp_(pairs, method, ncpus)
                         for k in range(len(coeffs)):
                             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
-                                coefs_pvalues.append([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1], peaks[k][2]])
+                                s = pd.Series([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1]], index=column_names)
+                                df_coeffs = df_coeffs.append(s, ignore_index=True) # pandas append
                         pairs, peaks = [], []
             else:
                 break
@@ -107,47 +111,33 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
         coeffs = _cc_pp_(pairs, method, ncpus)
         for k in range(len(coeffs)):
             if coeffs[k][0] > coeff_thres and (coeffs[k][1] < pvalue_thres or pvalue_thres is None):
-                coefs_pvalues.append([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1], peaks[k][2]])
-    return coefs_pvalues
+                s = pd.Series([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1]], index=column_names)
+                df_coeffs = df_coeffs.append(s, ignore_index=True)
+
+    return df_coeffs
 
 
-def correlation_graphs(coeffs_pvalues, df):
-    G = nx.OrderedDiGraph()
-    for cp in coeffs_pvalues:
-        mz_a = float(df.loc[df['name'] == cp[0]].values[0][1]) #mz
-        mz_b = float(df.loc[df['name'] == cp[1]].values[0][1]) #mz
+def correlation_graphs(df_coeffs, df):
 
-        inten_a = float(df.loc[df['name'] == cp[0]].values[0][3]) #intensity
-        inten_b = float(df.loc[df['name'] == cp[1]].values[0][3]) #intensity
-        G.add_node(str(cp[0]), mz=mz_a, intensity=inten_a)
-        G.add_node(str(cp[1]), mz=mz_b, intensity=inten_b)
+    df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_a'], right_on=['name'])
+    df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_b'], right_on=['name'])
 
-        if "rt" in df.columns.values:
-            G.node[str(cp[0])]["rt"] = float(df.loc[df['name'] == cp[0]].values[0][2])
-            G.node[str(cp[1])]["rt"] = float(df.loc[df['name'] == cp[1]].values[0][2])
-        else:
-            G.node[str(cp[0])]["rt"] = 0.0
-            G.node[str(cp[1])]["rt"] = 0.0
+    graphs = nx.OrderedDiGraph()
+    for index, row in df_coeffs.iterrows():
+        graphs.add_node(str(row["name_a"]), mz=row["mz_x"], intensity=row["intensity_x"], rt=row["rt_x"])
+        graphs.add_node(str(row["name_b"]), mz=row["mz_y"], intensity=row["intensity_y"], rt=row["rt_y"])
 
-        mz_diff = mz_a - mz_b
+        mz_diff = row["mz_x"] - row["mz_y"]
 
         if mz_diff < 0:
-            G.add_edge(str(cp[0]), str(cp[1]), rvalue=float(cp[2]), pvalue=float(cp[3]), mzdiff=abs(mz_diff))
-            if "rt" in df.columns.values:
-                G[str(cp[0])][str(cp[1])]['rtdiff'] = float(cp[4])
-            else:
-                G[str(cp[0])][str(cp[1])]['rtdiff'] = 0.0
+            graphs.add_edge(str(row["name_a"]), str(row["name_b"]), rvalue=row["r_value"], pvalue=row["p_value"],
+                       mzdiff=abs(row["mz_x"]-row["mz_y"]), rtdiff=abs(row["rt_x"]-row["rt_y"]))
         else:
-            G.add_edge(str(cp[1]), str(cp[0]), rvalue=float(cp[2]), pvalue=float(cp[3]), mzdiff=abs(mz_diff))
-            if "rt" in df.columns.values:
-                G[str(cp[1])][str(cp[0])]['rtdiff'] = float(cp[4])
-            else:
-                G[str(cp[1])][str(cp[0])]['rtdiff'] = 0.0
-
-    return G
+            graphs.add_edge(str(row["name_b"]), str(row["name_a"]), rvalue=row["r_value"], pvalue=row["p_value"],
+                       mzdiff=abs(row["mz_x"] - row["mz_y"]), rtdiff=abs(row["rt_x"] - row["rt_y"]))
+    return graphs
 
 
-# TODO: ADD to tests
 def main():
 
     import in_out
