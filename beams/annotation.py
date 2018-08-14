@@ -61,7 +61,6 @@ def _annotate_artifacts(peaklist, diff=0.02):
 
 
 def _check_tolerance(mz_x, mz_y, lib_pair, ppm):
-
     min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x, ppm)
     min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
     if "mass_difference" in lib_pair.keys():
@@ -358,7 +357,7 @@ def annotate_isotopes(source, db_out, ppm, lib):
     return
 
 
-def annotate_oligomers(peaklist, db_out, ppm, lib, maximum=2):
+def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -376,42 +375,92 @@ def annotate_oligomers(peaklist, db_out, ppm, lib, maximum=2):
                    ppm_error float DEFAULT NULL,
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
-    n = len(peaklist.iloc[:,0])
-    for adduct in lib.lib.keys():
+    if isinstance(source, nx.classes.digraph.DiGraph):
+        source = list(nx.weakly_connected_component_subgraphs(source))
 
-        for i in range(n):
+    if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
 
-            for d in range(1, maximum):
-                for j in range(i + 1, n):
+        for graph in source:
 
-                    min_tol_a, max_tol_a = calculate_mz_tolerance(peaklist.iloc[i][1] + ((peaklist.iloc[i][1] - lib.lib[adduct]) * d), ppm)
-                    min_tol_b, max_tol_b = calculate_mz_tolerance(peaklist.iloc[j][1], ppm)
+            for n in graph.nodes():
 
-                    if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
-                        #print(peaklist.iloc[i][1], peaklist.iloc[j][1], adduct)
-                        break
+                neighbors = list(graph.neighbors(n))
 
-                    min_tol_a = min_tol_a - lib.lib[adduct]
-                    max_tol_a = max_tol_a - lib.lib[adduct]
+                for d in range(1, len(neighbors)+1):
 
-                    min_tol_b = min_tol_b - lib.lib[adduct]
-                    max_tol_b = max_tol_b - lib.lib[adduct]
+                    for nn in neighbors:
 
-                    if min_tol_a < max_tol_b and min_tol_b < max_tol_a:
+                        mz_x = graph.node[n]["mz"]
+                        mz_y = graph.node[nn]["mz"]
 
-                        a = (peaklist.iloc[i][1] - lib.lib[adduct]) + (peaklist.iloc[i][1] - lib.lib[adduct]) * d
-                        b = peaklist.iloc[j][1] - lib.lib[adduct]
+                        if mz_x < mz_y:
 
-                        ratio = (peaklist.iloc[j][1] - lib.lib[adduct]) / (peaklist.iloc[i][1] - lib.lib[adduct])
-                        ppm_error = calculate_ppm_error(a, b)
+                            for adduct in lib.lib.keys():
 
-                        if "M" in adduct:
-                            adduct_oligo = adduct.replace("M", "{}M".format(int(round(ratio))))
-                        else:
-                            adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
+                                min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x + ((mz_x - lib.lib[adduct]) * d), ppm)
+                                min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
 
-                        cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
-                                       values (?,?,?,?,?,?,?,?)""", (i, j, peaklist.iloc[i][1], peaklist.iloc[j][1], adduct, adduct_oligo, ratio, ppm_error))
+                                if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
+                                    #print(source.iloc[i][1], source.iloc[j][1], adduct)
+                                    break
+
+                                min_tol_a = min_tol_a - lib.lib[adduct]
+                                max_tol_a = max_tol_a - lib.lib[adduct]
+
+                                min_tol_b = min_tol_b - lib.lib[adduct]
+                                max_tol_b = max_tol_b - lib.lib[adduct]
+
+                                if min_tol_a < max_tol_b and min_tol_b < max_tol_a:
+
+                                    a = (mz_x - lib.lib[adduct]) + (mz_x - lib.lib[adduct]) * d
+                                    b = mz_y - lib.lib[adduct]
+
+                                    ratio = (mz_y - lib.lib[adduct]) / (mz_x - lib.lib[adduct])
+                                    ppm_error = calculate_ppm_error(a, b)
+
+                                    if "M" in adduct:
+                                        adduct_oligo = adduct.replace("M", "{}M".format(int(round(ratio))))
+                                    else:
+                                        adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
+
+                                    cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
+                                                   values (?,?,?,?,?,?,?,?)""", (n, nn, mz_x, mz_y, adduct, adduct_oligo, ratio, ppm_error))
+
+    elif isinstance(source, pd.core.frame.DataFrame):
+
+        n = len(source.iloc[:,0])
+        for adduct in lib.lib.keys():
+            for i in range(n):
+                for d in range(1, maximum):
+                    for j in range(i + 1, n):
+
+                        min_tol_a, max_tol_a = calculate_mz_tolerance(source.iloc[i][1] + ((source.iloc[i][1] - lib.lib[adduct]) * d), ppm)
+                        min_tol_b, max_tol_b = calculate_mz_tolerance(source.iloc[j][1], ppm)
+
+                        if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
+                            #print(source.iloc[i][1], source.iloc[j][1], adduct)
+                            break
+
+                        min_tol_a = min_tol_a - lib.lib[adduct]
+                        max_tol_a = max_tol_a - lib.lib[adduct]
+
+                        min_tol_b = min_tol_b - lib.lib[adduct]
+                        max_tol_b = max_tol_b - lib.lib[adduct]
+
+                        if min_tol_a < max_tol_b and min_tol_b < max_tol_a:
+
+                            a = (source.iloc[i][1] - lib.lib[adduct]) + (source.iloc[i][1] - lib.lib[adduct]) * d
+                            b = source.iloc[j][1] - lib.lib[adduct]
+
+                            ratio = (source.iloc[j][1] - lib.lib[adduct]) / (source.iloc[i][1] - lib.lib[adduct])
+                            ppm_error = calculate_ppm_error(a, b)
+
+                            if "M" in adduct:
+                                adduct_oligo = adduct.replace("M", "{}M".format(int(round(ratio))))
+                            else:
+                                adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
+                            cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
+                                           values (?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo, ratio, ppm_error))
     conn.commit()
     conn.close()
     return
