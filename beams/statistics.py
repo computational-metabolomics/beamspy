@@ -94,7 +94,6 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                 if len(intens_filt_i) > 3 and len(intens_filt_j) > 3:
                     peaks.append([df.iloc[i, 0], df.iloc[j, 0], rt_diff])
                     pairs.append([intens_filt_i, intens_filt_j])
-
                     if len(pairs) == block * ncpus:
                         print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
                         coeffs = _cc_pp_(pairs, method, ncpus)
@@ -110,10 +109,9 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
         print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
         coeffs = _cc_pp_(pairs, method, ncpus)
         for k in range(len(coeffs)):
-            if coeffs[k][0] > coeff_thres and (coeffs[k][1] < pvalue_thres or pvalue_thres is None):
+            if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
                 s = pd.Series([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1]], index=column_names)
                 df_coeffs = df_coeffs.append(s, ignore_index=True)
-
     return df_coeffs
 
 
