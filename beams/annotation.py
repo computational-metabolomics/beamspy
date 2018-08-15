@@ -51,7 +51,7 @@ def _prep_lib(lib):
 
 
 def _annotate_artifacts(peaklist, diff=0.02):
-    n = peaklist.iloc[:,1]
+    n = peaklist.iloc[:, 1]
     for i in range(n):
         for j in range(i + 1, n):
             mz_diff = peaklist.iloc[i,1] - peaklist.iloc[j,1]
@@ -128,7 +128,6 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs):
 
 
 def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
-    ct = 0
     n = len(peaklist.iloc[:,1])
     for i in range(n):
         for j in range(i + 1, n):
@@ -155,7 +154,7 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
                             (peaklist.iloc[i,1] - lib_pair.items()[0][1]["mass"]) * lib_pair.items()[0][1]["charge"],
                             (peaklist.iloc[j,1] - lib_pair.items()[1][1]["mass"]) * lib_pair.items()[1][1]["charge"])
 
-                    yield OrderedDict([("peak_id_a", i), ("peak_id_b", j),
+                    yield OrderedDict([("peak_id_a", peaklist.iloc[i,0]), ("peak_id_b", peaklist.iloc[j,0]),
                                        ("label_a", lib_pair.keys()[0]),
                                        ("label_b", lib_pair.keys()[1]),
                                        ('charge_a', charge_a),
@@ -282,7 +281,7 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
     elif isinstance(source, pd.core.frame.DataFrame):
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
             cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
-                           values (?,?,?,?,?)""", (source.iloc[assignment["peak_id_a"]][0], source.iloc[assignment["peak_id_b"]][0],
+                           values (?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
                                                    assignment["label_a"], assignment["label_b"], assignment["ppm_error"]))
     conn.commit()
     conn.close()
@@ -339,16 +338,16 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
 
-            y = abundances[assignment["label_a"]]["abundance"] * source.iloc[assignment["peak_id_b"]][3]
-            x = abundances[assignment["label_b"]]["abundance"] * source.iloc[assignment["peak_id_a"]][3]
-            
+            y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
+            x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
+
             if x == 0.0 or y == 0.0:
                 atoms = None
             else:
                 atoms = y/x
 
             cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, atoms, ppm_error)
-                           values (?,?,?,?,?,?)""", (source.iloc[assignment["peak_id_a"]][0], source.iloc[assignment["peak_id_b"]][0],
+                           values (?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
                            assignment["label_a"], assignment["label_b"], atoms, assignment["ppm_error"]))
             conn.commit()
 
@@ -488,12 +487,12 @@ def annotate_artifacts(source, db_out, diff):
             peaklist = graph.nodes(data=True)
             for assignment in _annotate_artifacts(peaklist, diff=diff):
                 cursor.execute("""insert into artifacts (peak_id_a, peak_id_b, mz_diff, ppm_error)
-                               values (?,?,?,?)""", (source[assignment["peak_id_a"]][0], source[assignment["peak_id_b"]][0], assignment["label_a"], assignment["label_b"]))
+                               values (?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"], assignment["label_a"], assignment["label_b"]))
 
     elif isinstance(source, pd.core.frame.DataFrame):
         for assignment in _annotate_artifacts(source, diff=diff):
             cursor.execute("""insert into artifacts (peak_id_a, peak_id_b, mz_diff, ppm_error)
-                           values (?,?,?,?)""", (source[assignment["peak_id_a"]][0], source[assignment["peak_id_b"]][0], assignment["label_a"], assignment["label_b"]))
+                           values (?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"], assignment["label_a"], assignment["label_b"]))
 
     conn.commit()
     return
@@ -532,7 +531,7 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
     elif isinstance(source, pd.core.frame.DataFrame):
         for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
             cursor.execute("""INSERT OR REPLACE into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
-                           values (?,?,?,?,?,?,?)""", (source[assignment["peak_id_a"]][0], source[assignment["peak_id_b"]][0],
+                           values (?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
                                                        assignment["label_a"], assignment["label_b"], assignment["charge_a"], assignment["charge_b"], assignment["ppm_error"]))
     conn.commit()
     conn.close()
