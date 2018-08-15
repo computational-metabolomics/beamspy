@@ -65,7 +65,7 @@ def read_molecular_formulae(filename, separator="\t"):
     for index, row in df.iterrows():
         f = libraries.Formula(str(row.mf), atoms, ions, isotopes)
         record = collections.OrderedDict()
-        atom_counts = f.count()
+        atom_counts = f.count(debug=1)
         if atom_counts:
             record.update(atom_counts[0])
             record["ExactMass"] = f.calc_mass()[0]
@@ -191,7 +191,7 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
         else:
             df_peaklist = df_peaklist[[mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "intensity"]
-            df_peaklist.insert(0, "name", df_peaklist[mapping["mz"]].astype(str).str.replace(".","_"))
+            df_peaklist.insert(0, "name", [str(x).replace(".","_") for x in df_peaklist[mapping["mz"]]])
         df_peaklist.insert(2, "rt", 0.0)
     elif "rt" in mapping:
         if mapping["name"] in df_peaklist.columns.values:
