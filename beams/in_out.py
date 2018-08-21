@@ -179,7 +179,6 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
     df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator)
-
     if mapping["mz"] not in df_peaklist.columns.values or mapping["intensity"] not in df_peaklist.columns.values:
         raise ValueError("Incorrect mapping of columns: {}".format(str(mapping)))
 
@@ -196,7 +195,7 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
     elif "rt" in mapping:
         if mapping["name"] in df_peaklist.columns.values:
             df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
-            df_peaklist.columns = ["name", "mz", "intensity"]
+            df_peaklist.columns = ["name", "mz", "rt", "intensity"]
             df_peaklist["name"] = df_peaklist["name"].astype(str)
         else:
             df_peaklist = df_peaklist[[mapping["mz"], mapping["rt"], mapping["intensity"]]]

@@ -5,7 +5,6 @@ import numpy as np
 import scipy.stats
 from multiprocessing import Pool, cpu_count
 import networkx as nx
-import time
 import pandas as pd
 
 
@@ -99,7 +98,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                         coeffs = _cc_pp_(pairs, method, ncpus)
                         for k in range(len(coeffs)):
                             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
-                                s = pd.Series([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1]], index=column_names)
+                                s = pd.Series([peaks[k][0], peaks[k][1], round(coeffs[k][0], 2), coeffs[k][1]], index=column_names)
                                 df_coeffs = df_coeffs.append(s, ignore_index=True) # pandas append
                         pairs, peaks = [], []
             else:
@@ -110,13 +109,12 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
         coeffs = _cc_pp_(pairs, method, ncpus)
         for k in range(len(coeffs)):
             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
-                s = pd.Series([peaks[k][0], peaks[k][1], coeffs[k][0], coeffs[k][1]], index=column_names)
+                s = pd.Series([peaks[k][0], peaks[k][1], round(coeffs[k][0], 2), coeffs[k][1]], index=column_names)
                 df_coeffs = df_coeffs.append(s, ignore_index=True)
     return df_coeffs
 
 
 def correlation_graphs(df_coeffs, df):
-
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_a'], right_on=['name'])
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_b'], right_on=['name'])
 
@@ -134,29 +132,3 @@ def correlation_graphs(df_coeffs, df):
             graphs.add_edge(str(row["name_b"]), str(row["name_a"]), rvalue=row["r_value"], pvalue=row["p_value"],
                        mzdiff=abs(row["mz_x"] - row["mz_y"]), rtdiff=abs(row["rt_x"] - row["rt_y"]))
     return graphs
-
-
-def main():
-
-    import in_out
-
-    start = time.time()
-
-    fn_peaklist = "../tests/test_data/variableMetadata.txt"
-    fn_matrix = "../tests/test_data/dataMatrix.txt"
-    db_out = "../tests/test_data/test.db"
-
-    df = in_out.read_lcms_data(fn_peaklist, fn_matrix)
-    df = df[0:50]
-    coeffs = correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=None, method="pearson")
-    end = time.time()
-    print('Multithreaded %f %i' % (end - start, len(coeffs)))
-
-    start = time.time()
-    graphs = correlation_graphs(coeffs, db_out)
-
-    end = time.time()
-    print('Graphs %f %i' % (end - start, len(graphs)))
-
-if __name__ == "__main__":
-    main()
