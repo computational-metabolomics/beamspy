@@ -9,7 +9,9 @@ from beams.grouping import group_features
 from beams.in_out import *
 from beams.annotation import *
 
+
 class AnnotationTest(unittest.TestCase):
+
     def setUp(self):
 
         self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_theoretical.txt"))
@@ -68,3 +70,5 @@ class AnnotationTest(unittest.TestCase):
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"), sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
 
+if __name__ == '__main__':
+    unittest.main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 import unittest
-from utils import to_test_data, create_matrix
+from utils import to_test_data
 from beams.in_out import read_peaklist, combine_peaklist_matrix
 
 
@@ -48,3 +48,6 @@ class InOutTestCase(unittest.TestCase):
 
         self.assertEqual(df["intensity"].iloc[0], 1421.775)
         self.assertEqual(df["intensity"].iloc[-1], 4549.65)
+
+if __name__ == '__main__':
+    unittest.main()

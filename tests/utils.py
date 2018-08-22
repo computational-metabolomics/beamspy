@@ -2,14 +2,10 @@
 #  -*- coding: utf-8 -*-
 import os
 import sqlite3
-import numpy as np
-import pandas as pd
-from beams.in_out import read_peaklist
 
 
 def to_test_data(*args):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_data", *args)
-
 
 def to_test_results(*args):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_results", *args)
