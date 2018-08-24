@@ -67,7 +67,7 @@ Released under the GNU General Public License v3.0 (see `LICENSE` file)::
    Ralf J.M. Weber <r.j.weber@bham.ac.uk>   
    Han Zhang <aynhzhanghan@gmail.com>
 
-.. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=Travis-CI
+.. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?branch=dev&style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.com/computational-metabolomics/beams
 
 .. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/RJMW/beams.svg?style=flat&maxAge=3600&label=AppVeyor
