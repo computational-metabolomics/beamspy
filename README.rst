@@ -70,8 +70,8 @@ Released under the GNU General Public License v3.0 (see `LICENSE` file)::
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.com/computational-metabolomics/beams
 
-.. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/computational-metabolomics/beams.svg?style=flat&maxAge=3600&label=AppVeyor
-   :target: https://ci.appveyor.com/project/computational-metabolomics/beams
+.. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/RJMW/beams.svg?style=flat&maxAge=3600&label=AppVeyor
+   :target: https://ci.appveyor.com/project/RJMW/beams
 
 .. |Py versions| image:: https://img.shields.io/pypi/pyversions/beams.svg?style=flat&maxAge=3600
    :target: https://pypi.python.org/pypi/beams/
