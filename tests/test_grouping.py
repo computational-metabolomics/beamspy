@@ -9,7 +9,7 @@ from beams.grouping import group_features
 from utils import *
 
 
-class GroupFeaturesTest(unittest.TestCase):
+class GroupFeaturesTestCase(unittest.TestCase):
 
     def setUp(self):
         self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_theoretical.txt"))

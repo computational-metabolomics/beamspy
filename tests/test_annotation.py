@@ -10,7 +10,7 @@ from beams.in_out import *
 from beams.annotation import *
 
 
-class AnnotationTest(unittest.TestCase):
+class AnnotationTestCase(unittest.TestCase):
 
     def setUp(self):
 
