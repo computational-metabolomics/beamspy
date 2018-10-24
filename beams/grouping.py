@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-import statistics
+from beams import statistics
 import networkx as nx
 
 
-def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=None, method="pearson", block=5000, ncpus=None):
+def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()

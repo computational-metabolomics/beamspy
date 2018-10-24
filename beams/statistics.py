@@ -15,7 +15,7 @@ def _cc_pp_(pairs, method, ncpus):
     pool = Pool(ncpus)
 
     if len(pairs) > ncpus > 1:
-        pairs = [pairs[i: i + len(pairs) / (ncpus - 1)] for i in range(0, len(pairs), len(pairs) / (ncpus - 1))]
+        pairs = [pairs[i: i + int(len(pairs) / (ncpus - 1))] for i in range(0, len(pairs), int(len(pairs) / (ncpus - 1)))]
     else:
         pairs = [pairs]
 
@@ -52,7 +52,6 @@ def _spearmanr(pairs):
 
 
 def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.05, method="pearson", block=5000, ncpus=None):
-
     if ["name", "mz", "rt"] == list(df.columns.values[0:3]):
         ncols = 4
         df = df.sort_values(['rt', 'mz']).reset_index(drop=True)
