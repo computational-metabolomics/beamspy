@@ -3,5 +3,6 @@ include LICENSE
 include requirements*.txt
 include examples/*.*
 include tests/*.py
-include tests/data/*.*
+include tests/test_data/*.*
+include tests/test_results/*.*
 include beams/data/*.*

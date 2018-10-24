@@ -1,6 +1,7 @@
+future
 numpy>=1.13.0
 scipy>=1.0.0
 networkx>=2.0
 requests>=2.18.4
 pandas>=0.22.0
-
+pyteomics>=3.5.1
