@@ -2,9 +2,11 @@
 #  -*- coding: utf-8 -*-
 import os
 import unittest
-from utils import to_test_data
-from beams.in_out import *
 from collections import OrderedDict
+
+from beams.in_out import *
+from tests.utils import to_test_data
+
 
 class InOutTestCase(unittest.TestCase):
 
@@ -77,17 +79,17 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(len(records), 28447)
         record_01 = [('C', 10), ('H', 10), ('O', 0), ('N', 2), ('P', 0), ('S', 0),
                      ('exact_mass', 158.084398),
-                     ('compound_id', 38434L),
+                     ('compound_id', 38434),
                      ('compound_name', '1-benzylimidazole'),
                      ('molecular_formula', 'C10H10N2')]
         record_02 = [('C', 28), ('H', 40), ('O', 8), ('N', 0), ('P', 0), ('S', 0),
                      ('exact_mass', 504.27232),
-                     ('compound_id', 11258L),
+                     ('compound_id', 11258),
                      ('compound_name', 'Taxuyunnanin C'),
                      ('molecular_formula', 'C28H40O8')]
         record_03 = [('C', 0), ('H', 1), ('O', 3), ('N', 1), ('P', 0), ('S', 0),
                      ('exact_mass', 62.995644),
-                     ('compound_id', 40762L),
+                     ('compound_id', 40762),
                      ('compound_name', 'Peroxynitrite'),
                      ('molecular_formula', 'HNO3')]
         self.assertEqual(records[0], OrderedDict(record_01))
@@ -97,10 +99,9 @@ class InOutTestCase(unittest.TestCase):
     def test_read_atoms(self):
         atoms_lib = os.path.join(self.path, "beams", "data", "atoms.txt")
         records = read_atoms(atoms_lib)
-        records_lib = [('H', 1.007825), ('C', 12.0),
-                       ('(13C)', 13.003355), ('N', 14.003074),
+        records_lib = [('H', 1.007825), ('C', 12.0), ('N', 14.003074),
                        ('O', 15.994914999999999), ('P', 30.973763),
-                       ('S', 31.972071999999997), ('(34S)', 33.967868)]
+                       ('S', 31.972071999999997)]
         records_valence = {'C': 4, 'H': 1, 'O': 2, 'N': 3, 'P': 3, 'S': 2}
         self.assertEqual(records.lib, OrderedDict(records_lib))
         self.assertEqual(records.valence, records_valence)

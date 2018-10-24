@@ -1,4 +1,4 @@
-compound_id	mf	compound_name
+compound_id	molecular_formula	compound_name
 1638	C10Cl10O	Chlordecone
 38485	C10H10Br2O2	Dibromothymoquinone
 32427	C10H10BrNO2	Brofoxine (USAN/INN)

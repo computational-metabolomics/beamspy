@@ -1,5 +1,5 @@
 from pandas import read_csv
-import libraries
+from beams import libraries
 import collections
 import pandas as pd
 
@@ -18,7 +18,7 @@ def read_atoms(filename, separator="\t"):
     df = read_csv(filename, sep=separator)
     atoms = libraries.Atoms()
     for index, row in df.iterrows():
-        atoms.add(row["name"],  row["mass"])
+        atoms.add(row["name"],  row["exact_mass"])
     return atoms
 
 
@@ -28,11 +28,11 @@ def read_adducts(filename, ion_mode, separator="\t"):
     adducts.delete("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            adducts.add(row["label"], row["mass"])
+            adducts.add(row["label"], row["exact_mass"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            adducts.add(row["label"], row["mass"])
+            adducts.add(row["label"], row["exact_mass"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            adducts.add(row["label"], row["mass"])
+            adducts.add(row["label"], row["exact_mass"])
     return adducts
 
 
@@ -50,11 +50,6 @@ def read_isotopes(filename, ion_mode, separator="\t"):
     return isotopes
 
 
-def read_salts(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator)
-    return df
-
-
 def read_molecular_formulae(filename, separator="\t"):
 
     df = read_csv(filename, sep=separator)
@@ -63,7 +58,7 @@ def read_molecular_formulae(filename, separator="\t"):
     isotopes = libraries.Isotopes()
     records = []
     for index, row in df.iterrows():
-        f = libraries.Formula(str(row.mf), atoms, ions, isotopes)
+        f = libraries.Formula(str(row.molecular_formula), atoms, ions, isotopes)
         record = collections.OrderedDict()
         atom_counts = f.count(debug=1)
         if atom_counts:
@@ -85,7 +80,7 @@ def read_compounds(filename, separator="\t"):
     isotopes = libraries.Isotopes()
     records = []
     for index, row in df.iterrows():
-        f = libraries.Formula(str(row.mf), atoms, adducts, isotopes)
+        f = libraries.Formula(str(row.molecular_formula), atoms, adducts, isotopes)
         record = collections.OrderedDict()
         atom_counts = f.count()
         if atom_counts:
@@ -107,11 +102,11 @@ def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
     multiple_charges.delete("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            multiple_charges.add(row["label"], row["mass"], row["charge"])
+            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            multiple_charges.add(row["label"], row["mass"], row["charge"])
+            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            multiple_charges.add(row["label"], row["mass"], row["charge"])
+            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
     return multiple_charges
 
 
@@ -213,3 +208,55 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
         df_peaklist["name"] = df_peaklist["name"].astype(str)
 
     return df_peaklist
+
+
+def main():
+    from pyteomics import mass
+    from pyteomics.mass import std_ion_comp, nist_mass
+
+    #for name in mass.nist_mass:
+    #    print name, mass.nist_mass[name]
+    #p = mass.Composition(formula='HO3P')
+    #mass.calculate_mass(formula='H[2]2O')
+
+    #mass_data
+
+    std_ion_comp.update({
+        '[M+Na]+': mass.Composition(formula='NaCl-1', charge=0)})
+
+    mass.nist_mass.update({"E": {0: (0.00005, 1.0)}})
+
+    #std_ion_comp.update({
+    #    'e': mass.Composition(formula='e', charge=0)})
+    print mass.Composition({"H": 1, "E": 1})
+    print mass.calculate_mass(mass.Composition({"H": 1, "E": 1}))
+    print mass.calculate_mass(mass.Composition({"E": 1}))
+
+    print mass.Composition(formula='NaCl-1', charge=0)
+    print mass.calculate_mass(composition=mass.Composition(formula='NaCl-1', charge=0))
+    print mass.Composition(formula='N-1H-3')
+    print mass.Composition(formula='NH3')
+    print mass.Composition(formula='H-2O-1' + 'H-2O-1')
+    print mass.Composition(formula='H-4O-2')
+    raw_input()
+    print mass.calculate_mass(formula='NaH', ion_type="[M+Na]+", charge=1, ion_comp=std_ion_comp, data=mass.nist_mass)
+    print mass.calculate_mass(formula='NaH', ion_type="[M+Na]+", charge=-1, ion_comp=std_ion_comp, data=mass.nist_mass)
+    print mass.calculate_mass(formula='NaH', ion_type="[M+Na]+", charge=0, ion_comp=std_ion_comp, data=mass.nist_mass)
+    print mass.calculate_mass(formula='NaH', charge=0, data=mass.nist_mass)
+
+    raw_input()
+    print(std_ion_comp)
+    print mass.Composition(formula='e', charge=0)
+    raw_input()
+
+    exact_mass = mass.calculate_mass(composition=mass.Composition(formula='C2H6'), ion_type='[M+Na]+', ion_comp=std_ion_comp)
+    print exact_mass
+    raw_input()
+    exact_mass = mass.calculate_mass(formula='C2H6', ion_type='M', charge=1)
+    print exact_mass
+    exact_mass = mass.calculate_mass(formula='C2H6', ion_type='M', charge=2)
+    print exact_mass
+
+
+if __name__== "__main__":
+    main()

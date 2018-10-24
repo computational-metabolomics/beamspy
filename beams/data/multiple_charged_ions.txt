@@ -1,4 +1,4 @@
-label	mass	charge	ion_mode
+label	exact_mass	charge	ion_mode
 [M+H]+	1.007276	1	pos
 [M+Na]+ 	22.989218	1	pos
 [M/2+2H]2+	1.007276	2	pos

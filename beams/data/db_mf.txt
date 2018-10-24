@@ -1,4 +1,4 @@
-﻿mass	mf
+﻿exact_mass	molecular_formula
 30.01056	CH2O
 31.0422	CH5N
 32.02621	CH4O
