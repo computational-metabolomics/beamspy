@@ -27,9 +27,9 @@ class GroupFeaturesTestCase(unittest.TestCase):
         fn_sql = "results_pearson_all.sqlite"
         db_out = to_test_results(fn_sql)
         group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
+
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
-
         for i in range(len(records)):
             self.assertEqual(records[i][0:6], records_comp[i][0:6])
             np.testing.assert_allclose(records[i][6:], records_comp[i][6:], rtol=1e-15)
@@ -37,9 +37,9 @@ class GroupFeaturesTestCase(unittest.TestCase):
         fn_sql = "results_pearson_all.sqlite"
         db_out = to_test_results(fn_sql)
         group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", block=20, ncpus=1)
+
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
-
         for i in range(len(records)):
             self.assertEqual(records[i][0:6], records_comp[i][0:6])
             np.testing.assert_allclose(records[i][6:], records_comp[i][6:], rtol=1e-15)

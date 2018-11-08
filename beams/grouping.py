@@ -14,15 +14,15 @@ def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.
     cursor.execute("DROP TABLE IF EXISTS groups")
 
     cursor.execute("""CREATE TABLE groups (
-                   group_id int(11) DEFAULT NULL,
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   degree_a int(11) DEFAULT NULL,
-                   degree_b int(11) DEFAULT NULL,
-                   r_value decimal(12,2) DEFAULT NULL,
-                   p_value decimal(12,2) DEFAULT NULL,
-                   rt_diff decimal(12,2) DEFAULT NULL,
-                   mz_diff decimal(12,2) DEFAULT NULL,                 
+                   group_id INTEGER DEFAULT NULL,
+                   peak_id_a TEXT DEFAULT NULL,
+                   peak_id_b TEXT DEFAULT NULL,
+                   degree_a INTEGER DEFAULT NULL,
+                   degree_b INTEGER DEFAULT NULL,
+                   r_value REAL DEFAULT NULL,
+                   p_value REAL DEFAULT NULL,
+                   rt_diff REAL DEFAULT NULL,
+                   mz_diff REAL DEFAULT NULL,                 
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
     df_coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, block, ncpus)
