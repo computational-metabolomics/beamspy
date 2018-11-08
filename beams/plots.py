@@ -2,11 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from sys import platform
-if platform != "win32":
-    import matplotlib as mpl
-    mpl.use('TkAgg')
 
-import matplotlib.pyplot as plt
+if platform != "win32":
+    gui_env = ['TKAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg']
+    for gui in gui_env:
+        try:
+            matplotlib.use(gui, warn=False, force=True)
+            from matplotlib import pyplot as plt
+
+            break
+        except:
+            continue
+else:
+    import matplotlib.pyplot as plt
+
 from matplotlib import gridspec
 import seaborn as sns
 
