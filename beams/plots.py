@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import platform
-if platform == "darwin":
+if platform != "win32":
     import matplotlib as mpl
     mpl.use('TkAgg')
 
