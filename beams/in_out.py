@@ -9,11 +9,12 @@ import pandas as pd
 import pyteomics
 from pyteomics.mass import nist_mass
 from beams import libraries
-from db_parsers import order_composition_by_hill
-from db_parsers import composition_to_string
-from db_parsers import double_bond_equivalents
-from db_parsers import HC_HNOPS_rules
-from db_parsers import lewis_senior_rules
+from beams.auxiliary import order_composition_by_hill
+from beams.auxiliary import composition_to_string
+from beams.auxiliary import double_bond_equivalents
+from beams.auxiliary import HC_HNOPS_rules
+from beams.auxiliary import lewis_senior_rules
+from beams.auxiliary import update_and_sort_nist_mass
 
 
 def read_adducts(filename, ion_mode, separator="\t"):
@@ -47,13 +48,9 @@ def read_isotopes(filename, ion_mode, separator="\t"):
 def read_molecular_formulae(filename, separator="\t", calculate=True, filename_atoms=""):
 
     if calculate:
-        global nist_mass
-        dc_nist_mass = copy.deepcopy(nist_mass)
-
         if not os.path.isfile(filename_atoms):
             filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
-
-        update_and_sort_nist_mass(filename_atoms)
+        mass_data = update_and_sort_nist_mass(filename_atoms)
 
     df = read_csv(filename, sep=separator)
     records = []
@@ -65,18 +62,15 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(row.molecular_formula))
+                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=mass_data)
             else:
                 record["exact_mass"] = float(row.exact_mass)
-            record.update(libraries.HC_HNOPS_rules(str(row.molecular_formula)))
-            record.update(libraries.lewis_senior_rules(str(row.molecular_formula)))
+            record.update(HC_HNOPS_rules(str(row.molecular_formula)))
+            record.update(lewis_senior_rules(str(row.molecular_formula)))
             record["double_bond_equivalents"] = double_bond_equivalents(record["composition"])
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
-
-    if calculate:
-        for k in nist_mass: nist_mass[k] = dc_nist_mass[k]
 
     return records
 
@@ -84,11 +78,9 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
 def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
 
     if calculate:
-        global nist_mass
-        dc_nist_mass = copy.deepcopy(nist_mass)
         if not os.path.isfile(filename_atoms):
             filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
-        update_and_sort_nist_mass(filename_atoms)
+        mass_data = update_and_sort_nist_mass(filename_atoms)
 
     df = read_csv(filename, sep=separator)
     records = []
@@ -100,7 +92,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)))
+                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=mass_data)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record["compound_id"] = row.compound_id
@@ -110,9 +102,6 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
-
-    if calculate:
-        for k in nist_mass: nist_mass[k] = dc_nist_mass[k]
 
     return records
 
