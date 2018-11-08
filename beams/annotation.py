@@ -1,19 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import itertools
 import os
-import networkx as nx
+import time
+import itertools
 import sqlite3
 from collections import OrderedDict
-from in_out import read_molecular_formulae
-from in_out import read_compounds
-import numpy as np
-from urlparse import urlparse
+from future.moves.urllib.parse import urlparse
 import requests
-from in_out import mf_dict_to_str
 import pandas as pd
-import time
+import numpy as np
+import networkx as nx
+from beams.in_out import read_molecular_formulae
+from beams.in_out import read_compounds
+from beams.auxiliary import composition_to_string
+from pyteomics.mass import nist_mass
 
 
 def calculate_mz_tolerance(mass, ppm):
@@ -24,6 +25,24 @@ def calculate_mz_tolerance(mass, ppm):
 
 def calculate_ppm_error(mass, theo_mass):
     return float(theo_mass - mass) / (theo_mass * 0.000001)
+
+
+def _remove_elements_from_compositions(records, keep):
+    elements = [e for e in nist_mass if e not in keep]
+    for record in records:
+        for e in elements:
+            if "composition" in record:
+                record["composition"].pop(e, None)
+            else:
+                record.pop(e, None)
+    return records
+
+
+def _flatten_composition(records):
+    for record in records:
+        record.update(record["composition"])
+        del record["composition"]
+    return records
 
 
 def _prep_lib(lib):
@@ -37,7 +56,7 @@ def _prep_lib(lib):
             else:
                 lib_pairs.append(OrderedDict([(pair[0], {"mass": lib[pair[0]]["mass"], "charge": lib[pair[0]]["charge"]}),
                                               (pair[1], {"mass": lib[pair[1]]["mass"], "charge": lib[pair[1]]["charge"]})]))
-        lib_pairs = sorted(lib_pairs, key=lambda pair: (pair.items()[0][1]["mass"] - pair.items()[1][1]["mass"]), reverse=True)
+        lib_pairs = sorted(lib_pairs, key=lambda pair: (list(pair.items())[0][1]["mass"] - list(pair.items())[1][1]["mass"]), reverse=True)
         return lib_pairs
     elif isinstance(lib, list) and isinstance(lib[0], OrderedDict):
         if "mass_difference" in lib[0]:
@@ -45,7 +64,7 @@ def _prep_lib(lib):
         else:
             raise ValueError("Format library incorrect")
         #else:
-        #    return sorted(lib_pairs, key=lambda pair: (pair.items()[0][1]["mass"] - pair.items()[1][1]["mass"]), reverse=True)
+        #    return sorted(lib_pairs, key=lambda pair: (list(pair.items())[0][1]["mass"] - list(pair.items())[1][1]["mass"]), reverse=True)
     else:
         raise ValueError("Incorrect format for library: {}".format(type(lib)))
 
@@ -67,13 +86,13 @@ def _check_tolerance(mz_x, mz_y, lib_pair, ppm):
         # Need to fix the order, charge is one
         min_tol_b = (min_tol_b - lib_pair["mass_difference"])
         max_tol_b = (max_tol_b - lib_pair["mass_difference"])
-    elif "mass" in lib_pair.items()[0][1]:
+    elif "mass" in list(lib_pair.items())[0][1]:
         # Need to fix the order
-        min_tol_a = (min_tol_a - lib_pair.items()[0][1]["mass"]) * lib_pair.items()[0][1]["charge"]
-        max_tol_a = (max_tol_a - lib_pair.items()[0][1]["mass"]) * lib_pair.items()[0][1]["charge"]
+        min_tol_a = (min_tol_a - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"]
+        max_tol_a = (max_tol_a - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"]
 
-        min_tol_b = (min_tol_b - lib_pair.items()[1][1]["mass"]) * lib_pair.items()[1][1]["charge"]
-        max_tol_b = (max_tol_b - lib_pair.items()[1][1]["mass"]) * lib_pair.items()[1][1]["charge"]
+        min_tol_b = (min_tol_b - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"]
+        max_tol_b = (max_tol_b - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"]
     else:
         raise ValueError("Incorrect format: {}".format(lib_pair))
     #if min_tol_b > min_tol_a and min_tol_b > max_tol_a:
@@ -103,9 +122,9 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs):
             ct = _check_tolerance(mz_x, mz_y, lib_pair, ppm)
             if ct == 1 or ct == True:
 
-                if "charge" in lib_pair.items()[0][1]:
-                    charge_a = lib_pair.items()[0][1]["charge"]
-                    charge_b = lib_pair.items()[1][1]["charge"]
+                if "charge" in list(lib_pair.items())[0][1]:
+                    charge_a = list(lib_pair.items())[0][1]["charge"]
+                    charge_b = list(lib_pair.items())[1][1]["charge"]
                 else:
                     charge_a = 1
                     charge_b = 1
@@ -116,12 +135,12 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs):
                         mz_y - lib_pair["mass_difference"])
                 else:
                     ppm_error = calculate_ppm_error(
-                        (mz_x - lib_pair.items()[0][1]["mass"]) * charge_a,
-                        (mz_y - lib_pair.items()[1][1]["mass"]) * charge_b)
+                        (mz_x - list(lib_pair.items())[0][1]["mass"]) * charge_a,
+                        (mz_y - list(lib_pair.items())[1][1]["mass"]) * charge_b)
 
                 yield OrderedDict([("peak_id_a", e[0]), ("peak_id_b", e[1]),
-                                   ("label_a", lib_pair.keys()[0]),
-                                   ("label_b", lib_pair.keys()[1]),
+                                   ("label_a", list(lib_pair.keys())[0]),
+                                   ("label_b", list(lib_pair.keys())[1]),
                                    ('charge_a', charge_a),
                                    ('charge_b', charge_b),
                                    ('ppm_error', round(ppm_error, 2))])
@@ -137,9 +156,9 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
 
                 if ct == 1:
 
-                    if "charge" in lib_pair.items()[0][1]:
-                        charge_a = lib_pair.items()[0][1]["charge"]
-                        charge_b = lib_pair.items()[1][1]["charge"]
+                    if "charge" in list(lib_pair.items())[0][1]:
+                        charge_a = list(lib_pair.items())[0][1]["charge"]
+                        charge_b = list(lib_pair.items())[1][1]["charge"]
                     else:
                         charge_a = 1
                         charge_b = 1
@@ -151,12 +170,12 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
 
                     else:
                         ppm_error = calculate_ppm_error(
-                            (peaklist.iloc[i,1] - lib_pair.items()[0][1]["mass"]) * lib_pair.items()[0][1]["charge"],
-                            (peaklist.iloc[j,1] - lib_pair.items()[1][1]["mass"]) * lib_pair.items()[1][1]["charge"])
+                            (peaklist.iloc[i,1] - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"],
+                            (peaklist.iloc[j,1] - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"])
 
                     yield OrderedDict([("peak_id_a", peaklist.iloc[i,0]), ("peak_id_b", peaklist.iloc[j,0]),
-                                       ("label_a", lib_pair.keys()[0]),
-                                       ("label_b", lib_pair.keys()[1]),
+                                       ("label_a", list(lib_pair.keys())[0]),
+                                       ("label_b", list(lib_pair.keys())[1]),
                                        ('charge_a', charge_a),
                                        ('charge_b', charge_b),
                                        ('ppm_error', round(ppm_error,2))])
@@ -172,25 +191,31 @@ class DbCompoundsMemory:
         self.cursor.execute("""CREATE TABLE COMPOUNDS(
                             compound_id TEXT PRIMARY KEY  NOT NULL,
                             compound_name TEXT,
-                            exact_mass decimal(15,7),
-                            C int(3),
-                            H int(3),
-                            N int(3),
-                            O int(3),
-                            P int(3),
-                            S int(3),
-                            molecular_formula text DEFAULT NULL
+                            exact_mass REAL,
+                            C INTEGER DEFAULT 0,
+                            H INTEGER DEFAULT 0,
+                            N INTEGER DEFAULT 0,
+                            O INTEGER DEFAULT 0,
+                            P INTEGER DEFAULT 0,
+                            S INTEGER DEFAULT 0,
+                            CHNOPS INTEGER DEFAULT NULL,
+                            molecular_formula TEXT DEFAULT NULL
                             );""")
 
         records = read_compounds(self.filename)
+        records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
+        records = _flatten_composition(records)
         for record in records:
-            self.cursor.execute("""insert into COMPOUNDS ({}) values (?,?,?,?,?,?,?,?,?,?)""".format(
-                           ",".join(map(str, record.keys()))), record.values())
+            columns = ",".join(map(str, list(record.keys())))
+            qms = ', '.join(['?'] * len(record.values()))
+            query = """insert into COMPOUNDS ({}) values ({})""".format(columns, qms)
+            self.cursor.execute(query, list(record.values()))
+
         self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON COMPOUNDS (exact_mass);""")
         self.conn.commit()
 
     def select_compounds(self, min_tol, max_tol):
-        col_names = ["compound_id", "compound_name", "exact_mass", "C", "H", "N", "O", "P", "S", "molecular_formula"]
+        col_names = ["compound_id", "compound_name", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula"]
         self.cursor.execute("""SELECT {} FROM COMPOUNDS WHERE 
                             exact_mass >= {} and exact_mass <= {}
                             """.format(",".join(map(str, col_names)), min_tol, max_tol))
@@ -208,28 +233,36 @@ class DbMolecularFormulaeMemory:
         self.conn = sqlite3.connect(":memory:")
         self.cursor = self.conn.cursor()
         self.cursor.execute("""CREATE TABLE MF(
-                            ExactMass decimal(15,7),
-                            C int(3),
-                            H int(3),
-                            N int(3),
-                            O int(3),
-                            P int(3),
-                            S int(3),
+                            exact_mass REAL,
+                            C INTEGER DEFAULT 0,
+                            H INTEGER DEFAULT 0,
+                            N INTEGER DEFAULT 0,
+                            O INTEGER DEFAULT 0,
+                            P INTEGER DEFAULT 0,
+                            S INTEGER DEFAULT 0,
+                            CHNOPS INTEGER DEFAULT NULL,
                             HC INTEGER DEFAULT NULL,
                             NOPSC INTEGER DEFAULT NULL,
                             lewis INTEGER DEFAULT NULL,
                             senior INTEGER DEFAULT NULL,
-                            DoubleBondEquivalents int(3),
-                            primary key (C,H,N,O,P,S,ExactMass)
+                            double_bond_equivalents REAL,
+                            primary key (C,H,N,O,P,S,exact_mass)
                             );""")
 
         records = read_molecular_formulae(self.filename)
+        records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
+        records = _flatten_composition(records)
         for record in records:
-            self.cursor.execute("""insert into mf ({}) values (?,?,?,?,?,?,?,?,?,?,?)""".format(
-                           ",".join(map(str, record.keys()))), record.values())
+            columns = ",".join(map(str, list(record.keys())))
+            qms = ', '.join(['?'] * len(record.values()))
+            query = """insert into mf ({}) values ({})""".format(columns, qms)
+            self.cursor.execute(query, list(record.values()))
 
-        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON MF (exactmass);""")
-        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS_RULES ON MF (exactmass, HC, NOPSC, LEWIS, SENIOR);""")
+            #self.cursor.execute("""insert into mf ({}) values (?,?,?,?,?,?,?,?,?,?,?)""".format(
+            #               ",".join(map(str, list(record.keys())))), list(record.values()))
+
+        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON MF (exact_mass);""")
+        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS_RULES ON MF (exact_mass, HC, NOPSC, LEWIS, SENIOR);""")
         self.conn.commit()
 
     def select_mf(self, min_tol, max_tol, rules):
@@ -239,12 +272,12 @@ class DbMolecularFormulaeMemory:
         else:
             sql_filters = ""
 
-        col_names = ["ExactMass", "C", "H", "N", "O", "P", "S",
-                     "DoubleBondEquivalents", "LEWIS", "SENIOR", "HC", "NOPSC"]
+        col_names = ["exact_mass", "C", "H", "N", "O", "P", "S",
+                     "double_bond_equivalents", "LEWIS", "SENIOR", "HC", "NOPSC"]
 
-        self.cursor.execute("""SELECT ExactMass, C, H, N, O, P, S,
-                            DoubleBondEquivalents, LEWIS, SENIOR, HC, NOPSC
-                            from mf where ExactMass >= {} and ExactMass <= {}{}
+        self.cursor.execute("""SELECT exact_mass, C, H, N, O, P, S,
+                            double_bond_equivalents, LEWIS, SENIOR, HC, NOPSC
+                            from mf where exact_mass >= {} and exact_mass <= {}{}
                             """.format(min_tol, max_tol, sql_filters))
 
         return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
@@ -259,11 +292,11 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
         cursor.execute("DROP TABLE IF EXISTS adduct_pairs")
 
         cursor.execute("""CREATE TABLE adduct_pairs (
-                       peak_id_a int(11) DEFAULT NULL,
-                       peak_id_b int(11) DEFAULT NULL,
-                       label_a char(15) DEFAULT NULL,
-                       label_b char(15) DEFAULT NULL,
-                       ppm_error float DEFAULT NULL,
+                       peak_id_a INTEGER DEFAULT NULL,
+                       peak_id_b INTEGER DEFAULT NULL,
+                       label_a TEXT DEFAULT NULL,
+                       label_b TEXT DEFAULT NULL,
+                       ppm_error REAL DEFAULT NULL,
                        PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
@@ -296,20 +329,20 @@ def annotate_isotopes(source, db_out, ppm, lib):
     cursor.execute("DROP TABLE IF EXISTS isotopes")
 
     cursor.execute("""CREATE TABLE isotopes (
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   label_a char(15) DEFAULT NULL,
-                   label_b char(15) DEFAULT NULL,
-                   atoms float DEFAULT NULL,
-                   ppm_error float DEFAULT NULL,
+                   peak_id_a INTEGER DEFAULT NULL,
+                   peak_id_b INTEGER DEFAULT NULL,
+                   label_a TEXT DEFAULT NULL,
+                   label_b TEXT DEFAULT NULL,
+                   atoms REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
                    PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
 
     abundances = {}
     for pair in lib.lib:
-        abundances[pair.items()[0][0]] = pair.items()[0][1]
-        abundances[pair.items()[1][0]] = pair.items()[1][1]
+        abundances[list(pair.items())[0][0]] = list(pair.items())[0][1]
+        abundances[list(pair.items())[1][0]] = list(pair.items())[1][1]
 
     if isinstance(source, nx.classes.digraph.DiGraph):
         source = list(nx.weakly_connected_component_subgraphs(source))
@@ -364,14 +397,14 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
     cursor.execute("DROP TABLE IF EXISTS oligomers")
 
     cursor.execute("""CREATE TABLE oligomers (
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   mz_a float DEFAULT NULL,
-                   mz_b float DEFAULT NULL,
-                   label_a char(15) DEFAULT NULL,
-                   label_b char(15) DEFAULT NULL,
-                   mz_ratio float DEFAULT NULL,
-                   ppm_error float DEFAULT NULL,
+                   peak_id_a INTEGER DEFAULT NULL,
+                   peak_id_b INTEGER DEFAULT NULL,
+                   mz_a REAL DEFAULT NULL,
+                   mz_b REAL DEFAULT NULL,
+                   label_a TEXT DEFAULT NULL,
+                   label_b TEXT DEFAULT NULL,
+                   mz_ratio REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
     if isinstance(source, nx.classes.digraph.DiGraph):
@@ -473,10 +506,10 @@ def annotate_artifacts(source, db_out, diff):
     cursor.execute("DROP TABLE IF EXISTS artifacts")
 
     cursor.execute("""CREATE TABLE artifacts (
-                   peak_id_a int(11) DEFAULT NULL,
-                   peak_id_b int(11) DEFAULT NULL,
-                   mz_diff float DEFAULT NULL,
-                   ppm_error float DEFAULT NULL,
+                   peak_id_a INTEGER DEFAULT NULL,
+                   peak_id_b INTEGER DEFAULT NULL,
+                   mz_diff REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
     if isinstance(source, nx.classes.digraph.DiGraph):
@@ -507,13 +540,13 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
         cursor.execute("DROP TABLE IF EXISTS multiple_charged_ions")
 
         cursor.execute("""CREATE TABLE multiple_charged_ions (
-                       peak_id_a int(11) DEFAULT NULL,
-                       peak_id_b int(11) DEFAULT NULL,
-                       label_a char(15) DEFAULT NULL,
-                       label_b char(15) DEFAULT NULL,
-                       charge_a int(11) DEFAULT NULL,
-                       charge_b int(11) DEFAULT NULL,
-                       ppm_error float DEFAULT NULL,
+                       peak_id_a INTEGER DEFAULT NULL,
+                       peak_id_b INTEGER DEFAULT NULL,
+                       label_a TEXT DEFAULT NULL,
+                       label_b TEXT DEFAULT NULL,
+                       charge_a INTEGER DEFAULT NULL,
+                       charge_b INTEGER DEFAULT NULL,
+                       ppm_error REAL DEFAULT NULL,
                        PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
@@ -546,24 +579,25 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     cursor.execute("DROP TABLE IF EXISTS molecular_formulae")
 
     cursor.execute("""CREATE TABLE molecular_formulae (
-                    id int(11) DEFAULT NULL,
-                    mz decimal(12,7) DEFAULT NULL,
-                    exact_mass decimal(12,7) DEFAULT NULL,
-                    ppm_error decimal(12,2) DEFAULT NULL,
-                    adduct text DEFAULT NULL,
-                    C INTEGER DEFAULT NULL,
-                    H INTEGER DEFAULT NULL,
-                    N INTEGER DEFAULT NULL,
-                    O INTEGER DEFAULT NULL,
-                    P INTEGER DEFAULT NULL,
-                    S INTEGER DEFAULT NULL,
-                    molecular_formula text DEFAULT NULL,
+                    id TEXT DEFAULT NULL,
+                    mz REAL DEFAULT NULL,
+                    exact_mass REAL DEFAULT NULL,
+                    ppm_error REAL DEFAULT NULL,
+                    adduct TEXT DEFAULT NULL,
+                    C INTEGER DEFAULT 0,
+                    H INTEGER DEFAULT 0,
+                    N INTEGER DEFAULT 0,
+                    O INTEGER DEFAULT 0,
+                    P INTEGER DEFAULT 0,
+                    S INTEGER DEFAULT 0,
+                    CHNOPS INTEGER DEFAULT NULL,
+                    molecular_formula TEXT DEFAULT NULL,
                     HC INTEGER DEFAULT NULL,
                     NOPSC INTEGER DEFAULT NULL,
                     lewis INTEGER DEFAULT NULL,
                     senior INTEGER DEFAULT NULL,
-                    double_bond_equivalents INTEGER DEFAULT NULL,
-                    primary key  (id, mz, adduct, C, H, N, O, P, S)
+                    double_bond_equivalents REAL DEFAULT NULL,
+                    primary key (id, mz, molecular_formula, adduct)
                     );""")
 
     if os.path.isfile(db_in):
@@ -601,59 +635,86 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     records = response.json()["records"]
 
                 for record in records:
+                    if "CHNOPS" not in record:  # MFdb API specific
+                        record["CHNOPS"] = True  # MFdb API specific
                     record["id"] = name
-                    record["exact_mass"] = record["ExactMass"] + lib_adducts.lib[adduct]
-                    record["double_bond_equivalents"] = record["DoubleBondEquivalents"]
-                    del record["DoubleBondEquivalents"]
+                    if "ExactMass" in record:  # TODO: Remove when API has been updated
+                        record["exact_mass"] = record["ExactMass"]
+                        del record["ExactMass"]
+                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]
+                    if "DoubleBondEquivalents" in record: # TODO: Remove when API has been updated
+                        record["double_bond_equivalents"] = record["DoubleBondEquivalents"]
+                        del record["DoubleBondEquivalents"]
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
-                    del record["ExactMass"]
-                    record["molecular_formula"] = mf_dict_to_str(record)
+                    comp = OrderedDict([(item, record[item]) for item in record if item in nist_mass.keys()])
+                    record["molecular_formula"] = composition_to_string(comp)
                     record["adduct"] = adduct
-                    values.append(record.values())
+                    record = _remove_elements_from_compositions([record], keep=["C", "H", "N", "O", "P", "S"])[0]
+                    values.append(list(record.values()))
 
         time.sleep(0.05)
         if len(values) > 0:
-            cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                               """.format(",".join(map(str, record.keys()))), values)
+            cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                               """.format(",".join(map(str, list(record.keys())))), values)
     conn.commit()
     conn.close()
     return
 
 
-def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_in, db_name):
+def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
+
+    # TODO: calculate DBE
+
+    if db_in is None or db_in == "":
+        path_dbs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
+        conn_local = None
+        for db_local in os.listdir(path_dbs):
+            if db_name == db_local.strip(".sqlite"):
+                conn_local = sqlite3.connect(os.path.join(path_dbs, db_local))
+                cursor_local = conn_local.cursor()
+                cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                if (db_name, ) not in cursor_local.fetchall():
+                    raise ValueError("Database {} not available".format(db_name))
+                break
+        if conn_local is None:
+            raise ValueError("Database {} not available".format(db_name))
+
+    elif os.path.isfile(db_in):
+        with open(db_in, 'rb') as fd:
+            if fd.read(100)[:16] == 'SQLite format 3\x00':
+                conn_local = sqlite3.connect(db_in)
+                cursor_local = conn_local.cursor()
+                cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                if not (db_name, ) in cursor_local.fetchall():
+                    raise ValueError("Database {} not available".format(db_name))
+            else:
+                conn_mem = DbCompoundsMemory(db_in)
+    else:
+        raise IOError("[Errno 2] No such file or directory: {}".format(db_in))
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS compounds_{}".format(db_name))
     cursor.execute("""CREATE TABLE compounds_{} (
-                   id int(11) DEFAULT NULL,
-                   mz decimal(12,7) DEFAULT NULL,
-                   exact_mass decimal(12,7) DEFAULT NULL,
-                   ppm_error decimal(12,2) DEFAULT NULL,
-                   adduct text DEFAULT NULL,
-                   C INTEGER DEFAULT NULL,
-                   H INTEGER DEFAULT NULL,
-                   N INTEGER DEFAULT NULL,
-                   O INTEGER DEFAULT NULL,
-                   P INTEGER DEFAULT NULL,
-                   S INTEGER DEFAULT NULL,
-                   molecular_formula text DEFAULT NULL,
-                   compound_id char(6) DEFAULT NULL,
-                   compound_name text DEFAULT NULL,
-                   primary key (id, adduct, compound_id)
+                   id TEXT DEFAULT NULL,
+                   mz REAL DEFAULT NULL,
+                   exact_mass REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
+                   adduct TEXT DEFAULT NULL,
+                   C INTEGER DEFAULT 0,
+                   H INTEGER DEFAULT 0,
+                   N INTEGER DEFAULT 0,
+                   O INTEGER DEFAULT 0,
+                   P INTEGER DEFAULT 0,
+                   S INTEGER DEFAULT 0,
+                   CHNOPS INTEGER DEFAULT NULL,
+                   molecular_formula TEXT DEFAULT NULL,
+                   compound_id TEXT DEFAULT NULL,
+                   compound_name TEXT DEFAULT NULL,
+                   primary key (id, compound_id, adduct)
                    );""".format(db_name))
-
-    if os.path.isfile(db_in):
-        with open(db_in, 'rb') as fd:
-            if fd.read(100)[:16] == 'SQLite format 3\x00':
-                conn_local = sqlite3.connect(db_in)
-                cursor_local = conn_local.cursor()
-            else:
-                conn_mem = DbCompoundsMemory(db_in)
-    else:
-        raise IOError("[Errno 2] No such file or directory: {}".format(db_in))
 
     for i in range(len(peaklist.iloc[:, 0])):
         mz = float(peaklist["mz"].iloc[i])
@@ -667,8 +728,8 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_in, db_name):
                 if "conn_mem" in locals():
                     records = conn_mem.select_compounds(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct])
                 elif "conn_local" in locals():
-                    col_names = ["compound_id", "C", "H", "N", "O", "P", "S", "molecular_formula", "compound_name", "exact_mass"]
-                    cursor_local.execute("""SELECT ID, C, H, N, O, P, S,
+                    col_names = ["compound_id", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula", "compound_name", "exact_mass"]
+                    cursor_local.execute("""SELECT id, C, H, N, O, P, S, CHNOPS,
                                             molecular_formula, name, exact_mass
                                             from {} where exact_mass >= {} and exact_mass <= {}
                                             """.format(db_name, min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct]))
@@ -676,12 +737,160 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_in, db_name):
 
                 for record in records:
                     record["id"] = name
-                    record["exact_mass"] = record["exact_mass"] +float(lib_adducts.lib[adduct])
+                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct])
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     record["adduct"] = adduct
-                    cursor.execute("""insert into compounds_{} ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                                   """.format(db_name, ",".join(map(str, record.keys()))), record.values())
+                    cursor.execute("""insert into compounds_{} ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                                   """.format(db_name, ",".join(map(str, list(record.keys())))), list(record.values()))
+    conn.commit()
+    conn.close()
+    return
+
+
+def predict_drug_products(smiles, phase1_cycles, phase2_cycles):
+
+    try:
+        from rdkit import Chem
+        import sygma
+    except ImportError:
+        raise ImportError('Install RDKit and/or SyGMa')
+
+    # sygma/rules/phase1.txt
+    # sygma/rules/phase2.txt
+
+    # Each step in a scenario lists the ruleset and the number of reaction cycles to be applied
+    scenario = sygma.Scenario([
+        [sygma.ruleset['phase1'], phase1_cycles],
+        [sygma.ruleset['phase2'], phase2_cycles]])
+
+    # An rdkit molecule, optionally with 2D coordinates, is required as parent molecule
+    parent = Chem.MolFromSmiles(smiles)
+
+    metabolic_tree = scenario.run(parent)
+    metabolic_tree.calc_scores()
+    return metabolic_tree
+
+
+class DbDrugCompoundsMemory:
+
+    def __init__(self):
+        self.conn = sqlite3.connect(":memory:")
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("""CREATE TABLE PREDICTED_DRUG_PRODUCTS(
+                            compound_id TEXT PRIMARY KEY  NOT NULL,
+                            compound_name TEXT,
+                            smiles TEXT,
+                            exact_mass decimal(15,7),
+                            C INTEGER DEFAULT 0,
+                            H INTEGER DEFAULT 0,
+                            N INTEGER DEFAULT 0,
+                            O INTEGER DEFAULT 0,
+                            P INTEGER DEFAULT 0,
+                            S INTEGER DEFAULT 0,
+                            CHNOPS INTEGER DEFAULT NULL,
+                            molecular_formula TEXT DEFAULT NULL,
+                            sygma_score decimal(15,7),
+                            sygma_pathway TEXT,
+                            parent TEXT
+                            );""")
+
+        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON PREDICTED_DRUG_PRODUCTS (exact_mass);""")
+        self.conn.commit()
+
+    def insert(self, records):
+        for record in records:
+            self.cursor.execute("""insert into PREDICTED_DRUG_PRODUCTS ({}) values (?,?,?,?,?,?,?,?)""".format(
+                ",".join(map(str, list(record.keys())))), list(record.values()))
+
+        self.conn.commit()
+
+    def select(self, min_tol, max_tol):
+        col_names = ["compound_id", "compound_name", "smiles", "sygma_score", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula"]
+        self.cursor.execute("""SELECT {} FROM PREDICTED_DRUG_PRODUCTS WHERE 
+                            exact_mass >= {} and exact_mass <= {}
+                            """.format(",".join(map(str, col_names)), min_tol, max_tol))
+        return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
+
+    def close(self):
+        self.conn.close()
+
+
+def annotate_drug_product(peaklist, lib_adducts, ppm, db_out, smiles, phase1_cycles, phase2_cycles):
+
+    # TODO: ATOMS CHNOPS
+
+    try:
+        from rdkit import Chem
+        import sygma
+    except ImportError:
+        raise ImportError('Install RDKit and/or SyGMa')
+
+    conn = sqlite3.connect(db_out)
+    cursor = conn.cursor()
+
+    cursor.execute("DROP TABLE IF EXISTS drug_products")
+    cursor.execute("""CREATE TABLE drug_products (
+                   id TEXT DEFAULT NULL,
+                   mz REAL DEFAULT NULL,
+                   exact_mass REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
+                   adduct TEXT DEFAULT NULL,
+                   C INTEGER DEFAULT 0,
+                   H INTEGER DEFAULT 0,
+                   N INTEGER DEFAULT 0,
+                   O INTEGER DEFAULT 0,
+                   P INTEGER DEFAULT 0,
+                   S INTEGER DEFAULT 0,
+                   CHNOPS INTEGER DEFAULT NULL,
+                   molecular_formula TEXT DEFAULT NULL,
+                   compound_id TEXT DEFAULT NULL,
+                   compound_name TEXT DEFAULT NULL,
+                   primary key (id, adduct, compound_id)
+                   );""")
+
+    records = []
+    for smiles in smiles:
+
+        metabolic_tree = predict_drug_products(smiles, phase1_cycles, phase2_cycles)
+        for entry in metabolic_tree.to_list():
+            smiles = Chem.MolToSmiles(entry['SyGMa_metabolite'])
+            record = OrderedDict()
+            record["compound_id"] = smiles
+            record["compound_name"] = smiles
+            record["sygma_pathway"] = entry["SyGMa_pathway"]
+            record["parent"] = Chem.MolToSmiles(entry["parent"])
+            mf = Chem.rdMolDescriptors.CalcMolFormula(Chem.MolFromSmiles(smiles))
+            comp = pyteomics.mass.mass.Composition(record["molecular_formula"])
+            record["smiles"] = smiles
+            record["sygma_score"] = entry['SyGMa_score']
+            record["molecular_formula"] = composition_to_string(comp)
+            record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(mf))
+            records.append(record)
+            print(entry)
+
+    conn_mem = DbDrugCompoundsMemory()
+    conn_mem.insert(records)
+
+    for i in range(len(peaklist.iloc[:, 0])):
+        mz = float(peaklist["mz"].iloc[i])
+        name = str(peaklist["name"].iloc[i])
+        min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
+
+        for adduct in lib_adducts.lib:
+
+            if mz - lib_adducts.lib[adduct] > 0.5:
+
+                records = conn_mem.select(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct])
+
+                for record in records:
+                    record["id"] = name
+                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct])
+                    record["mz"] = mz
+                    record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
+                    record["adduct"] = adduct
+                    cursor.execute("""insert into drug_compounds ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                                   """.format(",".join(map(str, list(record.keys())))), list(record.values()))
     conn.commit()
     conn.close()
     return
@@ -726,11 +935,11 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                 to_add.append([i+1, n, g.degree(n), g.number_of_nodes(), g.number_of_edges()])
 
         cursor.execute("""CREATE TEMPORARY TABLE sub_groups (
-                           sub_group_id int(11) DEFAULT NULL,
-                           peak_id int(11) DEFAULT NULL,
-                           degree int(11) DEFAULT NULL,             
-                           n_nodes int(11) DEFAULT NULL,
-                           n_edges int(11) DEFAULT NULL,
+                           sub_group_id INTEGER DEFAULT NULL,
+                           peak_id INTEGER DEFAULT NULL,
+                           degree INTEGER DEFAULT NULL,             
+                           n_nodes INTEGER DEFAULT NULL,
+                           n_edges INTEGER DEFAULT NULL,
                            PRIMARY KEY (sub_group_id, peak_id));""")
 
         cursor.executemany("""insert into sub_groups (sub_group_id, peak_id, degree, n_nodes, n_edges) 
@@ -850,7 +1059,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
         unions_cpd_query = "CREATE TEMP TABLE compounds AS select * from "
         unions_cpd_query += " union select * from ".join(map(str, cpd_tables))
-        print unions_cpd_query
 
         cursor.execute(unions_cpd_query)
         unions_cpd_sub_query = ""
