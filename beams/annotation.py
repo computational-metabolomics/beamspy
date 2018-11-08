@@ -302,7 +302,7 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
     lib_pairs = _prep_lib(lib.lib)
 
     if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(nx.weakly_connected_component_subgraphs(source))
+        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
     if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
         for i, graph in enumerate(source):
@@ -345,7 +345,7 @@ def annotate_isotopes(source, db_out, ppm, lib):
         abundances[list(pair.items())[1][0]] = list(pair.items())[1][1]
 
     if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(nx.weakly_connected_component_subgraphs(source))
+        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
     if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
 
@@ -408,7 +408,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
     if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(nx.weakly_connected_component_subgraphs(source))
+        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
     if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
 
@@ -513,7 +513,7 @@ def annotate_artifacts(source, db_out, diff):
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
     if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(nx.weakly_connected_component_subgraphs(source))
+        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
     if (isinstance(source, list) or isinstance(source, np.ndarray)) and isinstance(source[0], nx.classes.graph.Graph):
         for graph in source:
@@ -552,7 +552,7 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
     lib_pairs = _prep_lib(lib.lib)
 
     if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(nx.weakly_connected_component_subgraphs(source))
+        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
     if (isinstance(source, list) or isinstance(source, np.ndarray)) and isinstance(source[0], nx.classes.graph.Graph):
         for graph in source:

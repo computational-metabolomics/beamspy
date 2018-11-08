@@ -27,7 +27,8 @@ def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.
 
     df_coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, block, ncpus)
     graph = statistics.correlation_graphs(df_coeffs, df)
-    sub_graphs = list(nx.weakly_connected_component_subgraphs(graph))
+    sub_graphs = list(graph.subgraph(c) for c in nx.weakly_connected_components(graph))
+
     for i in range(len(sub_graphs)):
         sub_graphs[i].graph["group_id"] = i + 1 # not stored in output - place holder
         sub_graph_edges = []
