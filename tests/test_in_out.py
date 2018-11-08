@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
-import os
+
 import unittest
 from collections import OrderedDict
 
 from beams.in_out import *
+from beams import libraries
 from tests.utils import to_test_data
+
+import copy
 
 
 class InOutTestCase(unittest.TestCase):
@@ -56,55 +59,50 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(df["intensity"].iloc[-1], 4549.65)
 
     def test_read_molecular_formulae(self):
+
         db_molecular_formula = os.path.join(self.path, "beams", "data", "db_mf.txt")
         records = read_molecular_formulae(db_molecular_formula, separator="\t")
-        self.assertEqual(len(records), 10363)
+        self.assertEqual(len(records), 13061)
 
-        record_01 = [('C', 1), ('H', 2), ('O', 1), ('N', 0), ('P', 0), ('S', 0),
-                     ('ExactMass', 30.010565),
-                     ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1)]
-        record_02 = [('C', 26), ('H', 54), ('O', 1), ('N', 0), ('P', 0), ('S', 0),
-                     ('ExactMass', 382.417465),
-                     ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1)]
-        record_03 = [('C', 48), ('H', 86), ('O', 18), ('N', 0), ('P', 2), ('S', 0),
-                     ('ExactMass', 1012.528946),
-                     ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1)]
+        record_01 = [("composition", OrderedDict([('C', 1), ('H', 2), ('O', 1)])), ('CHNOPS', True),
+                     ('exact_mass', 30.010565),
+                     ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1), ('double_bond_equivalents', 1.0)]
+        record_02 = [("composition", OrderedDict([('C', 17), ('H', 19), ('Cl', 1), ('N', 2), ('O', 1), ('S', 1)])), ('CHNOPS', False),
+                     ('exact_mass', 334.09066168000004),
+                     ('HC', 1), ('NOPSC', 1), ('lewis', 0), ('senior', 1), ('double_bond_equivalents', 9.0)]
+        record_03 = [("composition", OrderedDict([('C', 48), ('H', 86), ('O', 18), ('P', 2)])), ('CHNOPS', True),
+                     ('exact_mass', 1012.528942),
+                     ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1), ('double_bond_equivalents', 6.0)]
+
         self.assertEqual(records[0], OrderedDict(record_01))
         self.assertEqual(records[5000], OrderedDict(record_02))
         self.assertEqual(records[-1], OrderedDict(record_03))
 
     def test_read_compounds(self):
+
         db_compounds = os.path.join(self.path, "beams", "data", "db_compounds.txt")
         records = read_compounds(db_compounds, separator="\t")
-        self.assertEqual(len(records), 28447)
-        record_01 = [('C', 10), ('H', 10), ('O', 0), ('N', 2), ('P', 0), ('S', 0),
-                     ('exact_mass', 158.084398),
-                     ('compound_id', 38434),
-                     ('compound_name', '1-benzylimidazole'),
-                     ('molecular_formula', 'C10H10N2')]
-        record_02 = [('C', 28), ('H', 40), ('O', 8), ('N', 0), ('P', 0), ('S', 0),
-                     ('exact_mass', 504.27232),
-                     ('compound_id', 11258),
-                     ('compound_name', 'Taxuyunnanin C'),
-                     ('molecular_formula', 'C28H40O8')]
-        record_03 = [('C', 0), ('H', 1), ('O', 3), ('N', 1), ('P', 0), ('S', 0),
+        self.assertEqual(len(records), 31644)
+        record_01 = [("composition", OrderedDict([('C', 10), ('Cl', 10), ('O', 1)])), ('CHNOPS', False),
+                     ('exact_mass', 485.68344179999997),
+                     ('compound_id', 1638L),
+                     ('compound_name', 'Chlordecone'),
+                     ('molecular_formula', 'C10Cl10O')]
+        record_02 = [("composition", OrderedDict([('C', 24), ('H', 42), ('O', 21)])), ('CHNOPS', True),
+                     ('exact_mass', 666.221865),
+                     ('compound_id', 17543L),
+                     ('compound_name', '6G,6-kestotetraose'),
+                     ('molecular_formula', 'C24H42O21')]
+        record_03 = [("composition", OrderedDict([('H', 1), ('N', 1), ('O', 3)])), ('CHNOPS', True),
                      ('exact_mass', 62.995644),
-                     ('compound_id', 40762),
+                     ('compound_id', 40762L),
                      ('compound_name', 'Peroxynitrite'),
                      ('molecular_formula', 'HNO3')]
+
         self.assertEqual(records[0], OrderedDict(record_01))
         self.assertEqual(records[14000], OrderedDict(record_02))
         self.assertEqual(records[-1], OrderedDict(record_03))
 
-    def test_read_atoms(self):
-        atoms_lib = os.path.join(self.path, "beams", "data", "atoms.txt")
-        records = read_atoms(atoms_lib)
-        records_lib = [('H', 1.007825), ('C', 12.0), ('N', 14.003074),
-                       ('O', 15.994914999999999), ('P', 30.973763),
-                       ('S', 31.972071999999997)]
-        records_valence = {'C': 4, 'H': 1, 'O': 2, 'N': 3, 'P': 3, 'S': 2}
-        self.assertEqual(records.lib, OrderedDict(records_lib))
-        self.assertEqual(records.valence, records_valence)
 
     def test_read_adducts(self):
         adducts_lib = os.path.join(self.path, "beams", "data", "adducts.txt")

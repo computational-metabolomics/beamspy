@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 
-import os
 import unittest
-import pandas as pd
-from utils import *
+import gzip
+import shutil
+
+from beams.annotation import *
 from beams.grouping import group_features
 from beams.in_out import *
-from beams.annotation import *
+from tests.utils import *
 
 
 class AnnotationTestCase(unittest.TestCase):
@@ -24,13 +25,19 @@ class AnnotationTestCase(unittest.TestCase):
 
         self.db_results = "results_annotation.sqlite"
         self.db_results_graph = "results_annotation_graph.sqlite"
-        self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=None, method="pearson", block=5000, ncpus=None)
+        self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
 
         self.ppm = 2.0
 
-    # def tearDown(self):
-    #     os.remove(to_test_results(self.db_results_graph))
-    #     os.remove(to_test_results(self.db_results))
+        path_hmdb_gz = os.path.join(os.getcwd(), "beams", "data", "databases", "hmdb_full_v4_0_v1.sqlite.gz")
+        self.path_hmdb_sqlite = to_test_results("hmdb_full_v4_0_v1.sqlite")
+
+        with gzip.open(path_hmdb_gz, 'rb') as fn_inp:
+            with open(self.path_hmdb_sqlite, 'wb') as fn_out:
+                shutil.copyfileobj(fn_inp, fn_out)
+
+    #def tearDown(self):
+    #    os.remove(to_test_results("hmdb_full_v4_0_v1.sqlite"))
 
     def test_annotate_adducts(self):
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
@@ -58,17 +65,24 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "oligomers"), 2)
 
     def test_annotate_compounds(self):
-        db_name = "HMDB"
-        fn_sql_db = os.path.join(self.path, "beams", "data", "BEAMS_DB.sqlite")
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), fn_sql_db, db_name)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 51)
+        db_name = "hmdb_full_v4_0_v1"
+
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name, self.path_hmdb_sqlite)
+        #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
+
+        path_db_txt = os.path.join(os.getcwd(), "beams", "data", "db_compounds.txt")
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
+        #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
+
 
     def test_annotate_molecular_formulae(self):
         fn_mf = os.path.join(self.path, "beams", "data", "db_mf.txt")
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), fn_mf)
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"), sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
+
 
 if __name__ == '__main__':
     unittest.main()
