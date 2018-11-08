@@ -1,6 +1,6 @@
 BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
 ===============================================================
-|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc|
+|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov|
 
 BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
 
@@ -88,6 +88,9 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 
 .. |RTD doc| image:: https://img.shields.io/badge/documentation-RTD-71B360.svg?style=flat&maxAge=3600
    :target: http://beams.readthedocs.io/en/latest/beams/index.html
+
+.. |codecov| image:: https://codecov.io/gh/computational-metabolomics/beams/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/computational-metabolomics/beams
 
 .. |documentation| raw:: html
 
