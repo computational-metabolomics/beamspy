@@ -29,13 +29,6 @@ class AnnotationTestCase(unittest.TestCase):
 
         self.ppm = 2.0
 
-        path_hmdb_gz = os.path.join(os.getcwd(), "beams", "data", "databases", "hmdb_full_v4_0_v1.sqlite.gz")
-        self.path_hmdb_sqlite = to_test_results("hmdb_full_v4_0_v1.sqlite")
-
-        with gzip.open(path_hmdb_gz, 'rb') as fn_inp:
-            with open(self.path_hmdb_sqlite, 'wb') as fn_out:
-                shutil.copyfileobj(fn_inp, fn_out)
-
     #def tearDown(self):
     #    os.remove(to_test_results("hmdb_full_v4_0_v1.sqlite"))
 
@@ -64,17 +57,25 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "oligomers"), sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "oligomers"), 2)
 
-    def test_annotate_compounds(self):
-        db_name = "hmdb_full_v4_0_v1"
-
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name, self.path_hmdb_sqlite)
-        #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
-
-        path_db_txt = os.path.join(os.getcwd(), "beams", "data", "db_compounds.txt")
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
-        #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
+    # def test_annotate_compounds(self):
+    #
+    #     path_hmdb_gz = os.path.join(os.getcwd(), "beams", "data", "databases", "hmdb_full_v4_0_v1.sqlite.gz")
+    #     self.path_hmdb_sqlite = to_test_results("hmdb_full_v4_0_v1.sqlite")
+    #
+    #     with gzip.open(path_hmdb_gz, 'rb') as fn_inp:
+    #         with open(self.path_hmdb_sqlite, 'wb') as fn_out:
+    #             shutil.copyfileobj(fn_inp, fn_out)
+    #
+    #     db_name = "hmdb_full_v4_0_v1"
+    #
+    #     annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name, self.path_hmdb_sqlite)
+    #     #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+    #     self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
+    #
+    #     path_db_txt = os.path.join(os.getcwd(), "beams", "data", "db_compounds.txt")
+    #     annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
+    #     #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+    #     self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
 
 
     def test_annotate_molecular_formulae(self):
