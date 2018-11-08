@@ -55,17 +55,12 @@ Bugs
 
 Please report any bugs that you find `here <https://github.com/computational-metabolomics/beams/issues>`_.
 Or fork the repository on `GitHub <https://github.com/computational-metabolomics/beams/>`_
-and create a pull request (PR). We welcome all contributions, and we
-will help you to make the PR if you are new to `git` (see `CONTRIBUTING.rst`).
+and create a pull request (PR). We welcome all contributions, and we will help you to make the PR if you are new to `git <https://guides.github.com/activities/hello-world/>`_.
 
 License
 -------
 
-Released under the GNU General Public License v3.0 (see `LICENSE` file)::
-
-   Copyright (C) 2018 BEAMS Developers
-   Ralf J.M. Weber <r.j.weber@bham.ac.uk>   
-   Han Zhang <aynhzhanghan@gmail.com>
+Released under the GNU General Public License v3.0 (see `LICENSE file <https://github.com/computational-metabolomics/beams/LICENSE>`_)
 
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beams.svg?branch=dev&style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.com/computational-metabolomics/beams
@@ -81,6 +76,9 @@ Released under the GNU General Public License v3.0 (see `LICENSE` file)::
 
 .. |Git| image:: https://img.shields.io/badge/repository-GitHub-blue.svg?style=flat&maxAge=3600
    :target: https://github.com/computational-metabolomics/beams
+
+.. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
+   :target: http://bioconda.github.io/recipes/beams/README.html
 
 .. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
    :target: http://bioconda.github.io/recipes/beams/README.html
