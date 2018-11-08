@@ -6,6 +6,7 @@ import scipy.stats
 from multiprocessing import Pool, cpu_count
 import networkx as nx
 import pandas as pd
+import tqdm
 
 
 def _cc_pp_(pairs, method, ncpus):
@@ -69,7 +70,12 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
     pairs, peaks = [], []
     n = len(df.iloc[:, 0])
 
-    for i in range(n):
+    if n >= 100:
+        disable_tqdm = False
+    else:
+        disable_tqdm = True
+
+    for i in tqdm.trange(n, disable=disable_tqdm):
 
         intens_i = df.iloc[i, ncols:].values
 
@@ -93,7 +99,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                     peaks.append([df.iloc[i, 0], df.iloc[j, 0], rt_diff])
                     pairs.append([intens_filt_i, intens_filt_j])
                     if len(pairs) == block * ncpus:
-                        print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
+                        #print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
                         coeffs = _cc_pp_(pairs, method, ncpus)
                         for k in range(len(coeffs)):
                             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
@@ -104,7 +110,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                 break
 
     if len(pairs) > 0:
-        print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
+        #print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
         coeffs = _cc_pp_(pairs, method, ncpus)
         for k in range(len(coeffs)):
             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
@@ -126,8 +132,8 @@ def correlation_graphs(df_coeffs, df):
 
         if mz_diff < 0:
             graphs.add_edge(str(row["name_a"]), str(row["name_b"]), rvalue=row["r_value"], pvalue=row["p_value"],
-                       mzdiff=abs(row["mz_x"]-row["mz_y"]), rtdiff=abs(row["rt_x"]-row["rt_y"]))
+                            mzdiff=abs(row["mz_x"]-row["mz_y"]), rtdiff=abs(row["rt_x"]-row["rt_y"]))
         else:
             graphs.add_edge(str(row["name_b"]), str(row["name_a"]), rvalue=row["r_value"], pvalue=row["p_value"],
-                       mzdiff=abs(row["mz_x"] - row["mz_y"]), rtdiff=abs(row["rt_x"] - row["rt_y"]))
+                            mzdiff=abs(row["mz_x"] - row["mz_y"]), rtdiff=abs(row["rt_x"] - row["rt_y"]))
     return graphs
