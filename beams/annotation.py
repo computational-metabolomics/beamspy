@@ -448,7 +448,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                                     b = mz_y - lib.lib[adduct]
 
                                     ratio = (mz_y - lib.lib[adduct]) / (mz_x - lib.lib[adduct])
-                                    ppm_error = calculate_ppm_error(a, b)
+                                    ppm_error =calculate_ppm_error(a, b)
 
                                     if "M" in adduct:
                                         adduct_oligo = adduct.replace("M", "{}M".format(int(round(ratio))))
@@ -456,7 +456,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                                         adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
 
                                     cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
-                                                   values (?,?,?,?,?,?,?,?)""", (n, nn, mz_x, mz_y, adduct, adduct_oligo, ratio, ppm_error))
+                                                   values (?,?,?,?,?,?,?,?)""", (n, nn, mz_x, mz_y, adduct, adduct_oligo, round(ratio, 2), round(ppm_error, 2)))
 
     elif isinstance(source, pd.core.frame.DataFrame):
 
@@ -492,7 +492,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                             else:
                                 adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
                             cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
-                                           values (?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo, ratio, ppm_error))
+                                           values (?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo, round(ratio, 2), round(ppm_error, 2)))
     conn.commit()
     conn.close()
     return
@@ -867,7 +867,6 @@ def annotate_drug_product(peaklist, lib_adducts, ppm, db_out, smiles, phase1_cyc
             record["molecular_formula"] = composition_to_string(comp)
             record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(mf))
             records.append(record)
-            print(entry)
 
     conn_mem = DbDrugCompoundsMemory()
     conn_mem.insert(records)

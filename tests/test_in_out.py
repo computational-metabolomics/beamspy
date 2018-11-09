@@ -3,13 +3,9 @@
 
 import unittest
 from collections import OrderedDict
-
 from beams.in_out import *
-from beams import libraries
 from tests.utils import to_test_data
-
-import copy
-
+import numpy as np
 
 class InOutTestCase(unittest.TestCase):
 
@@ -24,7 +20,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(self.df_peaklist["name"].iloc[-1], "M550T200")
 
         self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
-        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904000001)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
 
         self.assertEqual(self.df_peaklist["rt"].iloc[0], 60)
         self.assertEqual(self.df_peaklist["rt"].iloc[-1], 200)
@@ -38,7 +34,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(self.df_peaklist["name"].iloc[-1], "550_0658904")
 
         self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
-        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904000001)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
 
         self.assertEqual(self.df_peaklist["intensity"].iloc[0], 1421.78)
         self.assertEqual(self.df_peaklist["intensity"].iloc[-1], 4549.65)
@@ -50,7 +46,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(df["name"].iloc[-1], "M550T200")
 
         self.assertEqual(df["mz"].iloc[0], 126.9792044)
-        self.assertEqual(df["mz"].iloc[-1], 550.0658904000001)
+        self.assertEqual(df["mz"].iloc[-1], np.float64(550.0658904))
 
         self.assertEqual(df["rt"].iloc[0], 60)
         self.assertEqual(df["rt"].iloc[-1], 200)
@@ -68,7 +64,7 @@ class InOutTestCase(unittest.TestCase):
                      ('exact_mass', 30.010565),
                      ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1), ('double_bond_equivalents', 1.0)]
         record_02 = [("composition", OrderedDict([('C', 17), ('H', 19), ('Cl', 1), ('N', 2), ('O', 1), ('S', 1)])), ('CHNOPS', False),
-                     ('exact_mass', 334.09066168000004),
+                     ('exact_mass', 334.090662),
                      ('HC', 1), ('NOPSC', 1), ('lewis', 0), ('senior', 1), ('double_bond_equivalents', 9.0)]
         record_03 = [("composition", OrderedDict([('C', 48), ('H', 86), ('O', 18), ('P', 2)])), ('CHNOPS', True),
                      ('exact_mass', 1012.528942),
@@ -84,18 +80,18 @@ class InOutTestCase(unittest.TestCase):
         records = read_compounds(db_compounds, separator="\t")
         self.assertEqual(len(records), 31644)
         record_01 = [("composition", OrderedDict([('C', 10), ('Cl', 10), ('O', 1)])), ('CHNOPS', False),
-                     ('exact_mass', 485.68344179999997),
-                     ('compound_id', 1638L),
+                     ('exact_mass', 485.683442),
+                     ('compound_id', 1638),
                      ('compound_name', 'Chlordecone'),
                      ('molecular_formula', 'C10Cl10O')]
         record_02 = [("composition", OrderedDict([('C', 24), ('H', 42), ('O', 21)])), ('CHNOPS', True),
                      ('exact_mass', 666.221865),
-                     ('compound_id', 17543L),
+                     ('compound_id', 17543),
                      ('compound_name', '6G,6-kestotetraose'),
                      ('molecular_formula', 'C24H42O21')]
         record_03 = [("composition", OrderedDict([('H', 1), ('N', 1), ('O', 3)])), ('CHNOPS', True),
                      ('exact_mass', 62.995644),
-                     ('compound_id', 40762L),
+                     ('compound_id', 40762),
                      ('compound_name', 'Peroxynitrite'),
                      ('molecular_formula', 'HNO3')]
 
@@ -107,8 +103,8 @@ class InOutTestCase(unittest.TestCase):
     def test_read_adducts(self):
         adducts_lib = os.path.join(self.path, "beams", "data", "adducts.txt")
         records_pos = read_adducts(adducts_lib, "pos")
-        records_pos_comp = [('[M+H]+', 1.0072764), ('[M+Na]+', 22.989221399999998),
-                            ('[M+K]+', 38.963159399999995)]
+        records_pos_comp = [('[M+H]+', 1.0072764), ('[M+Na]+', 22.9892214),
+                            ('[M+K]+', 38.9631594)]
         self.assertEqual(records_pos.lib, OrderedDict(records_pos_comp))
         records_neg = read_adducts(adducts_lib, "neg")
         records_neg_comp = [('[M-H]-', -1.0072764), ('[M+Na-2H]-', 20.9746686),

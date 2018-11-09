@@ -122,7 +122,7 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
 def correlation_graphs(df_coeffs, df):
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_a'], right_on=['name'])
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_b'], right_on=['name'])
-
+    from decimal import Decimal
     graphs = nx.OrderedDiGraph()
     for index, row in df_coeffs.iterrows():
         graphs.add_node(str(row["name_a"]), mz=row["mz_x"], intensity=row["intensity_x"], rt=row["rt_x"])

@@ -7,7 +7,6 @@ import collections
 from pandas import read_csv
 import pandas as pd
 import pyteomics
-from pyteomics.mass import nist_mass
 from beams import libraries
 from beams.auxiliary import order_composition_by_hill
 from beams.auxiliary import composition_to_string
@@ -18,7 +17,7 @@ from beams.auxiliary import update_and_sort_nist_mass
 
 
 def read_adducts(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     adducts = libraries.Adducts()
     adducts.remove("*")
     for index, row in df.iterrows():
@@ -32,7 +31,7 @@ def read_adducts(filename, ion_mode, separator="\t"):
 
 
 def read_isotopes(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     isotopes = libraries.Isotopes()
     isotopes.delete("*")
     for index, row in df.iterrows():
@@ -52,7 +51,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
             filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
         mass_data = update_and_sort_nist_mass(filename_atoms)
 
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
     for index, row in df.iterrows():
         record = collections.OrderedDict()
@@ -62,7 +61,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=mass_data)
+                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=mass_data), 6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record.update(HC_HNOPS_rules(str(row.molecular_formula)))
@@ -82,7 +81,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
         mass_data = update_and_sort_nist_mass(filename_atoms)
 
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
     for index, row in df.iterrows():
         record = collections.OrderedDict()
@@ -92,7 +91,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=mass_data)
+                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=mass_data),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record["compound_id"] = row.compound_id
@@ -107,7 +106,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
 
 
 def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     multiple_charges = libraries.MultipleChargedIons()
     multiple_charges.delete("*")
     for index, row in df.iterrows():
@@ -121,7 +120,7 @@ def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
 
 
 def read_mass_differences(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator)
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
     mass_differences = libraries.MassDifferences()
     for index, row in df.iterrows():
         if "charge_x" in row:
@@ -143,7 +142,7 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
     if "mz" not in mapping and "rt" not in mapping and "name" not in mapping:
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
-    df = pd.read_csv(fn_matrix, header=0, sep=separator)
+    df = pd.read_csv(fn_matrix, header=0, sep=separator, float_precision="round_trip")
 
     if not samples_in_columns:
         df = df.T
@@ -159,8 +158,8 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
     if "mz" not in mapping and "rt" not in mapping and "name" not in mapping:
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
-    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator)
-    df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator)
+    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, float_precision="round_trip")
+    df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator, float_precision="round_trip")
 
     if not samples_in_columns:
         df_matrix = df_matrix.T
@@ -183,7 +182,7 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 
 def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
-    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator)
+    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, float_precision="round_trip")
     if mapping["mz"] not in df_peaklist.columns.values or mapping["intensity"] not in df_peaklist.columns.values:
         raise ValueError("Incorrect mapping of columns: {}".format(str(mapping)))
 

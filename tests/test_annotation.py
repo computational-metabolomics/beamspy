@@ -50,11 +50,13 @@ class AnnotationTestCase(unittest.TestCase):
 
     def test_annotate_oligomers(self):
         annotate_oligomers(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts, maximum=5)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "oligomers"), sqlite_records(to_test_data(self.db_results), "oligomers"))
+        self.assertEqual(sqlite_records(to_test_results(self.db_results), "oligomers"),
+                         sqlite_records(to_test_data(self.db_results), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "oligomers"), 2)
 
         annotate_oligomers(self.graph, to_test_results(self.db_results_graph), self.ppm, self.lib_adducts)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "oligomers"), sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
+        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "oligomers"),
+                         sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "oligomers"), 2)
 
     # def test_annotate_compounds(self):
