@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import platform
+import matplotlib
 
 if platform != "win32":
     gui_env = ['TKAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg']
@@ -9,7 +10,6 @@ if platform != "win32":
         try:
             matplotlib.use(gui, warn=False, force=True)
             from matplotlib import pyplot as plt
-
             break
         except:
             continue
