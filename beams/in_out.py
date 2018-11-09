@@ -33,7 +33,7 @@ def read_adducts(filename, ion_mode, separator="\t"):
 def read_isotopes(filename, ion_mode, separator="\t"):
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     isotopes = libraries.Isotopes()
-    isotopes.delete("*")
+    isotopes.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
             isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
@@ -108,7 +108,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
 def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     multiple_charges = libraries.MultipleChargedIons()
-    multiple_charges.delete("*")
+    multiple_charges.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
             multiple_charges.add(row["label"], row["exact_mass"], row["charge"])

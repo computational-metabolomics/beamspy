@@ -38,9 +38,6 @@ class Adducts:
             out += "%s\t%s\n" % (key, self.lib[key])
         return out
 
-    def sort_length(self):
-        self.lib = sorted(self.lib, key=len)
-
 
 class Isotopes:
 
@@ -64,7 +61,7 @@ class Isotopes:
                                      ("mass_difference", mass_difference)]))
         self.lib = sorted(self.lib, key=lambda k: k['mass_difference'])
 
-    def delete(self, label_x="*", label_y="*"):
+    def remove(self, label_x="*", label_y="*"):
         if label_x == "*" and label_y == "*":
             self.lib = []
         else:
@@ -103,7 +100,7 @@ class MultipleChargedDifferences:
         self.lib[name] = OrderedDict([("mass", float(mass)), ("charge", int(charge)), ("type", item_type)])
         self.lib = OrderedDict(sorted(self.lib.items(), key=lambda x: x[1]['mass']))
 
-    def delete(self, name):
+    def remove(self, name):
         if name == "*":
             self.lib = OrderedDict()
         else:
@@ -119,15 +116,6 @@ class MultipleChargedDifferences:
         for key in self.lib:
             out += "{}\t{}\t{}\t{}\n".format(key, self.lib[key]["exact_mass"], self.lib[key]["charge"], self.lib[key]["type"])
         return out
-
-    def sort_length(self, items = []):
-
-        def bylength(word1, word2):
-            return len(word1) - len(word2)
-
-        self.sort_adducts_length = self.lib.keys()
-        self.sort_adducts_length.sort(cmp=bylength)
-        return self.sort_adducts_length
 
 
 class MultipleChargedIons:
@@ -145,7 +133,7 @@ class MultipleChargedIons:
         self.lib[name] = OrderedDict([("mass", float(mass)), ("charge", int(charge))])
         self.lib = OrderedDict(sorted(self.lib.items(), key=lambda x: x[1]['mass']))
 
-    def delete(self, name):
+    def remove(self, name):
         if name == "*":
             self.lib = OrderedDict()
         else:
@@ -162,15 +150,6 @@ class MultipleChargedIons:
             out += "{}\t{}\t{}\n".format(key, self.lib[key]["mass"], self.lib[key]["charge"])
         return out
 
-    def sort_length(self, items = []):
-
-        def bylength(word1, word2):
-            return len(word1) - len(word2)
-
-        self.sort_adducts_length = self.lib.keys()
-        self.sort_adducts_length.sort(cmp=bylength)
-        return self.sort_adducts_length
-
 
 class MassDifferences:
 
@@ -185,7 +164,7 @@ class MassDifferences:
                                      ("mass_difference", mass_difference)]))
         self.lib = sorted(self.lib, key=lambda k: k['mass_difference'])
 
-    def delete(self, label_x="*", label_y="*"):
+    def remove(self, label_x="*", label_y="*"):
         if label_x == "*" and label_y == "*":
             self.lib = []
         else:

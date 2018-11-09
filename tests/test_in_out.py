@@ -28,6 +28,20 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(self.df_peaklist["intensity"].iloc[0], 1421.78)
         self.assertEqual(self.df_peaklist["intensity"].iloc[-1], 4549.65)
 
+        self.df_peaklist = read_peaklist(to_test_data("peaklist_lcms_pos_theoretical_no_name.txt"))
+
+        self.assertEqual(self.df_peaklist["name"].iloc[0], "M127T60")
+        self.assertEqual(self.df_peaklist["name"].iloc[-1], "M550T200")
+
+        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
+
+        self.assertEqual(self.df_peaklist["rt"].iloc[0], 60)
+        self.assertEqual(self.df_peaklist["rt"].iloc[-1], 200)
+
+        self.assertEqual(self.df_peaklist["intensity"].iloc[0], 1421.78)
+        self.assertEqual(self.df_peaklist["intensity"].iloc[-1], 4549.65)
+
         self.df_peaklist = read_peaklist(to_test_data("peaklist_dims_pos_theoretical.txt"))
 
         self.assertEqual(self.df_peaklist["name"].iloc[0], "126_9792044")
@@ -140,6 +154,16 @@ class InOutTestCase(unittest.TestCase):
                             OrderedDict([('Cl', {'abundance': 100.0}), ('(37Cl)', {'abundance': 24.23}), ('mass_difference', 1.99705)])]
         self.assertEqual(records_neg.lib, records_neg_comp)
 
+    def test_read_mass_differences(self):
+        differences_lib = os.path.join(self.path, "beams", "data", "adducts_differences.txt")
+        records = read_mass_differences(differences_lib, ion_mode="pos")
+        self.assertEqual(records.lib, [OrderedDict([('[M+H]+', {'charge': 1.0}),
+                                                    ('[M+Na]+', {'charge': 1.0}),
+                                                    ('mass_difference', 21.981945)])])
+        records = read_mass_differences(differences_lib, ion_mode="neg")
+        self.assertEqual(records.lib, [])
+        records = read_mass_differences(differences_lib, ion_mode="both")
+        self.assertEqual(records.lib, [])
 
 if __name__ == '__main__':
     unittest.main()
