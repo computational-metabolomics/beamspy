@@ -54,6 +54,21 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(df["intensity"].iloc[0], 1421.775)
         self.assertEqual(df["intensity"].iloc[-1], 4549.65)
 
+    def test_read_xset_matrix(self):
+        df = read_xset_matrix(to_test_data("xset_matrix.txt"), "sample01")
+
+        self.assertEqual(df["name"].iloc[0], "M127T60")
+        self.assertEqual(df["name"].iloc[-1], "M550T200")
+
+        np.testing.assert_almost_equal(df["mz"].iloc[0], 126.9792044, 8)
+        np.testing.assert_almost_equal(df["mz"].iloc[-1], np.float64(550.0658904), 8)
+
+        self.assertEqual(df["rt"].iloc[0], 60)
+        self.assertEqual(df["rt"].iloc[-1], 200)
+
+        np.testing.assert_almost_equal(df["intensity"].iloc[0], 1421.775, 8)
+        np.testing.assert_almost_equal(df["intensity"].iloc[-1], 4549.65, 8)
+
     def test_read_molecular_formulae(self):
 
         db_molecular_formula = os.path.join(self.path, "beams", "data", "db_mf.txt")

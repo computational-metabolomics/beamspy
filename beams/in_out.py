@@ -142,15 +142,15 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
     if "mz" not in mapping and "rt" not in mapping and "name" not in mapping:
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
-    df = pd.read_csv(fn_matrix, header=0, sep=separator, float_precision="round_trip")
+    df = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
 
     if not samples_in_columns:
         df = df.T
 
     df_peaklist = df[[mapping["name"], mapping["mz"], mapping["rt"]]]
-    df_peaklist["name"] = df_peaklist["name"].astype(str)
     df_matrix = df.iloc[:, df.columns.get_loc(first_sample):]
     df_peaklist = df_peaklist.assign(intensity=pd.Series(df_matrix.median(axis=1, skipna=True).values))
+    df_peaklist.columns = ["name", "mz", "rt", "intensity"]
     return pd.concat([df_peaklist, df_matrix], axis=1)
 
 
@@ -158,18 +158,16 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
     if "mz" not in mapping and "rt" not in mapping and "name" not in mapping:
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
-    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, float_precision="round_trip")
-    df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator, float_precision="round_trip")
+    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
+    df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
 
     if not samples_in_columns:
         df_matrix = df_matrix.T
 
     df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
     df_peaklist.columns = ["name", "mz", "rt"]
-    df_peaklist["name"] = df_peaklist["name"].astype(str)
 
     df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
-    df_matrix["name"] = df_matrix["name"].astype(str)
 
     if len(df_peaklist[mapping["name"]].unique()) != len(df_peaklist[mapping["name"]]):
         raise ValueError("Peaklist: Values column '{}' are not unique".format(mapping["name"]))
@@ -182,25 +180,25 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 
 def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
-    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, float_precision="round_trip")
+    df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
     if mapping["mz"] not in df_peaklist.columns.values or mapping["intensity"] not in df_peaklist.columns.values:
         raise ValueError("Incorrect mapping of columns: {}".format(str(mapping)))
 
     if ("rt" in mapping and mapping["rt"] not in df_peaklist.columns.values) or "rt" not in mapping:
-        if mapping["name"] in df_peaklist.columns.values:
-            df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["intensity"]]]
-            df_peaklist.columns = ["name", "mz", "intensity"]
-            df_peaklist["name"] = df_peaklist["name"].astype(str)
-        else:
+        if mapping["name"] not in df_peaklist.columns.values:
+            df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"mz": str})
             df_peaklist = df_peaklist[[mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "intensity"]
             df_peaklist.insert(0, "name", [str(x).replace(".","_") for x in df_peaklist[mapping["mz"]]])
+            df_peaklist["mz"] = df_peaklist["mz"].astype(float)
+        else:
+            df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["intensity"]]]
+            df_peaklist.columns = ["name", "mz", "intensity"]
         df_peaklist.insert(2, "rt", 0.0)
     elif "rt" in mapping:
         if mapping["name"] in df_peaklist.columns.values:
             df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
             df_peaklist.columns = ["name", "mz", "rt", "intensity"]
-            df_peaklist["name"] = df_peaklist["name"].astype(str)
         else:
             df_peaklist = df_peaklist[[mapping["mz"], mapping["rt"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "rt", "intensity"]
@@ -214,6 +212,6 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
             df_peaklist.insert(0, "name", names)
     else:
         df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
-        df_peaklist["name"] = df_peaklist["name"].astype(str)
+        df_peaklist.columns = ["name", "mz", "rt", "intensity"]
 
     return df_peaklist
