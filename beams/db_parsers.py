@@ -6,6 +6,7 @@ import io
 import sqlite3
 import xml.etree.ElementTree as etree
 import csv
+from Bio.KEGG import Compound
 
 
 def parse_delimited(source, delimiter):
@@ -116,7 +117,7 @@ def parse_biocyc(source):
 
         for line in inp:
             line = line.replace("'", "").replace('"', "")
-            if "//\n" in line:
+            if "//" in line:
 
                 temp_attribute = ""
                 extra_line = 0

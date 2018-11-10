@@ -7,6 +7,7 @@ from beams.in_out import *
 from tests.utils import to_test_data
 import numpy as np
 
+
 class InOutTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -164,6 +165,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(records.lib, [])
         records = read_mass_differences(differences_lib, ion_mode="both")
         self.assertEqual(records.lib, [])
+
 
 if __name__ == '__main__':
     unittest.main()

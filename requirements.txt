@@ -8,3 +8,4 @@ Matplotlib<3.0.0
 seaborn<=0.9.0
 pyteomics<=3.5.1
 tqdm<=4.28.1
+biopython<=1.72

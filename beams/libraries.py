@@ -84,40 +84,6 @@ class Isotopes:
         return out
 
 
-class MultipleChargedDifferences:
-
-    def __init__(self, ion_mode=None, e=0.0005486):
-
-        self.e = e
-        if ion_mode == "pos":
-            self.lib = OrderedDict()
-        elif ion_mode == "neg":
-            self.lib = OrderedDict()
-        elif ion_mode is None:
-            self.lib = OrderedDict()
-
-    def add(self, name, mass, charge, item_type):
-        self.lib[name] = OrderedDict([("mass", float(mass)), ("charge", int(charge)), ("type", item_type)])
-        self.lib = OrderedDict(sorted(self.lib.items(), key=lambda x: x[1]['mass']))
-
-    def remove(self, name):
-        if name == "*":
-            self.lib = OrderedDict()
-        else:
-            if name in self.lib:
-                self.lib.remove(name)
-            else:
-                print("Entry not in library")
-
-    def __str__(self):
-        out = "Multiple charge ions in library\n"
-        out += "-------------------------------\n"
-        out += "name\texact_mass\tcharge\ttype\n"
-        for key in self.lib:
-            out += "{}\t{}\t{}\t{}\n".format(key, self.lib[key]["exact_mass"], self.lib[key]["charge"], self.lib[key]["type"])
-        return out
-
-
 class MultipleChargedIons:
     def __init__(self, ion_mode=None, e=0.0005486):
 

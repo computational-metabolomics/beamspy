@@ -4,6 +4,7 @@
 import os
 import unittest
 from beams.in_out import *
+from beams.libraries import *
 from collections import OrderedDict
 
 
@@ -13,6 +14,7 @@ class LibrariesTestCase(unittest.TestCase):
 
     def test_read_isotopes(self):
         lib_isotopes = read_isotopes(os.path.join(self.path, "beams", "data", "isotopes.txt"), "pos")
+        self.assertTrue("in library" in lib_isotopes.__str__())
 
     def test_read_adducts(self):
         lib_adducts = read_adducts(os.path.join(self.path, "beams", "data", "adducts.txt"), "pos")
@@ -29,6 +31,13 @@ class LibrariesTestCase(unittest.TestCase):
 
         lib_multiple_charged_ions.remove("*")
         self.assertEqual(lib_multiple_charged_ions.lib, OrderedDict())
+
+    def test_mass_differences(self):
+        lib_differences = read_mass_differences(os.path.join(self.path, "beams", "data", "adducts_differences.txt"), "pos")
+        self.assertTrue("in library" in lib_differences.__str__())
+
+        lib_differences.remove("*", "*")
+        self.assertEqual(lib_differences.lib, [])
 
 
 if __name__ == '__main__':
