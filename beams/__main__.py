@@ -5,9 +5,9 @@ from . import __version__
 import argparse
 import sys
 import networkx as nx
-import in_out
-import grouping
-import annotation
+from beams import in_out
+from beams import grouping
+from beams import annotation
 
 
 def map_delimiter(delimiter):

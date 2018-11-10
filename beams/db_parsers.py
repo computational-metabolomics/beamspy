@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 from collections import OrderedDict
 import io
 import sqlite3
@@ -60,7 +61,10 @@ def parse_xml(source):
             xml_record += line
             if line == "</metabolite>\n" or line == "</drug>\n":
 
-                inp = io.BytesIO(xml_record)
+                if sys.version_info[0] == 3:
+                    inp = io.StringIO(xml_record)
+                else:
+                    inp = io.BytesIO(xml_record)
 
                 for event, elem in etree.iterparse(inp, events=("start", "end")):
                     if event == 'end':
