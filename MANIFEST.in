@@ -4,5 +4,6 @@ include requirements*.txt
 include examples/*.*
 include tests/*.py
 include tests/test_data/*.*
-include tests/test_results/*.*
+include tests/test_results/.gitignore
 include beams/data/*.*
+include beams/data/databases/*.*

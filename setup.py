@@ -8,9 +8,6 @@ import unittest
 
 def main():
 
-    if sys.version_info[0] != 2 and sys.version_info[1] <= 7:
-        sys.exit("Python-2.7.8 is required ")
-
     if sys.platform == "win32" or sys.platform == "win64":
         install_requires = open('requirements-win.txt').read().splitlines()
     else:
@@ -20,12 +17,12 @@ def main():
         version=beams.__version__,
         description="Python package to annotate LC-MS and DIMS data",
         long_description=open('README.rst').read(),
-        author="Han Zhang, Ralf Weber",
-        author_email="aynhzhanghan@gmail.com, r.j.weber@bham.ac.uk",
+        author="Ralf Weber",
+        author_email="r.j.weber@bham.ac.uk",
         url="https://github.com/computational-metabolomics/beams",
         license="GPLv3",
         platforms=['Windows, UNIX'],
-        keywords=['Metabolomics', 'Mass spectrometry', 'Liquid-Chromatography Mass Spectrometry'],
+        keywords=['Metabolomics', 'Mass spectrometry', 'Liquid-Chromatography Mass Spectrometry', 'Metabolite Annotation'],
         packages=setuptools.find_packages(),
         test_suite='tests.suite',
         install_requires=install_requires,
@@ -33,6 +30,8 @@ def main():
         classifiers=[
           "Programming Language :: Python :: 2",
           "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
           "Topic :: Scientific/Engineering :: Bio-Informatics",
           "Topic :: Scientific/Engineering :: Chemistry",
           "Topic :: Utilities",
