@@ -873,7 +873,7 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
             mf = Chem.rdMolDescriptors.CalcMolFormula(Chem.MolFromSmiles(smiles_product))
             record["smiles"] = smiles_product
             record["sygma_score"] = entry['SyGMa_score']
-            comp = pyteomics.mass.mass.Composition(mf)
+            comp = pyteomics.mass.Composition(mf)
             record.update(comp)
             record["molecular_formula"] = composition_to_string(comp)
             record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)

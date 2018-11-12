@@ -6,7 +6,8 @@ import os
 import collections
 from pandas import read_csv
 import pandas as pd
-import pyteomics
+from pyteomics import mass as pyteomics_mass
+from beams import libraries
 from beams.auxiliary import nist_database_to_pyteomics
 from beams.auxiliary import order_composition_by_hill
 from beams.auxiliary import composition_to_string
@@ -53,13 +54,13 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
     records = []
     for index, row in df.iterrows():
         record = collections.OrderedDict()
-        comp = pyteomics.mass.mass.Composition(str(row.molecular_formula))
+        comp = pyteomics_mass.Composition(str(row.molecular_formula))
         if comp:
             record["composition"] = collections.OrderedDict((k, comp[k]) for k in order_composition_by_hill(comp.keys()))
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=nist_db), 6)
+                record["exact_mass"] = round(pyteomics_mass.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=nist_db), 6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record.update(HC_HNOPS_rules(str(row.molecular_formula)))
@@ -82,18 +83,18 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
     records = []
     for index, row in df.iterrows():
         record = collections.OrderedDict()
-        comp = pyteomics.mass.mass.Composition(str(row.molecular_formula))
+        comp = pyteomics_mass.Composition(str(row.molecular_formula))
         if comp:
             record["composition"] = collections.OrderedDict((k, comp[k]) for k in order_composition_by_hill(comp.keys()))
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_db),6)
+                record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_db),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record["compound_id"] = row.compound_id
             record["compound_name"] = row.compound_name
-            comp = pyteomics.mass.mass.Composition(str(row.molecular_formula))
+            comp = pyteomics_mass.Composition(str(row.molecular_formula))
             record["molecular_formula"] = composition_to_string(comp)
             records.append(record)
         else:

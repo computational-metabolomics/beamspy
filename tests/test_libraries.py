@@ -5,6 +5,7 @@ import os
 import unittest
 from beams.in_out import *
 from beams.libraries import *
+from beams.auxiliary import nist_database_to_pyteomics
 from collections import OrderedDict
 
 
@@ -39,8 +40,8 @@ class LibrariesTestCase(unittest.TestCase):
         lib_differences.remove("*", "*")
         self.assertEqual(lib_differences.lib, [])
 
-    def test_nist_mass_pyteomics(self):
-        nist_mass = nist_mass_pyteomics(os.path.join(self.path, "beams", "data", "nist_database.txt"))
+    def test_nist_database_to_pyteomics(self):
+        nist_mass = nist_database_to_pyteomics(os.path.join(self.path, "beams", "data", "nist_database.txt"))
         self.assertEqual(nist_mass["C"][0], (12.0, 1.0))
         self.assertEqual(nist_mass["H"][0], (1.00782503223, 1.0))
         self.assertEqual(nist_mass["N"][0], (14.00307400443, 1.0))

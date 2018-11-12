@@ -45,7 +45,7 @@ def double_bond_equivalents(composition):
 
 def HC_HNOPS_rules(molecular_formula):
 
-    composition = pyteomics.mass.mass.Composition(molecular_formula)
+    composition = pyteomics.mass.Composition(molecular_formula)
 
     rules = {"HC": 0, "NOPSC": 0}
 
@@ -85,7 +85,7 @@ def lewis_senior_rules(molecular_formula):
 
     valence = {'C': 4, 'H': 1, 'N': 3, 'O': 2, 'P': 3, 'S': 2}
 
-    composition = pyteomics.mass.mass.Composition(molecular_formula)
+    composition = pyteomics.mass.Composition(molecular_formula)
 
     rules = {"lewis": 0, "senior": 0}
 

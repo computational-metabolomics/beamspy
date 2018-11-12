@@ -46,9 +46,9 @@ def parse_kegg_compound(source, sdf=False):
                 yield record_out
 
 
-def parse_xml(source):
+def parse_xml(source, encoding="utf8"):
 
-    with open(source, "r") as inp:
+    with io.open(source, "r", encoding=encoding) as inp:
         record_out = OrderedDict()
 
         xmldec = inp.readline()
@@ -64,7 +64,7 @@ def parse_xml(source):
                 if sys.version_info[0] == 3:
                     inp = io.StringIO(xml_record)
                 else:
-                    inp = io.BytesIO(xml_record)
+                    inp = io.BytesIO(xml_record.encode('utf-8').strip())
 
                 for event, elem in etree.iterparse(inp, events=("start", "end")):
                     if event == 'end':
