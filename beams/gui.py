@@ -4,11 +4,11 @@
 import os
 from functools import partial
 import networkx as nx
-import in_out
-import grouping
-import annotation
+from beams import in_out
+from beams import grouping
+from beams import annotation
 from PyQt5 import QtCore, QtGui, QtWidgets
-import qt.form as form
+from beams.qt import form
 import sqlite3
 
 

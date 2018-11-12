@@ -301,7 +301,7 @@ def main():
 
     if args.step == "start-gui":
         from PyQt5 import QtWidgets
-        from gui import BeamsApp
+        from beams.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
         app.setStyle(QtWidgets.QStyleFactory.create("fusion"))
         form = BeamsApp()
