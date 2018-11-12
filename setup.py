@@ -8,10 +8,7 @@ import unittest
 
 def main():
 
-    if sys.platform == "win32" or sys.platform == "win64":
-        install_requires = open('requirements-win.txt').read().splitlines()
-    else:
-        install_requires = open('requirements.txt').read().splitlines()
+    install_requires = open('requirements.txt').read().splitlines()
 
     setuptools.setup(name="beams",
         version=beams.__version__,
