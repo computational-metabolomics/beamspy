@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
 from collections import OrderedDict
-from pandas import read_csv
+from beams.auxiliary import order_composition_by_hill
 
 
 class Adducts:

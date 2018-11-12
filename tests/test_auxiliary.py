@@ -2,12 +2,8 @@
 #  -*- coding: utf-8 -*-
 
 import unittest
-import os
-import copy
 from collections import OrderedDict
-import pyteomics
-from pyteomics.mass import nist_mass, calculate_mass
-from beams.auxiliary import update_and_sort_nist_mass
+from beams.auxiliary import *
 
 
 class AuxiliaryTestCase(unittest.TestCase):
@@ -15,17 +11,46 @@ class AuxiliaryTestCase(unittest.TestCase):
     def setUp(self):
         self.path, f = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 
-    def test_update_and_sort_nist_mass(self):
-        exact_mass = calculate_mass(formula="H")
-        self.assertEqual(exact_mass, 1.00782503207)
+    def test_order_composition_by_hill(self):
+        composition = OrderedDict([('C', 6), ('O', 6), ('H', 12)])
+        hill = order_composition_by_hill(composition)
+        self.assertEqual(list(hill), ['C', 'H', 'O'])
 
-        path_atoms = os.path.join(self.path, "beams", "data", "elements.txt")
-        mass_data = update_and_sort_nist_mass(path_atoms, digits=6)
-        exact_mass = calculate_mass(formula="H", mass_data=mass_data)
-        self.assertEqual(exact_mass, 1.007825)
+    def test_composition_to_string(self):
+        composition = OrderedDict([('C', 6), ('O', 6), ('H', 12)])
+        mf = composition_to_string(composition)
+        self.assertEqual(mf, "C6H12O6")
 
-        exact_mass = calculate_mass(formula="H")
-        self.assertEqual(exact_mass, 1.00782503207)
+    def test_double_bond_equivalents(self):
+        composition = OrderedDict([('C', 6), ('H', 12), ('O', 6)])
+        dbe = double_bond_equivalents(composition)
+        self.assertEqual(dbe, 1)
+
+        composition = OrderedDict([('C', 6), ('H', 24), ('O', 12)])
+        dbe = double_bond_equivalents(composition)
+        self.assertEqual(dbe, -5.0)
+
+    def test_HC_HNOPS_rules(self):
+        molecular_formula = "C6H12O6"
+        rules = HC_HNOPS_rules(molecular_formula)
+        self.assertEqual(rules, {"HC": 1, "NOPSC": 1})
+
+        molecular_formula = "C6H36O6"
+        rules = HC_HNOPS_rules(molecular_formula)
+        self.assertEqual(rules, {"HC": 0, "NOPSC": 1})
+
+        molecular_formula = "C6H12O32"
+        rules = HC_HNOPS_rules(molecular_formula)
+        self.assertEqual(rules, {"HC": 1, "NOPSC": 0})
+
+    def test_lewis_senior_rules(self):
+        molecular_formula = "C6H12O6"
+        rules = lewis_senior_rules(molecular_formula)
+        self.assertEqual(rules, {"lewis": 1, "senior": 1})
+
+        molecular_formula = "C6H24O12"
+        rules = lewis_senior_rules(molecular_formula)
+        self.assertEqual(rules, {"lewis": 1, "senior": 0})
 
 
 if __name__ == '__main__':

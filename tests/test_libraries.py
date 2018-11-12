@@ -39,6 +39,15 @@ class LibrariesTestCase(unittest.TestCase):
         lib_differences.remove("*", "*")
         self.assertEqual(lib_differences.lib, [])
 
+    def test_nist_mass_pyteomics(self):
+        nist_mass = nist_mass_pyteomics(os.path.join(self.path, "beams", "data", "nist_database.txt"))
+        self.assertEqual(nist_mass["C"][0], (12.0, 1.0))
+        self.assertEqual(nist_mass["H"][0], (1.00782503223, 1.0))
+        self.assertEqual(nist_mass["N"][0], (14.00307400443, 1.0))
+        self.assertEqual(nist_mass["O"][0], (15.99491461957, 1.0))
+        self.assertEqual(nist_mass["P"][0], (30.97376199842, 1.0))
+        self.assertEqual(nist_mass["S"][0], (31.9720711744, 1.0))
+
 
 if __name__ == '__main__':
     unittest.main()

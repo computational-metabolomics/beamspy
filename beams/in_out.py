@@ -7,13 +7,12 @@ import collections
 from pandas import read_csv
 import pandas as pd
 import pyteomics
-from beams import libraries
+from beams.auxiliary import nist_database_to_pyteomics
 from beams.auxiliary import order_composition_by_hill
 from beams.auxiliary import composition_to_string
 from beams.auxiliary import double_bond_equivalents
 from beams.auxiliary import HC_HNOPS_rules
 from beams.auxiliary import lewis_senior_rules
-from beams.auxiliary import update_and_sort_nist_mass
 
 
 def read_adducts(filename, ion_mode, separator="\t"):
@@ -47,9 +46,8 @@ def read_isotopes(filename, ion_mode, separator="\t"):
 def read_molecular_formulae(filename, separator="\t", calculate=True, filename_atoms=""):
 
     if calculate:
-        if not os.path.isfile(filename_atoms):
-            filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
-        mass_data = update_and_sort_nist_mass(filename_atoms)
+        path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
+        nist_db = nist_database_to_pyteomics(path_nist_database)
 
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
@@ -61,7 +59,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=mass_data), 6)
+                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=nist_db), 6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record.update(HC_HNOPS_rules(str(row.molecular_formula)))
@@ -77,9 +75,8 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
 def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
 
     if calculate:
-        if not os.path.isfile(filename_atoms):
-            filename_atoms = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "elements.txt")
-        mass_data = update_and_sort_nist_mass(filename_atoms)
+        path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
+        nist_db = nist_database_to_pyteomics(path_nist_database)
 
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
@@ -91,7 +88,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=mass_data),6)
+                record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_db),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record["compound_id"] = row.compound_id

@@ -4,14 +4,14 @@
 import sys
 from collections import OrderedDict
 import io
-import sqlite3
 import xml.etree.ElementTree as etree
 import csv
 from Bio.KEGG import Compound
+import re
 
 
 def parse_delimited(source, delimiter):
-    with open(source, 'rU') as inp:
+    with open(source, 'r') as inp:
         reader = csv.DictReader(inp, delimiter=delimiter)
         for row in reader:
             yield row
@@ -32,7 +32,7 @@ def parse_kegg_compound(source, sdf=False):
                             record_out[attribute.upper()] = ""
                             record_out[attribute.upper()] = getattr(record, attribute.lower())
 
-                    if sdf == True:
+                    if sdf:
                         record_out["SDF"] = REST.GetMol(record_out["ENTRY"])
 
                     yield record_out
@@ -174,3 +174,44 @@ def parse_biocyc(source):
 
             elif line[0] != "#":
                 temp += line
+
+
+def parse_nist_database(fn, skip_lines=10):
+
+    """
+    :param fn: text file (NISTs Linearized ASCII Output)
+    :param skip_lines: the number of lines of the data file to skip before beginning to read data.
+    :return: Ordered dictionary containing the parsed records
+    """
+
+    with open(fn, "r") as inp:
+        for i in range(skip_lines):
+            inp.readline()
+        for e in inp.read().split("\n\n"):
+            record = OrderedDict()
+            for line in e.strip().split("\n"):
+                kv = line.split(" =")
+                if kv[0] == "Relative Atomic Mass":
+                    record[kv[0]] = re.findall(r'\d+(?:\.\d+)?', kv[1])
+                    record[kv[0]][0] = float(record[kv[0]][0])
+                    record[kv[0]][1] = int(record[kv[0]][1])
+
+                elif kv[0] == "Isotopic Composition":
+                    matches = re.findall(r'\d+(?:\.\d+)?', kv[1])
+                    if len(matches) > 0:
+                        record[kv[0]] = matches
+                        if len(matches) > 1:
+                            record[kv[0]][0] = float(record[kv[0]][0])
+                            record[kv[0]][1] = int(record[kv[0]][1])
+                        else:
+                            record[kv[0]] = [float(record[kv[0]][0]), None]
+                    else:
+                        record[kv[0]] = [0.0, None]
+                elif kv[0] == "Atomic Number" or kv[0] == "Mass Number":
+                    record[kv[0]] = int(kv[1])
+                elif kv[0] == "Standard Atomic Weight":
+                    matches = re.findall(r'\d+(?:\.\d+)?', kv[1])
+                    record[kv[0]] = matches
+                else:
+                    record[kv[0]] = kv[1].strip()
+            yield record

@@ -35,6 +35,16 @@ class DbParsersTestCase(unittest.TestCase):
         records = list(parse_delimited(to_test_data("tab_delimited_record.txt"), "\t"))
         self.assertEqual(records[0]["Compound_id"], "2-METHYL-6-SOLANYL-14-BENZOQUINONE")
 
+    def parse_nist_database(self):
+        records = parse_nist_database(os.path.join(self.path, "beams", "data", "nist_database.txt"))
+        self.assertEqual(records[0]["Atomic Number"], 1)
+        self.assertEqual(records[0]["Atomic Symbol"], "H")
+        self.assertEqual(records[0]["Mass Number"], 1)
+        self.assertEqual(records[0]["Relative Atomic Mass"], [1.00782503223, 9])
+        self.assertEqual(records[0]["Isotopic Composition"], [0.999885, 70])
+        self.assertEqual(records[0]["Standard Atomic Weight"], [1.00784,1.00811])
+        self.assertEqual(records[0]["Notes"], "m")
+
 
 if __name__ == '__main__':
     unittest.main()

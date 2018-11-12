@@ -97,7 +97,7 @@ class InOutTestCase(unittest.TestCase):
                      ('exact_mass', 334.090662),
                      ('HC', 1), ('NOPSC', 1), ('lewis', 0), ('senior', 1), ('double_bond_equivalents', 9.0)]
         record_03 = [("composition", OrderedDict([('C', 48), ('H', 86), ('O', 18), ('P', 2)])), ('CHNOPS', True),
-                     ('exact_mass', 1012.528942),
+                     ('exact_mass', 1012.528940),
                      ('HC', 1), ('NOPSC', 1), ('lewis', 1), ('senior', 1), ('double_bond_equivalents', 6.0)]
 
         self.assertEqual(records[0], OrderedDict(record_01))
@@ -110,17 +110,17 @@ class InOutTestCase(unittest.TestCase):
         records = read_compounds(db_compounds, separator="\t")
         self.assertEqual(len(records), 31644)
         record_01 = [("composition", OrderedDict([('C', 10), ('Cl', 10), ('O', 1)])), ('CHNOPS', False),
-                     ('exact_mass', 485.683442),
+                     ('exact_mass', 485.683441),
                      ('compound_id', 1638),
                      ('compound_name', 'Chlordecone'),
                      ('molecular_formula', 'C10Cl10O')]
         record_02 = [("composition", OrderedDict([('C', 24), ('H', 42), ('O', 21)])), ('CHNOPS', True),
-                     ('exact_mass', 666.221865),
+                     ('exact_mass', 666.221858),
                      ('compound_id', 17543),
                      ('compound_name', '6G,6-kestotetraose'),
                      ('molecular_formula', 'C24H42O21')]
         record_03 = [("composition", OrderedDict([('H', 1), ('N', 1), ('O', 3)])), ('CHNOPS', True),
-                     ('exact_mass', 62.995644),
+                     ('exact_mass', 62.995643),
                      ('compound_id', 40762),
                      ('compound_name', 'Peroxynitrite'),
                      ('molecular_formula', 'HNO3')]

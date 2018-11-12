@@ -6,7 +6,7 @@ import copy
 from collections import OrderedDict
 from pandas import read_csv
 import pyteomics
-from pyteomics.mass import nist_mass
+from beams.db_parsers import parse_nist_database
 
 
 def order_composition_by_hill(composition):
@@ -106,24 +106,39 @@ def lewis_senior_rules(molecular_formula):
     return rules
 
 
-def update_and_sort_nist_mass(path="", digits=6):
+def nist_database_to_pyteomics(fn, skip_lines=10):
 
-    if os.path.isfile(path):
-        df = read_csv(path, sep="\t")
-    else:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'elements.txt')
-        df = read_csv(path, sep="\t")
+    """
+    :param fn: text file (NISTs Linearized ASCII Output)
+    :param skip_lines: the number of lines of the data file to skip before beginning to read data.
+    :return: Ordered dictionary containing NIST records compatible with 'Pyteomics'
+    """
 
-    nist_mass_copy = copy.deepcopy(nist_mass)
-    es = list(order_composition_by_hill(nist_mass_copy.keys()))
-    nist_mass_updated = OrderedDict((k, nist_mass_copy[k]) for k in es)
+    def add_record(r, nm):
+        if r["Atomic Symbol"] not in nm:
+            nm[r["Atomic Symbol"]] = OrderedDict([(0, (0.0, 0.0))]) # update after all records have been added
+            nm[r["Atomic Symbol"]][r["Mass Number"]] = (r["Relative Atomic Mass"][0], r["Isotopic Composition"][0])
+        else:
+            nm[r["Atomic Symbol"]][r["Mass Number"]] = (r["Relative Atomic Mass"][0], r["Isotopic Composition"][0])
+        return nm
 
-    for index, row in df.iterrows():
-        exact_mass = nist_mass_copy[row["name"]][int(round(row["exact_mass"], 0))][0]
-        for isotope, data in nist_mass_updated[row["name"]].items():
-            abundance = nist_mass_updated[row["name"]][isotope][1]
-            if data[0] == exact_mass:
-                nist_mass_updated[row["name"]][isotope] = (round(float(row["exact_mass"]), digits), abundance)
-            else:
-                nist_mass_updated[row["name"]][isotope] = (round(nist_mass_updated[row["name"]][isotope][0], digits), abundance)
-    return nist_mass_updated
+    lib = OrderedDict()
+    for record in parse_nist_database(fn, skip_lines=skip_lines):
+        if record["Atomic Symbol"] in ["D", "T"]:
+            lib = add_record(record, lib)
+            record["Atomic Symbol"] = "H"
+            lib = add_record(record, lib)
+        else:
+            lib = add_record(record, lib)
+
+    for element in list(lib.keys()):
+        lib_sorted = sorted(lib[element].items(), key=lambda e: e[1][1], reverse=True)
+        if lib_sorted[0][1][0] > 0.0:
+            lib[element][0] = (lib_sorted[0][1][0], 1.0)
+        elif len(lib_sorted) == 2:
+            lib[element][0] = (lib_sorted[1][1][0], 1.0)
+        else:
+            del lib[element]
+
+    es = list(order_composition_by_hill(lib.keys()))
+    return OrderedDict((k, lib[k]) for k in es)
