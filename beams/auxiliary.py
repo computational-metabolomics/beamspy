@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-import copy
 from collections import OrderedDict
-from pandas import read_csv
-import pyteomics
+from pyteomics import mass as pyteomics_mass
 from beams.db_parsers import parse_nist_database
 
 
@@ -45,7 +42,7 @@ def double_bond_equivalents(composition):
 
 def HC_HNOPS_rules(molecular_formula):
 
-    composition = pyteomics.mass.Composition(molecular_formula)
+    composition = pyteomics_mass.Composition(molecular_formula)
 
     rules = {"HC": 0, "NOPSC": 0}
 
@@ -85,7 +82,7 @@ def lewis_senior_rules(molecular_formula):
 
     valence = {'C': 4, 'H': 1, 'N': 3, 'O': 2, 'P': 3, 'S': 2}
 
-    composition = pyteomics.mass.Composition(molecular_formula)
+    composition = pyteomics_mass.Composition(molecular_formula)
 
     rules = {"lewis": 0, "senior": 0}
 

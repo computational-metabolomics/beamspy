@@ -11,7 +11,7 @@ import requests
 import pandas as pd
 import numpy as np
 import networkx as nx
-import pyteomics
+from pyteomics import mass as pyteomics_mass
 from beams.in_out import read_molecular_formulae
 from beams.in_out import read_compounds
 from beams.auxiliary import nist_database_to_pyteomics
@@ -873,10 +873,10 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
             mf = Chem.rdMolDescriptors.CalcMolFormula(Chem.MolFromSmiles(smiles_product))
             record["smiles"] = smiles_product
             record["sygma_score"] = entry['SyGMa_score']
-            comp = pyteomics.mass.Composition(mf)
+            comp = pyteomics_mass.Composition(mf)
             record.update(comp)
             record["molecular_formula"] = composition_to_string(comp)
-            record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)
+            record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)
             record["CHNOPS"] = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]]) == sum(list(comp.values()))
             records.append(record)
 
