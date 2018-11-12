@@ -48,7 +48,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
 
     if calculate:
         path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
-        nist_db = nist_database_to_pyteomics(path_nist_database)
+        nist_database = nist_database_to_pyteomics(path_nist_database)
 
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
@@ -60,7 +60,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics_mass.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=nist_db), 6)
+                record["exact_mass"] = round(pyteomics_mass.mass.calculate_mass(formula=str(row.molecular_formula), mass_data=nist_database), 6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record.update(HC_HNOPS_rules(str(row.molecular_formula)))
@@ -77,7 +77,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
 
     if calculate:
         path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
-        nist_db = nist_database_to_pyteomics(path_nist_database)
+        nist_database = nist_database_to_pyteomics(path_nist_database)
 
     df = read_csv(filename, sep=separator, float_precision="round_trip")
     records = []
@@ -89,7 +89,7 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
             sum_CHNOPS = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]])
             record["CHNOPS"] = sum_CHNOPS == sum(list(comp.values()))
             if calculate:
-                record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_db),6)
+                record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_database),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
             record["compound_id"] = row.compound_id

@@ -31,9 +31,9 @@ def calculate_ppm_error(mass, theo_mass):
 def _remove_elements_from_compositions(records, keep):
 
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
-    nist_mass = nist_database_to_pyteomics(path_nist_database)
+    nist_database = nist_database_to_pyteomics(path_nist_database)
 
-    elements = [e for e in nist_mass if e not in keep]
+    elements = [e for e in nist_database if e not in keep]
     for record in records:
         for e in elements:
             if "composition" in record:
@@ -616,7 +616,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
             r.raise_for_status()
 
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
-    nist_mass = nist_database_to_pyteomics(path_nist_database)
+    nist_database = nist_database_to_pyteomics(path_nist_database)
 
     for i in range(len(peaklist.iloc[:, 0])):
         mz = float(peaklist["mz"].iloc[i])
@@ -652,7 +652,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                         del record["DoubleBondEquivalents"]
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
-                    comp = OrderedDict([(item, record[item]) for item in record if item in nist_mass.keys()])
+                    comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
                     record["molecular_formula"] = composition_to_string(comp)
                     record["adduct"] = adduct
                 records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
@@ -858,7 +858,7 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
                    );""")
 
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
-    nist_db = nist_database_to_pyteomics(path_nist_database)
+    nist_database = nist_database_to_pyteomics(path_nist_database)
 
     records = []
     for smiles_parent in list_smiles:
