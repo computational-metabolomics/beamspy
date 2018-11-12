@@ -11,10 +11,11 @@ import requests
 import pandas as pd
 import numpy as np
 import networkx as nx
+import pyteomics
 from beams.in_out import read_molecular_formulae
 from beams.in_out import read_compounds
+from beams.auxiliary import nist_database_to_pyteomics
 from beams.auxiliary import composition_to_string
-from pyteomics.mass import nist_mass
 
 
 def calculate_mz_tolerance(mass, ppm):
@@ -28,6 +29,10 @@ def calculate_ppm_error(mass, theo_mass):
 
 
 def _remove_elements_from_compositions(records, keep):
+
+    path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
+    nist_mass = nist_database_to_pyteomics(path_nist_database)
+
     elements = [e for e in nist_mass if e not in keep]
     for record in records:
         for e in elements:
@@ -257,9 +262,6 @@ class DbMolecularFormulaeMemory:
             qms = ', '.join(['?'] * len(record.values()))
             query = """insert into mf ({}) values ({})""".format(columns, qms)
             self.cursor.execute(query, list(record.values()))
-
-            #self.cursor.execute("""insert into mf ({}) values (?,?,?,?,?,?,?,?,?,?,?)""".format(
-            #               ",".join(map(str, list(record.keys())))), list(record.values()))
 
         self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON MF (exact_mass);""")
         self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS_RULES ON MF (exact_mass, HC, NOPSC, LEWIS, SENIOR);""")
@@ -613,6 +615,9 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
             r = requests.get(url_test)
             r.raise_for_status()
 
+    path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
+    nist_mass = nist_database_to_pyteomics(path_nist_database)
+
     for i in range(len(peaklist.iloc[:, 0])):
         mz = float(peaklist["mz"].iloc[i])
         name = str(peaklist["name"].iloc[i])
@@ -650,8 +655,8 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_mass.keys()])
                     record["molecular_formula"] = composition_to_string(comp)
                     record["adduct"] = adduct
-                    record = _remove_elements_from_compositions([record], keep=["C", "H", "N", "O", "P", "S"])[0]
-                    values.append(list(record.values()))
+                records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
+                values.extend([list(record.values()) for record in records])
 
         time.sleep(0.05)
         if len(values) > 0:
@@ -777,7 +782,7 @@ class DbDrugCompoundsMemory:
     def __init__(self):
         self.conn = sqlite3.connect(":memory:")
         self.cursor = self.conn.cursor()
-        self.cursor.execute("""CREATE TABLE PREDICTED_DRUG_PRODUCTS(
+        self.cursor.execute("""CREATE TABLE predicted_drug_products (
                             compound_id TEXT PRIMARY KEY  NOT NULL,
                             compound_name TEXT,
                             smiles TEXT,
@@ -795,19 +800,20 @@ class DbDrugCompoundsMemory:
                             parent TEXT
                             );""")
 
-        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON PREDICTED_DRUG_PRODUCTS (exact_mass);""")
+        self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON predicted_drug_products (exact_mass);""")
         self.conn.commit()
 
     def insert(self, records):
         for record in records:
-            self.cursor.execute("""insert into PREDICTED_DRUG_PRODUCTS ({}) values (?,?,?,?,?,?,?,?)""".format(
-                ",".join(map(str, list(record.keys())))), list(record.values()))
-
+            columns = ",".join(map(str, list(record.keys())))
+            qms = ', '.join(['?'] * len(record.values()))
+            query = """insert into predicted_drug_products ({}) values ({})""".format(columns, qms)
+            self.cursor.execute(query, list(record.values()))
         self.conn.commit()
 
     def select(self, min_tol, max_tol):
-        col_names = ["compound_id", "compound_name", "smiles", "sygma_score", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula"]
-        self.cursor.execute("""SELECT {} FROM PREDICTED_DRUG_PRODUCTS WHERE 
+        col_names = ["compound_id", "compound_name", "smiles", "sygma_score", "sygma_pathway", "parent", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula"]
+        self.cursor.execute("""SELECT {} FROM predicted_drug_products WHERE 
                             exact_mass >= {} and exact_mass <= {}
                             """.format(",".join(map(str, col_names)), min_tol, max_tol))
         return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
@@ -816,9 +822,7 @@ class DbDrugCompoundsMemory:
         self.conn.close()
 
 
-def annotate_drug_product(peaklist, lib_adducts, ppm, db_out, smiles, phase1_cycles, phase2_cycles):
-
-    # TODO: ATOMS CHNOPS
+def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phase1_cycles, phase2_cycles):
 
     try:
         from rdkit import Chem
@@ -846,36 +850,44 @@ def annotate_drug_product(peaklist, lib_adducts, ppm, db_out, smiles, phase1_cyc
                    molecular_formula TEXT DEFAULT NULL,
                    compound_id TEXT DEFAULT NULL,
                    compound_name TEXT DEFAULT NULL,
+                   smiles TEXT,
+                   sygma_score REAL DEFAULT 0.0,
+                   sygma_pathway TEXT,
+                   parent TEXT,
                    primary key (id, adduct, compound_id)
                    );""")
 
-    records = []
-    for smiles in smiles:
+    path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
+    nist_db = nist_database_to_pyteomics(path_nist_database)
 
-        metabolic_tree = predict_drug_products(smiles, phase1_cycles, phase2_cycles)
+    records = []
+    for smiles_parent in list_smiles:
+        metabolic_tree = predict_drug_products(smiles_parent, phase1_cycles, phase2_cycles)
         for entry in metabolic_tree.to_list():
-            smiles = Chem.MolToSmiles(entry['SyGMa_metabolite'])
+            smiles_product = Chem.MolToSmiles(entry['SyGMa_metabolite'])
             record = OrderedDict()
-            record["compound_id"] = smiles
-            record["compound_name"] = smiles
+            record["compound_id"] = smiles_product
+            record["compound_name"] = smiles_product
             record["sygma_pathway"] = entry["SyGMa_pathway"]
             record["parent"] = Chem.MolToSmiles(entry["parent"])
-            mf = Chem.rdMolDescriptors.CalcMolFormula(Chem.MolFromSmiles(smiles))
-            comp = pyteomics.mass.mass.Composition(record["molecular_formula"])
-            record["smiles"] = smiles
+            mf = Chem.rdMolDescriptors.CalcMolFormula(Chem.MolFromSmiles(smiles_product))
+            record["smiles"] = smiles_product
             record["sygma_score"] = entry['SyGMa_score']
+            comp = pyteomics.mass.mass.Composition(mf)
+            record.update(comp)
             record["molecular_formula"] = composition_to_string(comp)
-            record["exact_mass"] = pyteomics.mass.calculate_mass(formula=str(mf))
+            record["exact_mass"] = round(pyteomics.mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)
+            record["CHNOPS"] = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]]) == sum(list(comp.values()))
             records.append(record)
 
     conn_mem = DbDrugCompoundsMemory()
+    records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
     conn_mem.insert(records)
 
     for i in range(len(peaklist.iloc[:, 0])):
         mz = float(peaklist["mz"].iloc[i])
         name = str(peaklist["name"].iloc[i])
         min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
-
         for adduct in lib_adducts.lib:
 
             if mz - lib_adducts.lib[adduct] > 0.5:
@@ -888,7 +900,7 @@ def annotate_drug_product(peaklist, lib_adducts, ppm, db_out, smiles, phase1_cyc
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     record["adduct"] = adduct
-                    cursor.execute("""insert into drug_compounds ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    cursor.execute("""insert into drug_products ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                                    """.format(",".join(map(str, list(record.keys())))), list(record.values()))
     conn.commit()
     conn.close()

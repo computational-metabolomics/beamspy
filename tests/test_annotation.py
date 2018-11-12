@@ -4,6 +4,7 @@
 import unittest
 import gzip
 import shutil
+import pandas as pd
 
 from beams.annotation import *
 from beams.grouping import group_features
@@ -59,6 +60,20 @@ class AnnotationTestCase(unittest.TestCase):
                          sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "oligomers"), 2)
 
+    # def test_annotate_drug_products(self):
+    #     df = pd.DataFrame({"name": pd.Series(["M152T100", "M188T100", "M310T200", "M348T200"]),
+    #                        "mz": pd.Series([152.0706054, 188.0682004, 310.1413254, 348.0972084], dtype=np.float64),
+    #                        "rt": pd.Series([100.0, 100, 0, 200.0, 200.0], dtype=np.float64),
+    #                        "intensity": pd.Series([1234.45, 2345.67, 3456.78, 4567.89], dtype=np.float64)},
+    #                        columns=["name", "mz", "rt", "intensity"],
+    #                        index=range(0, 4))
+    #     smiles = ["CC(=O)NC1=CC=C(C=C1)O", "CNCCC(OC1=CC=C(C=C1)C(F)(F)F)C1=CC=CC=C1"]
+    #     annotate_drug_products(df, to_test_results(self.db_results), smiles, self.lib_adducts, self.ppm,
+    #                            phase1_cycles=1, phase2_cycles=1)
+    #     self.assertEqual(sqlite_records(to_test_results(self.db_results), "drug_products"),
+    #                      sqlite_records(to_test_data(self.db_results), "drug_products"))
+    #     self.assertEqual(sqlite_count(to_test_results(self.db_results), "drug_products"), 4)
+
     # def test_annotate_compounds(self):
     #
     #     path_hmdb_gz = os.path.join(os.getcwd(), "beams", "data", "databases", "hmdb_full_v4_0_v1.sqlite.gz")
@@ -78,7 +93,6 @@ class AnnotationTestCase(unittest.TestCase):
     #     annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
     #     #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
     #     self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
-
 
     def test_annotate_molecular_formulae(self):
         fn_mf = os.path.join(self.path, "beams", "data", "db_mf.txt")
