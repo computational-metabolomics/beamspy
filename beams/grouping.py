@@ -29,7 +29,7 @@ def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.
     graph = statistics.correlation_graphs(df_coeffs, df)
     sub_graphs = list(graph.subgraph(c) for c in nx.weakly_connected_components(graph))
     for i in range(len(sub_graphs)):
-        sub_graphs[i].graph["group_id"] = i + 1 # not stored in output - place holder
+        sub_graphs[i].graph["groupid"] = i + 1 # not stored in output - place holder
         sub_graph_edges = []
         # sort edges
         edges = sorted(sub_graphs[i].edges(data=True), key=lambda e: (e[0], e[1]))

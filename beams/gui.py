@@ -10,6 +10,7 @@ from beams import annotation
 from PyQt5 import QtCore, QtGui, QtWidgets
 from beams.qt import form
 import sqlite3
+from collections import OrderedDict
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
@@ -51,7 +52,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.checkBox_mz_digits.clicked.connect(self.create_summary)
         self.checkBox_convert_rt.clicked.connect(self.create_summary)
 
-        self.add_databases()
+        self.db_names = self.add_databases()
 
         self.pushButton_start.clicked.connect(self.run)  # When the button is pressed
 
@@ -134,15 +135,15 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
     def source_compounds(self):
         if self.checkBox_filename_reference.isChecked():
             self.listWidget_databases.setEnabled(False)
-            self.listWidget_categories.setEnabled(False)
+            # self.listWidget_categories.setEnabled(False)
             self.label_databases.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(True)
             self.lineEdit_filename_reference.setEnabled(True)
         else:
             self.label_databases.setEnabled(True)
             self.listWidget_databases.setEnabled(True)
-            self.label_categories.setEnabled(False)
-            self.listWidget_categories.setEnabled(False)
+            # self.label_categories.setEnabled(False)
+            # self.listWidget_categories.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
             self.lineEdit_filename_reference.setEnabled(False)
 
@@ -208,7 +209,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
     def annotate_compounds(self):
         if not self.checkBox_annotate_compounds.isChecked():
             self.listWidget_databases.setEnabled(False)
-            self.listWidget_categories.setEnabled(False)
+            # self.listWidget_categories.setEnabled(False)
             self.label_databases.setEnabled(False)
             self.checkBox_filename_reference.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
@@ -249,21 +250,29 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 self.spinBox_mz_digits.setEnabled(False)
 
     def add_databases(self):
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-        dbs = [fn for fn in os.listdir(path) if fn.endswith('.sqlite')]
-        conn = sqlite3.connect(os.path.join(path, dbs[0]))
+
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
+
+        list_databases = OrderedDict()
+        with open(os.path.join(path, "compound_databases.txt"), "r") as inp:
+           keys = inp.readline().strip().split("\t")
+           for line in inp:
+               line = line.split("\t")
+               if os.path.isfile(os.path.join(path, line[keys.index("filename_sqlite")])):
+                    list_databases[line[keys.index("filename_sqlite")]] = line[keys.index("description")]
+        conn = sqlite3.connect(os.path.join(path, list_databases.keys()[0]))
         cursor = conn.cursor()
         cursor.execute("""SELECT name FROM sqlite_master where type='table'""")
         db_names = [str(name[0]) for name in cursor.fetchall()]
-        for i, db in enumerate(dbs[1:]):
+        for i, db in enumerate(list_databases.keys()[1:]):
             cursor.execute("ATTACH DATABASE ? AS db?", (os.path.join(path, dbs[i+1]), i, ))
             cursor.execute("""SELECT name FROM db?.sqlite_master where type='table'""", (i, ))
             db_names.extend([str(name[0]) for name in cursor.fetchall()])
         self.listWidget_databases.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
-        for db_name in db_names:
-            item = QtWidgets.QListWidgetItem(db_name)
+        for description in list_databases.values():
+            item = QtWidgets.QListWidgetItem(description)
             self.listWidget_databases.addItem(item)
-        return db_names
+        return dict((v, k) for k, v in list_databases.iteritems())
 
     def run(self):
 
@@ -331,6 +340,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                         QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts or 'Use default'", QtWidgets.QMessageBox.Ok)
+
                 annotation.annotate_adducts(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
                 print("Done")
 
@@ -435,13 +445,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
 
             if self.checkBox_filename_reference.isChecked():
-                annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(), db_out=self.lineEdit_sql_database.text(), db_in=self.lineEdit_filename_reference.text(), db_name=None)
+                annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(),
+                                              db_out=self.lineEdit_sql_database.text(), db_name=None, db_in=self.lineEdit_filename_reference.text())
             else:
-                path = 'data/BEAMS_DB.sqlite'
-                path_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                print(path_db)
                 for db_name in self.listWidget_databases.selectedItems():
-                    annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(), db_out=self.lineEdit_sql_database.text(), db_in=path_db, db_name=db_name.text())
+                    annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(),
+                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()].strip(".sqlite"))
             print("Done")
             print
 

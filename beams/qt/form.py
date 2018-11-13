@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'form.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.10
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(795, 842)
+        MainWindow.resize(795, 835)
         MainWindow.setAnimated(False)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -331,34 +331,26 @@ class Ui_MainWindow(object):
         self.checkBox_annotate_compounds.setObjectName("checkBox_annotate_compounds")
         self.lineEdit_filename_reference = QtWidgets.QLineEdit(self.groupBox_annotate_compounds)
         self.lineEdit_filename_reference.setEnabled(False)
-        self.lineEdit_filename_reference.setGeometry(QtCore.QRect(410, 59, 161, 20))
+        self.lineEdit_filename_reference.setGeometry(QtCore.QRect(410, 70, 161, 20))
         self.lineEdit_filename_reference.setText("")
         self.lineEdit_filename_reference.setReadOnly(True)
         self.lineEdit_filename_reference.setObjectName("lineEdit_filename_reference")
         self.pushButton_filename_reference = QtWidgets.QPushButton(self.groupBox_annotate_compounds)
         self.pushButton_filename_reference.setEnabled(False)
-        self.pushButton_filename_reference.setGeometry(QtCore.QRect(580, 57, 71, 23))
+        self.pushButton_filename_reference.setGeometry(QtCore.QRect(580, 69, 71, 23))
         self.pushButton_filename_reference.setMinimumSize(QtCore.QSize(63, 23))
         self.pushButton_filename_reference.setObjectName("pushButton_filename_reference")
         self.checkBox_filename_reference = QtWidgets.QCheckBox(self.groupBox_annotate_compounds)
         self.checkBox_filename_reference.setEnabled(True)
-        self.checkBox_filename_reference.setGeometry(QtCore.QRect(410, 37, 251, 17))
+        self.checkBox_filename_reference.setGeometry(QtCore.QRect(410, 50, 251, 17))
         self.checkBox_filename_reference.setChecked(False)
         self.checkBox_filename_reference.setObjectName("checkBox_filename_reference")
         self.listWidget_databases = QtWidgets.QListWidget(self.groupBox_annotate_compounds)
-        self.listWidget_databases.setGeometry(QtCore.QRect(10, 50, 171, 91))
+        self.listWidget_databases.setGeometry(QtCore.QRect(10, 50, 381, 91))
         self.listWidget_databases.setObjectName("listWidget_databases")
-        self.listWidget_categories = QtWidgets.QListWidget(self.groupBox_annotate_compounds)
-        self.listWidget_categories.setEnabled(False)
-        self.listWidget_categories.setGeometry(QtCore.QRect(200, 50, 171, 91))
-        self.listWidget_categories.setObjectName("listWidget_categories")
         self.label_databases = QtWidgets.QLabel(self.groupBox_annotate_compounds)
         self.label_databases.setGeometry(QtCore.QRect(10, 30, 71, 16))
         self.label_databases.setObjectName("label_databases")
-        self.label_categories = QtWidgets.QLabel(self.groupBox_annotate_compounds)
-        self.label_categories.setEnabled(False)
-        self.label_categories.setGeometry(QtCore.QRect(200, 30, 71, 16))
-        self.label_categories.setObjectName("label_categories")
         self.groupBox_create_summary = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_create_summary.setGeometry(QtCore.QRect(20, 657, 761, 101))
         self.groupBox_create_summary.setTitle("")
@@ -443,7 +435,7 @@ class Ui_MainWindow(object):
         self.checkBox_convert_rt.raise_()
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 795, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 795, 22))
         self.menubar.setObjectName("menubar")
         self.menuAdd_example_data = QtWidgets.QMenu(self.menubar)
         self.menuAdd_example_data.setObjectName("menuAdd_example_data")
@@ -514,7 +506,6 @@ class Ui_MainWindow(object):
         self.pushButton_filename_reference.setText(_translate("MainWindow", "Browse..."))
         self.checkBox_filename_reference.setText(_translate("MainWindow", "Reference file"))
         self.label_databases.setText(_translate("MainWindow", "Databases"))
-        self.label_categories.setText(_translate("MainWindow", "Categories"))
         self.pushButton_summary_filename.setText(_translate("MainWindow", "Save as..."))
         self.label_summary_filename.setText(_translate("MainWindow", "Summary:"))
         self.checkBox_mz_digits.setText(_translate("MainWindow", "Number of digits m/z:"))

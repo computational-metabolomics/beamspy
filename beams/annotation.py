@@ -306,7 +306,7 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
     if isinstance(source, nx.classes.digraph.DiGraph):
         source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
-    if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
+    if isinstance(source, list) and len(source) > 0 and isinstance(source[0], nx.classes.digraph.DiGraph):
         for i, graph in enumerate(source):
             for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
                 cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, label_a, label_b, ppm_error)
@@ -349,7 +349,7 @@ def annotate_isotopes(source, db_out, ppm, lib):
     if isinstance(source, nx.classes.digraph.DiGraph):
         source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
-    if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
+    if isinstance(source, list) and len(source) > 0 and isinstance(source[0], nx.classes.digraph.DiGraph):
 
         for graph in source:
 
@@ -359,7 +359,7 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
                 y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
                 x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
-            
+
                 if x == 0.0 or y == 0.0:
                     atoms = None
                 else:
@@ -412,7 +412,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
     if isinstance(source, nx.classes.digraph.DiGraph):
         source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
 
-    if isinstance(source, list) and isinstance(source[0], nx.classes.digraph.DiGraph):
+    if isinstance(source, list) and len(source) > 0 and isinstance(source[0], nx.classes.digraph.DiGraph):
 
         for graph in source:
 
@@ -679,7 +679,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                 conn_local = sqlite3.connect(os.path.join(path_dbs, db_local))
                 cursor_local = conn_local.cursor()
                 cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                if (db_name, ) not in cursor_local.fetchall():
+                if (db_name.strip(".sqlite"), ) not in cursor_local.fetchall():
                     raise ValueError("Database {} not available".format(db_name))
                 break
         if conn_local is None:

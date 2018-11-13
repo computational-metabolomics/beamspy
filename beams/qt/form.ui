@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>795</width>
-    <height>842</height>
+    <height>835</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1145,7 +1145,7 @@
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>59</y>
+       <y>70</y>
        <width>161</width>
        <height>20</height>
       </rect>
@@ -1164,7 +1164,7 @@
      <property name="geometry">
       <rect>
        <x>580</x>
-       <y>57</y>
+       <y>69</y>
        <width>71</width>
        <height>23</height>
       </rect>
@@ -1186,7 +1186,7 @@
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>37</y>
+       <y>50</y>
        <width>251</width>
        <height>17</height>
       </rect>
@@ -1203,20 +1203,7 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>171</width>
-       <height>91</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QListWidget" name="listWidget_categories">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>50</y>
-       <width>171</width>
+       <width>381</width>
        <height>91</height>
       </rect>
      </property>
@@ -1232,22 +1219,6 @@
      </property>
      <property name="text">
       <string>Databases</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_categories">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>30</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Categories</string>
      </property>
     </widget>
    </widget>
@@ -1521,7 +1492,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAdd_example_data">
