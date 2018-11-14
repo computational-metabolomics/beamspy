@@ -4,7 +4,7 @@
 from sys import platform
 import matplotlib
 
-if platform == "linux":
+if "linux" in platform:
     gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
 elif platform == "darwin":
     gui_env = ['Qt5Agg', 'TkAgg', 'GTKAgg', 'WXAgg']
