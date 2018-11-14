@@ -4,8 +4,14 @@
 from sys import platform
 import matplotlib
 
+if platform == "linux":
+    gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
+elif platform == "darwin":
+    gui_env = ['Qt5Agg', 'TkAgg', 'GTKAgg', 'WXAgg']
+else:
+    pass
+
 if platform != "win32":
-    gui_env = ['Qt5Agg', 'TkAgg']
     for gui in gui_env:
         try:
             matplotlib.use(gui, warn=False, force=True)
