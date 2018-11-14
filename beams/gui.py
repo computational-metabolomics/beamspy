@@ -7,6 +7,7 @@ import networkx as nx
 from beams import in_out
 from beams import grouping
 from beams import annotation
+from beams import plots
 from PyQt5 import QtCore, QtGui, QtWidgets
 from beams.qt import form
 import sqlite3
@@ -489,6 +490,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             separators = {"tab": "\t", "comma": ","}
             df_out.to_csv(self.lineEdit_summary_filename.text(), sep=separators[self.comboBox_separator.currentText()], index=False)
+            plots.report(df=df_out, fn_pdf=os.path.join(os.path.dirname(self.lineEdit_summary_filename.text()), "report.pdf"),
+                         column_ppm_error="ppm_error", column_adducts="adduct")
             print("Done")
             print("")
 

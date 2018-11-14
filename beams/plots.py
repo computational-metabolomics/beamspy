@@ -5,17 +5,15 @@ from sys import platform
 import matplotlib
 
 if platform != "win32":
-    gui_env = ['TKAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg']
+    gui_env = ['Qt5Agg', 'TkAgg']
     for gui in gui_env:
         try:
             matplotlib.use(gui, warn=False, force=True)
-            from matplotlib import pyplot as plt
             break
         except:
             continue
-else:
-    import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
 
@@ -31,14 +29,16 @@ def report(df, column_ppm_error, column_adducts, fn_pdf):
     ax_count = plt.subplot(gs[3])
     #ax = plt.subplot(gs[1])
 
-    sns.boxplot(df[column_ppm_error], ax=ax_box)
-    sns.distplot(df[column_ppm_error], ax=ax_hist)
+    ppm_errors = df[column_ppm_error].dropna()
 
-    std = df[column_ppm_error].std()
-    mean = df[column_ppm_error].mean()
-    median = df[column_ppm_error].median()
-    Q1 = df[column_ppm_error].quantile(0.25)
-    Q3 = df[column_ppm_error].quantile(0.75)
+    sns.boxplot(ppm_errors, ax=ax_box)
+    sns.distplot(ppm_errors, ax=ax_hist)
+
+    std = ppm_errors.std()
+    mean = ppm_errors.mean()
+    median = ppm_errors.median()
+    Q1 = ppm_errors.quantile(0.25)
+    Q3 = ppm_errors.quantile(0.75)
 
     # Remove x axis name for the boxplot
     ax_box.set(xlabel="")
@@ -49,11 +49,10 @@ def report(df, column_ppm_error, column_adducts, fn_pdf):
     ax_hist.set(xlabel="ppm error")
 
     sns.set(style="whitegrid")
-    sns.countplot(x=column_adducts, data=df, ax=ax_count)
+    sns.countplot(df[column_adducts].dropna(), ax=ax_count)
 
     plt.setp(ax_box.get_xticklabels(), visible=False)
 
     fig.suptitle('Summary - BEAMS', fontsize=20)
     fig.set_size_inches(11.69, 8.27)
     fig.savefig(fn_pdf, format="pdf")
-
