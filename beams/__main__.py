@@ -306,7 +306,7 @@ def main():
         app.setStyle(QtWidgets.QStyleFactory.create("fusion"))
         form = BeamsApp()
         form.show()
-        app.exec_()
+        sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
