@@ -4,6 +4,7 @@
 import os
 import time
 import itertools
+import gzip
 import sqlite3
 from collections import OrderedDict
 from future.moves.urllib.parse import urlparse
@@ -669,25 +670,30 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
 
 def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
 
-    # TODO: calculate DBE
-
     if db_in is None or db_in == "":
         path_dbs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
         conn_local = None
         for db_local in os.listdir(path_dbs):
-            if db_name == db_local.strip(".sqlite"):
-                conn_local = sqlite3.connect(os.path.join(path_dbs, db_local))
-                cursor_local = conn_local.cursor()
-                cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                if (db_name.strip(".sqlite"), ) not in cursor_local.fetchall():
-                    raise ValueError("Database {} not available".format(db_name))
-                break
+            if db_name == db_local.strip(".sql.gz"):
+
+                with gzip.GzipFile(os.path.join(path_dbs, db_local), mode='rb') as db_dump:
+
+                    conn_local = sqlite3.connect(":memory:")
+                    cursor_local = conn_local.cursor()
+                    cursor_local.executescript(db_dump.read().decode('utf-8'))
+                    conn_local.commit()
+
+                    cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                    if (db_name.strip(".sql.gz"), ) not in cursor_local.fetchall():
+                        raise ValueError("Database {} not available".format(db_name))
+                    break
+
         if conn_local is None:
             raise ValueError("Database {} not available".format(db_name))
 
     elif os.path.isfile(db_in):
         with open(db_in, 'rb') as fd:
-            if fd.read(100)[:16] == 'SQLite format 3\x00':
+            if fd.read(100)[:16].decode() == 'SQLite format 3\x00':
                 conn_local = sqlite3.connect(db_in)
                 cursor_local = conn_local.cursor()
                 cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
