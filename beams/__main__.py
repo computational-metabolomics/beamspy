@@ -203,8 +203,11 @@ def main():
     parser_sr.add_argument('-i', '--intensity-matrix', type=str, required=False,
                            help="Tab-delimited intensity matrix.")
 
-    parser_sr.add_argument('-o', '--output', type=str, required=False,
+    parser_sr.add_argument('-o', '--output', type=str, required=True,
                            help="Output file for the summary")
+
+    parser_sr.add_argument('-p', '--pdf', type=str, required=False,
+                           help="Output pdf file for the summary plots")
 
     parser_sr.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database that contains the results from the previous steps.")
@@ -298,6 +301,10 @@ def main():
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         df_out = annotation.summary(df, db=args.db, single_row=args.single_row, single_column=args.single_column, convert_rt=args.convert_rt, ndigits_mz=args.ndigits_mz)
         df_out.to_csv(args.output, sep=separators[args.sep], index=False)
+        if args.pdf:
+            plots.report(db=args.db, pdf_out=args.pdf,
+                         column_corr="r_value", column_pvalue="pvalue",
+                         column_ppm_error="ppm_error", column_adducts="adduct")
 
     if args.step == "start-gui":
         from PyQt5 import QtWidgets

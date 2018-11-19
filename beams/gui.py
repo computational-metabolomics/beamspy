@@ -490,8 +490,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             separators = {"tab": "\t", "comma": ","}
             df_out.to_csv(self.lineEdit_summary_filename.text(), sep=separators[self.comboBox_separator.currentText()], index=False)
-            plots.report(df=df_out, fn_pdf=os.path.join(os.path.dirname(self.lineEdit_summary_filename.text()), "report.pdf"),
-                         column_ppm_error="ppm_error", column_adducts="adduct")
+            ext = os.path.splitext(self.lineEdit_summary_filename.text())[1]
+            plots.report(db=self.lineEdit_sql_database.text(), pdf_out=str(self.lineEdit_summary_filename.text()).replace(ext, ".pdf"),
+                         column_corr="r_value", column_pvalue="p_value", column_ppm_error="ppm_error", column_adducts="adduct")
             print("Done")
             print("")
 
