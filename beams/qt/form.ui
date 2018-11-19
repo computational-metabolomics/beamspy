@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>795</width>
-    <height>835</height>
+    <height>807</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <x>20</x>
       <y>8</y>
       <width>761</width>
-      <height>151</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
@@ -127,8 +127,8 @@
     <widget class="QComboBox" name="comboBox_ion_mode">
      <property name="geometry">
       <rect>
-       <x>540</x>
-       <y>30</y>
+       <x>500</x>
+       <y>58</y>
        <width>111</width>
        <height>22</height>
       </rect>
@@ -147,46 +147,14 @@
     <widget class="QLabel" name="label_ion_mode">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>32</y>
+       <x>400</x>
+       <y>60</y>
        <width>71</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
       <string>Ion mode:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_ppm_tolerance">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>63</y>
-       <width>141</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Mass tolerance (ppm):</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_ppm_error">
-     <property name="geometry">
-      <rect>
-       <x>540</x>
-       <y>61</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="label_data_files">
@@ -219,8 +187,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>540</x>
-       <y>92</y>
+       <x>500</x>
+       <y>88</y>
        <width>111</width>
        <height>20</height>
       </rect>
@@ -238,8 +206,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>660</x>
-       <y>90</y>
+       <x>620</x>
+       <y>86</y>
        <width>71</width>
        <height>23</height>
       </rect>
@@ -323,8 +291,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>120</x>
-       <y>123</y>
+       <x>498</x>
+       <y>30</y>
        <width>161</width>
        <height>20</height>
       </rect>
@@ -342,8 +310,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>290</x>
-       <y>121</y>
+       <x>668</x>
+       <y>28</y>
        <width>71</width>
        <height>23</height>
       </rect>
@@ -370,8 +338,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>12</x>
-       <y>123</y>
+       <x>400</x>
+       <y>30</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -414,8 +382,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>94</y>
+       <x>400</x>
+       <y>90</y>
        <width>141</width>
        <height>16</height>
       </rect>
@@ -429,7 +397,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>173</y>
+      <y>150</y>
       <width>761</width>
       <height>91</height>
      </rect>
@@ -610,9 +578,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>273</y>
+      <y>250</y>
       <width>761</width>
-      <height>101</height>
+      <height>121</height>
      </rect>
     </property>
     <property name="title">
@@ -882,6 +850,38 @@
       <string>Monomer Units:</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_pp_ppm_tolerance">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>141</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mass tolerance (ppm):</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_pp_ppm_error">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>88</y>
+       <width>111</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="pushButton_start">
     <property name="geometry">
@@ -1050,8 +1050,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>32</y>
+       <x>390</x>
+       <y>30</y>
        <width>121</width>
        <height>16</height>
       </rect>
@@ -1063,8 +1063,8 @@
     <widget class="QSpinBox" name="spinBox_max_mz">
      <property name="geometry">
       <rect>
-       <x>540</x>
-       <y>28</y>
+       <x>490</x>
+       <y>27</y>
        <width>111</width>
        <height>22</height>
       </rect>
@@ -1085,8 +1085,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>63</y>
+       <x>630</x>
+       <y>30</y>
        <width>171</width>
        <height>17</height>
       </rect>
@@ -1096,6 +1096,38 @@
      </property>
      <property name="checked">
       <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_cpds_ppm_tolerance_2">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>65</y>
+       <width>141</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mass tolerance (ppm):</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_cpds_ppm_error">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>64</y>
+       <width>111</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
      </property>
     </widget>
    </widget>
@@ -1144,7 +1176,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>480</x>
        <y>70</y>
        <width>161</width>
        <height>20</height>
@@ -1163,7 +1195,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>580</x>
+       <x>650</x>
        <y>69</y>
        <width>71</width>
        <height>23</height>
@@ -1185,7 +1217,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>480</x>
        <y>50</y>
        <width>251</width>
        <height>17</height>
@@ -1203,7 +1235,7 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>381</width>
+       <width>451</width>
        <height>91</height>
       </rect>
      </property>
@@ -1219,6 +1251,38 @@
      </property>
      <property name="text">
       <string>Databases</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_mf_ppm_tolerance">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>110</y>
+       <width>141</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mass tolerance (ppm):</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_mf_ppm_error">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>108</y>
+       <width>111</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
      </property>
     </widget>
    </widget>

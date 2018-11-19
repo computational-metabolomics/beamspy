@@ -259,21 +259,14 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
            keys = inp.readline().strip().split("\t")
            for line in inp:
                line = line.split("\t")
-               if os.path.isfile(os.path.join(path, line[keys.index("filename_sqlite")])):
-                    list_databases[line[keys.index("filename_sqlite")]] = line[keys.index("description")]
-        conn = sqlite3.connect(os.path.join(path, list_databases.keys()[0]))
-        cursor = conn.cursor()
-        cursor.execute("""SELECT name FROM sqlite_master where type='table'""")
-        db_names = [str(name[0]) for name in cursor.fetchall()]
-        for i, db in enumerate(list_databases.keys()[1:]):
-            cursor.execute("ATTACH DATABASE ? AS db?", (os.path.join(path, dbs[i+1]), i, ))
-            cursor.execute("""SELECT name FROM db?.sqlite_master where type='table'""", (i, ))
-            db_names.extend([str(name[0]) for name in cursor.fetchall()])
+               if os.path.isfile(os.path.join(path, line[keys.index("database_name")] + ".sql.gz")):
+                    list_databases[line[keys.index("database_name")]] = line[keys.index("description")]
+
         self.listWidget_databases.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
         for description in list_databases.values():
             item = QtWidgets.QListWidgetItem(description)
             self.listWidget_databases.addItem(item)
-        return dict((v, k) for k, v in list_databases.iteritems())
+        return dict((v, k) for k, v in list_databases.items())
 
     def run(self):
 
@@ -342,7 +335,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts or 'Use default'", QtWidgets.QMessageBox.Ok)
 
-                annotation.annotate_adducts(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
+                annotation.annotate_adducts(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_isotopes.isChecked():
@@ -356,7 +349,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                     lib = in_out.read_isotopes(self.lineEdit_isotopes.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for isotopes or 'Use default'", QtWidgets.QMessageBox.Ok)
-                annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
+                annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_multiple_charged.isChecked():
@@ -369,7 +362,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                     lib = in_out.read_multiple_charged_ions(self.lineEdit_multiple_charged.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for multiple charged ions or 'Use default'", QtWidgets.QMessageBox.Ok)
-                annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib)
+                annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_oligomers.isChecked():
@@ -388,7 +381,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 else:
                     QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
                 inp = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
-                annotation.annotate_oligomers(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_ppm_error.value(), lib=lib, maximum=self.spinBox_max_monomer_units.value())
+                annotation.annotate_oligomers(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib, maximum=self.spinBox_max_monomer_units.value())
                 print("Done")
             print
 
@@ -420,7 +413,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
             annotation.annotate_molecular_formulae(df,
                                                    lib_adducts=lib,
-                                                   ppm=self.doubleSpinBox_ppm_error.value(),
+                                                   ppm=self.doubleSpinBox_mf_ppm_error.value(),
                                                    db_out=self.lineEdit_sql_database.text(),
                                                    db_in=db_in,
                                                    rules=rules,
@@ -446,12 +439,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
 
             if self.checkBox_filename_reference.isChecked():
-                annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(),
+                annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
                                               db_out=self.lineEdit_sql_database.text(), db_name=None, db_in=self.lineEdit_filename_reference.text())
             else:
                 for db_name in self.listWidget_databases.selectedItems():
-                    annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_ppm_error.value(),
-                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()].strip(".sqlite"))
+                    annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
+                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()])
             print("Done")
             print
 
