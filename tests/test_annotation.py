@@ -118,7 +118,13 @@ class AnnotationTestCase(unittest.TestCase):
     def test_summary(self):
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results("summary.txt"), sep="\t", index=False)
-        self.assertTrue(filecmp.cmp(to_test_results("summary.txt"), to_test_data("summary.txt")))
+        with open(to_test_results("summary.txt")) as result:
+            with open(to_test_data("summary.txt")) as test_data:
+                lines_results = result.read().splitlines()
+                lines_test_data = test_data.read().splitlines()
+                for i in range(len(lines_results)):
+                    self.assertTrue(lines_results[i], lines_test_data[i])
+                    self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
 
 
 if __name__ == '__main__':
