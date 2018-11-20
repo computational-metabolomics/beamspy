@@ -16,14 +16,14 @@ class PlotsTestCase(unittest.TestCase):
         report(to_test_data("results_annotation.sqlite"), to_test_results("test_report_01.pdf"),
                "r_value", "p_value", "ppm_error", "adduct")
         statinfo = os.stat(to_test_results("test_report_01.pdf"))
-        #print(statinfo.st_size)
-        self.assertTrue(statinfo.st_size > 700)
+        # print(statinfo.st_size)
+        self.assertTrue(statinfo.st_size > 23000)
 
         report(to_test_data("results_pearson_all.sqlite"),  to_test_results("test_report_02.pdf"),
                "r_value", "p_value", "ppm_error", "adduct")
         statinfo = os.stat(to_test_results("test_report_02.pdf"))
-        print(statinfo.st_size)
-        #self.assertTrue(statinfo.st_size > 25000)
+        # print(statinfo.st_size)
+        self.assertTrue(statinfo.st_size > 23000)
 
 if __name__ == '__main__':
     unittest.main()
