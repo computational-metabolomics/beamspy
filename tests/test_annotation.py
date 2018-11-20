@@ -5,6 +5,7 @@ import unittest
 import gzip
 import shutil
 import pandas as pd
+import filecmp
 
 from beams.annotation import *
 from beams.grouping import group_features
@@ -113,6 +114,11 @@ class AnnotationTestCase(unittest.TestCase):
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), fn_mf)
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"), sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
+
+    def test_summary(self):
+        df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary.to_csv(to_test_results("summary.txt"), sep="\t", index=False)
+        self.assertTrue(filecmp.cmp(to_test_results("summary.txt"), to_test_data("summary.txt")))
 
 
 if __name__ == '__main__':
