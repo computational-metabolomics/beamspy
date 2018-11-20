@@ -255,7 +255,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
 
         list_databases = OrderedDict()
-        with open(os.path.join(path, "compound_databases.txt"), "r") as inp:
+        with open(os.path.join(path, "databases.txt"), "r") as inp:
            keys = inp.readline().strip().split("\t")
            for line in inp:
                line = line.split("\t")
