@@ -17,13 +17,13 @@ class PlotsTestCase(unittest.TestCase):
                "r_value", "p_value", "ppm_error", "adduct")
         statinfo = os.stat(to_test_results("test_report_01.pdf"))
         # print(statinfo.st_size)
-        self.assertTrue(statinfo.st_size > 23000)
+        self.assertTrue(statinfo.st_size > 10000)
 
         report(to_test_data("results_pearson_all.sqlite"),  to_test_results("test_report_02.pdf"),
                "r_value", "p_value", "ppm_error", "adduct")
         statinfo = os.stat(to_test_results("test_report_02.pdf"))
         # print(statinfo.st_size)
-        self.assertTrue(statinfo.st_size > 23000)
+        self.assertTrue(statinfo.st_size > 10000)
 
 if __name__ == '__main__':
     unittest.main()
