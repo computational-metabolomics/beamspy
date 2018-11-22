@@ -300,7 +300,7 @@ def main():
     if args.step == "summary-results":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         df_out = annotation.summary(df, db=args.db, single_row=args.single_row, single_column=args.single_column, convert_rt=args.convert_rt, ndigits_mz=args.ndigits_mz)
-        df_out.to_csv(args.output, sep=separators[args.sep], index=False)
+        df_out.to_csv(args.output, sep=separators[args.sep], index=False, encoding="utf-8")
         if args.pdf:
             plots.report(db=args.db, pdf_out=args.pdf,
                          column_corr="r_value", column_pvalue="pvalue",
