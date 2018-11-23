@@ -12,6 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from beams.qt import form
 import sqlite3
 from collections import OrderedDict
+from multiprocessing import cpu_count
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
@@ -52,6 +53,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
         self.checkBox_mz_digits.clicked.connect(self.create_summary)
         self.checkBox_convert_rt.clicked.connect(self.create_summary)
+
+        self.doubleSpinBox_ncpus.setRange(1, cpu_count())
+        self.doubleSpinBox_ncpus.setValue(cpu_count()-1)
 
         self.db_names = self.add_databases()
 
@@ -158,6 +162,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_grouping_method.setEnabled(False)
             self.doubleSpinBox_coefficent.setEnabled(False)
             self.label_tool_coefficient.setEnabled(False)
+            self.label_grouping_block.setEnabled(False)
+            self.label_grouping_ncpus.setEnabled(False)
         else:
             self.label_max_rt.setEnabled(True)
             self.doubleSpinBox_max_rt.setEnabled(True)
@@ -167,6 +173,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_grouping_method.setEnabled(True)
             self.doubleSpinBox_coefficent.setEnabled(True)
             self.label_tool_coefficient.setEnabled(True)
+            self.label_grouping_block.setEnabled(True)
+            self.label_grouping_ncpus.setEnabled(True)
         self.source_graph_file()
 
     def annotate_peak_patterns(self):
@@ -305,7 +313,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                             coeff_thres=self.doubleSpinBox_coefficent.value(),
                                             pvalue_thres=self.doubleSpinBox_p_value.value(),
                                             method=method,
-                                            ncpus=None)
+                                            block=int(self.doubleSpinBox_block.value()),
+                                            ncpus=int(self.doubleSpinBox_ncpus.value()))
             nx.write_gml(graph, str(self.lineEdit_graph.text()))
             print("Done")
             print("")
