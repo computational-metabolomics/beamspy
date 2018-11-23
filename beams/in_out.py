@@ -4,6 +4,7 @@
 import copy
 import os
 import collections
+import numpy as np
 from pandas import read_csv
 import pandas as pd
 from pyteomics import mass as pyteomics_mass
@@ -141,6 +142,7 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
     df = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
+    df.replace(0, np.nan, inplace=True)
 
     if not samples_in_columns:
         df = df.T
@@ -158,6 +160,7 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
 
     df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
     df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
+    df_matrix.replace(0, np.nan, inplace=True)
 
     if not samples_in_columns:
         df_matrix = df_matrix.T
