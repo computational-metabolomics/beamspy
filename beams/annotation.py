@@ -1037,7 +1037,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         else:
             query += query_amo.replace("peak_id_amo", "peak_id")
         cursor.execute(query)
-
     if flag_amo:
         cursor.execute('PRAGMA table_info("peak_labels")')
         columns = cursor.fetchall()
@@ -1113,7 +1112,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         else:
             union_mf_sub_query = "LEFT JOIN mf_cd ON peaklist.name = mf_cd.id"
 
-
     elif not flag_mf and flag_cpd:
         mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
         mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id"
@@ -1182,7 +1180,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             if single_column:
                 concat_str = """
                              group_concat(
-                                 molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
+                                 molecular_formula || '::' || adduct || '::' || exact_mass || '::' || round(ppm_error, 2) ,
                                  '||'
                              ) as annotation
                              """
@@ -1196,16 +1194,23 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         else:
             concat_str = ""
 
+        groups_str = ""
         if ("groups",) in tables:
             groups_str = "group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges, "
-        else:
-            groups_str = ""
+        if ("adduct_pairs",) or ("oligomers",) or ("multiple_charged_ions",) in tables:
+            groups_str += """(select group_concat(label || '::' || charge || '::' || oligomer, '||') 
+                             from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
+                             ) as label_charge_oligomer, """
+        if ("isotopes",) in tables:
+            groups_str += "isotope_labels_a, isotope_ids, isotope_labels_b, atoms, "
 
-        query = """SELECT DISTINCT name, mz, rt, {}label,
+        query = """SELECT DISTINCT name, mz, rt, {}
                    {}
                    from summary
                    GROUP BY NAME
+                   ORDER BY rowid
                    """.format(groups_str, concat_str)
+
         df_out = pd.read_sql(query, conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
         if flag_cpd:
