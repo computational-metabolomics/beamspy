@@ -1136,22 +1136,31 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         union_mf_sub_query = ""
 
     cursor.execute('PRAGMA table_info("peak_labels")')
-    columns = cursor.fetchall()
+    columns_peak_labels = cursor.fetchall()
 
-    if len(columns) == 0 and mf_cpc_columns == "":
+    if len(columns_peak_labels) == 0 and mf_cpc_columns == "":
         raise ValueError("No annotation results available to create summary from")
 
     exclude_cns = ["peak_id"]
-    pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in columns if cn[1] not in exclude_cns]))
+
+    if len(columns_peak_labels) > 0:
+        pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in _peak_labels if cn[1] not in exclude_cns]))
+        join_peak_labels = """
+                           LEFT JOIN
+                           peak_labels
+                           ON peaklist.name = peak_labels.peak_id
+                           """
+    else:
+        pl_columns = ""
+        join_peak_labels = ""
+
     query = """CREATE TABLE summary AS SELECT
                peaklist.name, peaklist.mz, peaklist.rt{}{}
                FROM peaklist
-               LEFT JOIN
-               peak_labels
-               ON peaklist.name = peak_labels.peak_id
                {}
                {}
-               ORDER BY peaklist.rt, peaklist.mz""".format(pl_columns, mf_cpc_columns, union_mf_sub_query, unions_cpd_sub_query)
+               {}
+               ORDER BY peaklist.rt, peaklist.mz""".format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
