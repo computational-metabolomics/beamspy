@@ -101,9 +101,9 @@ def parse_sdf(source):
                 for attribute_value in temp[1:]:
                     attribute_value = attribute_value.split(">\n")
                     if len(attribute_value) == 1:
-                        record_out[list(record_out.keys())[-1]] += attribute_value[0].strip("\n")
+                        record_out[list(record_out.keys())[-1]] += attribute_value[0].rstrip()
                     else:
-                        record_out[attribute_value[0]] = attribute_value[1].strip("\n")
+                        record_out[attribute_value[0]] = attribute_value[1].rstrip()
                 c += 1
                 record_out["SDF"] = temp[0]
                 yield record_out

@@ -674,7 +674,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
         path_dbs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
         conn_local = None
         for db_local in os.listdir(path_dbs):
-            if db_name == db_local.strip(".sql.gz"):
+            if db_name == db_local.replace(".sql.gz", ""):
 
                 with gzip.GzipFile(os.path.join(path_dbs, db_local), mode='rb') as db_dump:
 
@@ -684,7 +684,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                     conn_local.commit()
 
                     cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                    if (db_name.strip(".sql.gz"), ) not in cursor_local.fetchall():
+                    if (db_name.replace(".sql.gz", ""), ) not in cursor_local.fetchall():
                         raise ValueError("Database {} not available".format(db_name))
                     break
 
