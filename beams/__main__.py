@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from . import __version__
+from beams import __version__
 import argparse
 import sys
 import networkx as nx
@@ -19,7 +19,7 @@ def map_delimiter(delimiter):
 
 
 def main():
-    print("Executing BEAMS version %s." % __version__)
+    print("Executing BEAMS version {}.".format(__version__))
 
     parser = argparse.ArgumentParser(description='Annotation package of LC-MS and DIMS data',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
