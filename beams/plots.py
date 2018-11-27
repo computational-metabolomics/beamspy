@@ -4,10 +4,14 @@
 import sys
 import matplotlib
 
-if "linux" in sys.platform or (sys.platform == "darwin" and sys.version_info[0] < 3):
+if "linux" in sys.platform:
     gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
 elif sys.platform == "darwin":
-    gui_env = ['Qt5Agg', 'TkAgg', 'GTKAgg', 'WXAgg']
+    try:
+        import PyQt5
+        gui_env = ['Qt5Agg']
+    except ImportError:
+        gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
 else:
     pass
 
@@ -15,9 +19,9 @@ if sys.platform != "win32":
     for gui in gui_env:
         try:
             matplotlib.use(gui, warn=False, force=True)
+            print(gui)
             break
         except:
-            print(gui)
             continue
 
 import matplotlib.pyplot as plt

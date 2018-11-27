@@ -10,7 +10,6 @@ from beams import annotation
 from beams import plots
 from PyQt5 import QtCore, QtGui, QtWidgets
 from beams.qt import form
-import sqlite3
 from collections import OrderedDict
 from multiprocessing import cpu_count
 
