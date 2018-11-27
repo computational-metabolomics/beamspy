@@ -1144,7 +1144,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     exclude_cns = ["peak_id"]
 
     if len(columns_peak_labels) > 0:
-        pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in _peak_labels if cn[1] not in exclude_cns]))
+        pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in columns_peak_labels if cn[1] not in exclude_cns]))
         join_peak_labels = """
                            LEFT JOIN
                            peak_labels
