@@ -346,11 +346,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                         lib = in_out.read_adducts(self.lineEdit_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                     except:
                         lib = in_out.read_mass_differences(self.lineEdit_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                    else:
-                        QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
                 else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts or 'Use default'", QtWidgets.QMessageBox.Ok)
-
+                    raise IOError("Provide a valid filename for adducts or 'Use default'")
+                print("")
+                print(lib)
                 annotation.annotate_adducts(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
@@ -364,7 +363,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 elif os.path.isfile(self.lineEdit_isotopes.text()):
                     lib = in_out.read_isotopes(self.lineEdit_isotopes.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for isotopes or 'Use default'", QtWidgets.QMessageBox.Ok)
+                    raise IOError("Provide a valid filename for isotopes or 'Use default'")
+                print("")
+                print(lib)
                 annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
@@ -377,7 +378,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 elif os.path.isfile(self.lineEdit_multiple_charged.text()):
                     lib = in_out.read_multiple_charged_ions(self.lineEdit_multiple_charged.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for multiple charged ions or 'Use default'", QtWidgets.QMessageBox.Ok)
+                    raise IOError("Provide a valid filename for multiple charged ions or 'Use default'")
                 annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
@@ -392,10 +393,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                         lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                     except:
                         lib = in_out.read_mass_differences(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                    else:
-                        QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
                 else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
+                    raise IOError("Provide a valid filename for adducts")
                 inp = in_out.combine_peaklist_matrix(self.lineEdit_peaklist.text(), self.lineEdit_intensity_matrix.text())
                 annotation.annotate_oligomers(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib, maximum=self.spinBox_max_monomer_units.value())
                 print("Done")
@@ -413,10 +412,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                     lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 except:
                     lib = in_out.read_mass_differences(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
             else:
-                QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
+                raise IOError("Provide a valid filename for adducts")
 
             if self.comboBox_source_mf.currentText() == "Tab-delimited text file":
                 db_in = self.lineEdit_filename_mf.text()
@@ -427,6 +424,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 rules = self.checkBox_heuristic_rules.isChecked()
                 max_mz = self.spinBox_max_mz.value()
 
+            print("")
+            print(lib)
             annotation.annotate_molecular_formulae(df,
                                                    lib_adducts=lib,
                                                    ppm=self.doubleSpinBox_mf_ppm_error.value(),
@@ -449,12 +448,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                     lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
                 except:
                     lib = in_out.read_mass_differences(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                else:
-                    QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
             else:
-                QtWidgets.QMessageBox.critical(None, "Select file", "Provide a valid filename for adducts", QtWidgets.QMessageBox.Ok)
+                raise IOError("Provide a valid filename for adducts")
 
             if self.checkBox_filename_reference.isChecked():
+                print("")
+                print(lib)
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
                                               db_out=self.lineEdit_sql_database.text(), db_name=None, db_in=self.lineEdit_filename_reference.text())
             else:
