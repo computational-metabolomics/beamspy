@@ -27,7 +27,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.pushButton_sql_database.clicked.connect(partial(self.save_file, self.lineEdit_sql_database, "database.sqlite"))
         self.pushButton_graph.clicked.connect(partial(self.save_file, self.lineEdit_graph, "graph.gml"))
 
-        self.pushButton_default_adduct_library.clicked.connect(partial(self.open_file, self.lineEdit_default_adduct_library))
+        self.pushButton_default_adduct_library.clicked.connect(partial(self.open_file,
+                                                                       self.lineEdit_default_adduct_library,
+                                                                       self.lineEdit_adduct_library))
         self.pushButton_adduct_library.clicked.connect(partial(self.open_file, self.lineEdit_adduct_library))
         self.pushButton_isotopes.clicked.connect(partial(self.open_file, self.lineEdit_isotopes))
         self.pushButton_multiple_charged.clicked.connect(partial(self.open_file, self.lineEdit_multiple_charged))
@@ -61,7 +63,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.pushButton_start.clicked.connect(self.run)  # When the button is pressed
 
 
-    def open_file(self, field):
+    def open_file(self, field, field_extra=None):
 
         d = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', "")
         if d:
@@ -69,6 +71,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 QtWidgets.QMessageBox.critical(None, "Select File", "No file selected", QtWidgets.QMessageBox.Ok)
             else:
                 field.setText(d[0])
+                if field_extra and field_extra.text() == "Use default":
+                    field_extra.setText(d[0])
         return
 
     def save_file(self, field, filename):
@@ -163,6 +167,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_tool_coefficient.setEnabled(False)
             self.label_grouping_block.setEnabled(False)
             self.label_grouping_ncpus.setEnabled(False)
+            self.doubleSpinBox_ncpus.setEnabled(False)
+            self.doubleSpinBox_block.setEnabled(False)
         else:
             self.label_max_rt.setEnabled(True)
             self.doubleSpinBox_max_rt.setEnabled(True)
@@ -174,6 +180,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_tool_coefficient.setEnabled(True)
             self.label_grouping_block.setEnabled(True)
             self.label_grouping_ncpus.setEnabled(True)
+            self.doubleSpinBox_ncpus.setEnabled(True)
+            self.doubleSpinBox_block.setEnabled(True)
         self.source_graph_file()
 
     def annotate_peak_patterns(self):
