@@ -139,3 +139,18 @@ def nist_database_to_pyteomics(fn, skip_lines=10):
 
     es = list(order_composition_by_hill(lib.keys()))
     return OrderedDict((k, lib[k]) for k in es)
+
+
+def convert_sql_to_text(path_sql, name_table, path_out, sep):
+    
+    with open(path_sql, "rb") as db_dump:
+        conn = sqlite3.connect(":memory:")
+        cursor = conn.cursor()
+        cursor.executescript(db_dump.read().decode('utf-8'))
+        conn.commit()
+        
+        df = pd.read_sql_query("select * from " + name_db, conn)
+        df.to_csv(path_out, sep="\t")
+        
+        conn.close()
+	return
