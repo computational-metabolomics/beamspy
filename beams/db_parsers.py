@@ -6,7 +6,7 @@ from collections import OrderedDict
 import io
 import xml.etree.ElementTree as etree
 import csv
-from Bio.KEGG import Compound
+from Bio.KEGG import Compound, REST
 import re
 
 
@@ -18,31 +18,18 @@ def parse_delimited(source, delimiter):
 
 
 def parse_kegg_compound(source, sdf=False):
-
     with open(source, "r") as inp:
-        ref_line = inp.readline()
-
-    with open(source, "r") as inp:
-        if "ENTRY" in ref_line and "Reaction" not in ref_line:
-            for record in Compound.parse(inp):
-                record_out = OrderedDict()
-                if "C" in record.entry or "D" in record.entry:
-                    for attribute in dir(record):
-                        if "_" not in attribute:
-                            record_out[attribute.upper()] = ""
-                            record_out[attribute.upper()] = getattr(record, attribute.lower())
-
-                    if sdf:
-                        record_out["SDF"] = REST.GetMol(record_out["ENTRY"])
-
-                    yield record_out
-
-        elif "ENTRY" in ref_line and "Reaction" in ref_line:
-            for record in Reaction.parse(inp):
-                record_out = OrderedDict()
+        for record in Compound.parse(inp):
+            record_out = OrderedDict()
+            if "C" in record.entry or "D" in record.entry:
                 for attribute in dir(record):
                     if "_" not in attribute:
+                        record_out[attribute.upper()] = ""
                         record_out[attribute.upper()] = getattr(record, attribute.lower())
+
+                if sdf:
+                    record_out["SDF"] = REST.GetMol(record_out["ENTRY"])
+
                 yield record_out
 
 
