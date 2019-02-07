@@ -165,18 +165,26 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"na
     if not samples_in_columns:
         df_matrix = df_matrix.T
 
-    df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
-    df_peaklist.columns = ["name", "mz", "rt"]
+    if mapping["mz"] in df_peaklist.columns and mapping["name"] not in df_peaklist.columns and mapping["mz"] in df_matrix.columns:
+        df_peaklist = read_peaklist(fn_peaklist, separator=separator)
+        df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], "intensity"]]
 
-    df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
+        df_matrix = df_matrix.rename(columns={"mz": 'name'})
+        df_matrix["name"] = [str(x).replace(".", "_") for x in df_matrix["name"]]
+    else:
+        df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
+        df_peaklist.columns = ["name", "mz", "rt"]
+
+        df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
+        df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
 
     if len(df_peaklist[mapping["name"]].unique()) != len(df_peaklist[mapping["name"]]):
         raise ValueError("Peaklist: Values column '{}' are not unique".format(mapping["name"]))
     if len(df_matrix[mapping["name"]].unique()) != len(df_matrix[mapping["name"]]):
         raise ValueError("Matrix: Values column '{}' are not unique".format(mapping["name"]))
 
-    df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
+
 
 
 def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
