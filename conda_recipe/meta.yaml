@@ -8,8 +8,6 @@ source:
 
 build:
     number: 0
-    entry_points:
-        - beams = beams.__main__:main
 
 requirements:
     build:
@@ -46,14 +44,13 @@ requirements:
         - cryptography-vectors >=2.3.1
 
 test:
-    commands:
-        - beams --help
     imports:
         - beams
 
 about:
     home: https://github.com/computational-metabolomics/beams
-    license: GPLv3
+    license: GPL-3
+    license_family: GPL3
 
 extra:
     copy_test_source_files: true
