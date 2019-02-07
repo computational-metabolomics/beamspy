@@ -14,7 +14,7 @@ from tests.utils import to_test_data
 class StatisticsTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_theoretical.txt"))
+        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_lcms_theoretical.txt"))
 
     def test_correlation_coefficients(self):
         df_coeffs_comp = pd.DataFrame({"name_a": ["M169T120", "M169T120", "M337T121", "M215T170", "M492T190"],

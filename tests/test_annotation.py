@@ -17,7 +17,7 @@ class AnnotationTestCase(unittest.TestCase):
 
     def setUp(self):
 
-        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_theoretical.txt"))
+        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_lcms_theoretical.txt"))
         self.path, f = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 
         self.lib_isotopes = read_isotopes(os.path.join(self.path, "beams", "data", "isotopes.txt"), "pos")
