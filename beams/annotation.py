@@ -1160,68 +1160,67 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                {}
                {}
                {}
-               ORDER BY peaklist.rt, peaklist.mz""".format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
+               """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
+               # ORDER BY peaklist.rt, peaklist.mz
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
     conn.commit()
 
+    columns_to_select = []
+    if ("groups",) in tables:
+        columns_to_select.append("group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges")
+    if ("adduct_pairs",) in tables or ("oligomers",) in tables or ("multiple_charged_ions",) in tables:
+        columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
+        from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
+        ) as label_charge_oligomer""")
+    if ("isotopes",) in tables:
+        columns_to_select.append("isotope_labels_a, isotope_ids, isotope_labels_b, atoms")
+
     if single_row:
 
         if flag_cpd:
             if single_column:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(
                                  molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
                                  '||'
                              ) as annotation
-                             """
+                             """)
             else:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(molecular_formula, '||') as molecular_formula,
                              group_concat(adduct, '||') as adduct, 
                              group_concat(ifnull(compound_name, "None"), '||') as compound_name, 
                              group_concat(ifnull(compound_id, "None"), '||') as compound_id,
                              group_concat(exact_mass, '||') as exact_mass,
                              group_concat(round(ppm_error, 2), '||') as ppm_error
-                             """
+                             """)
         elif flag_mf:
             if single_column:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(
                                  molecular_formula || '::' || adduct || '::' || exact_mass || '::' || round(ppm_error, 2) ,
                                  '||'
                              ) as annotation
-                             """
+                             """)
             else:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(molecular_formula, '||') as molecular_formula, 
                              group_concat(adduct, '||') as adduct,
                              group_concat(exact_mass, '||') as exact_mass,
                              group_concat(round(ppm_error, 2), '||') as ppm_error
-                             """
-        else:
-            concat_str = ""
-
-        groups_str = ""
-        if ("groups",) in tables:
-            groups_str = "group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges, "
-        if ("adduct_pairs",) or ("oligomers",) or ("multiple_charged_ions",) in tables:
-            groups_str += """(select group_concat(label || '::' || charge || '::' || oligomer, '||') 
-                             from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
-                             ) as label_charge_oligomer, """
-        if ("isotopes",) in tables:
-            groups_str += "isotope_labels_a, isotope_ids, isotope_labels_b, atoms, "
+                             """)
 
         query = """SELECT DISTINCT name, mz, rt, {}
-                   {}
                    from summary
                    GROUP BY NAME
                    ORDER BY rowid
-                   """.format(groups_str, concat_str)
+                   """.format(", ".join(map(str, columns_to_select)))
 
         df_out = pd.read_sql(query, conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+
         if flag_cpd:
             if not single_column:
                 df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})
