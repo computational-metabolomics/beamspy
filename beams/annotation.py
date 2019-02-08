@@ -683,6 +683,8 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                     cursor_local.executescript(db_dump.read().decode('utf-8'))
                     conn_local.commit()
 
+                    cursor_local.execute("CREATE INDEX idx_exact_mass ON {} (exact_mass)".format(db_name.replace(".sql.gz", "")))
+
                     cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
                     if (db_name.replace(".sql.gz", ""), ) not in cursor_local.fetchall():
                         raise ValueError("Database {} not available".format(db_name))
@@ -882,7 +884,7 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
             comp = pyteomics_mass.Composition(mf)
             record.update(comp)
             record["molecular_formula"] = composition_to_string(comp)
-            record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)
+            record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(mf), mass_data=nist_database), 6)
             record["CHNOPS"] = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]]) == sum(list(comp.values()))
             records.append(record)
 
@@ -919,7 +921,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS peaklist")
-    df[['name', 'mz', 'rt', "intensity"]].sort_values(by=["rt", "mz"]).to_sql('peaklist', conn, index=False)
+    df[["name", "mz", "rt", "intensity"]].to_sql("peaklist", conn, index=False)
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
@@ -1155,7 +1157,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         join_peak_labels = ""
 
     query = """CREATE TABLE summary AS SELECT
-               peaklist.name, peaklist.mz, peaklist.rt{}{}
+               peaklist.name, peaklist.mz, peaklist.rt, peaklist.intensity{}{}
                FROM peaklist
                {}
                {}
@@ -1212,7 +1214,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                              group_concat(round(ppm_error, 2), '||') as ppm_error
                              """)
 
-        query = """SELECT DISTINCT name, mz, rt, {}
+        query = """SELECT DISTINCT name, mz, rt, intensity, {}
                    from summary
                    GROUP BY NAME
                    ORDER BY rowid

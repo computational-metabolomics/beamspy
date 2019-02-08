@@ -116,15 +116,30 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
 
     def test_summary(self):
+
+        def _assert(summary_test_data, summary_result):
+            with open(summary_result) as result:
+                with open(summary_test_data) as test_data:
+                    lines_results = result.read().splitlines()
+                    lines_test_data = test_data.read().splitlines()
+                    for i in range(len(lines_results)):
+                        self.assertTrue(lines_results[i], lines_test_data[i])
+                        self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
+
+        fn_summary = "summary_mr_mc.txt"
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
-        df_summary.to_csv(to_test_results("summary.txt"), sep="\t", index=False)
-        with open(to_test_results("summary.txt")) as result:
-            with open(to_test_data("summary.txt")) as test_data:
-                lines_results = result.read().splitlines()
-                lines_test_data = test_data.read().splitlines()
-                for i in range(len(lines_results)):
-                    self.assertTrue(lines_results[i], lines_test_data[i])
-                    self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        _assert(to_test_data(fn_summary), to_test_results(fn_summary))
+
+        fn_summary = "summary_sr_mc.txt"
+        df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        _assert(to_test_data(fn_summary), to_test_results(fn_summary))
+
+        fn_summary = "summary_sr_sc.txt"
+        df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=True, convert_rt=None, ndigits_mz=None)
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 
 if __name__ == '__main__':
