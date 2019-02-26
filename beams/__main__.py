@@ -140,7 +140,7 @@ def main():
     parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
                             help="Molecular formulae database (reference).")
 
-    parser_amf.add_argument('-a', '--adducts-library', required=True,
+    parser_amf.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
                             help="List of adducts to search for.")
 
     parser_amf.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
@@ -149,7 +149,7 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
-    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=700.0,
+    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=500.0,
                             help="Maximum m/z value to assign molecular formula(e).")
 
 
@@ -168,10 +168,10 @@ def main():
 
     parser_am.add_argument('-c', '--db-compounds', type=str, required=False, help="Metabolite database (reference).")
 
-    parser_am.add_argument('-n', '--db-name', type=str, default="", required=False,
+    parser_am.add_argument('-n', '--db-name', type=str, default="", required=True,
                            help="Name compound / metabolite database (within --db-compounds).")
 
-    parser_am.add_argument('-a', '--adducts-library', required=True,
+    parser_am.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
                            help="List of adducts to search for.")
 
     parser_am.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
@@ -292,8 +292,14 @@ def main():
             df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         else:
             df = in_out.read_peaklist(args.peaklist)
-        
-        lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+
+        if args.adducts_library:
+            lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+        else:
+            path = 'data/adducts.txt'
+            p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+            lib = in_out.read_adducts(p, args.ion_mode)
+
         annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf, max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
@@ -302,8 +308,14 @@ def main():
             df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         else:
             df = in_out.read_peaklist(args.peaklist)
-            
-        lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+
+        if args.adducts_library:
+            lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+        else:
+            path = 'data/adducts.txt'
+            p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+            lib = in_out.read_adducts(p, args.ion_mode)
+
         annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in="")
 
     if args.step == "summary-results":
