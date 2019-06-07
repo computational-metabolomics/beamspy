@@ -574,7 +574,7 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
     return
 
 
-def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://multiomics-int.cs.bham.ac.uk", rules=True, max_mz=None):
+def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://mfdb.bham.ac.uk", rules=True, max_mz=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -607,10 +607,10 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         conn_mem = DbMolecularFormulaeMemory(db_in)
         max_mz = None
     else:
-        url = '{}/mass_range'.format(db_in)
-        url_test = '{}//mass?mass=180.06339&tol=0.0&unit=ppm&rules=1'.format(db_in)
+        url = '{}/api/formula/mass_range'.format(db_in)
+        url_test = '{}/api/formula/mass?mass=180.06339&tol=0.0&tol_unit=ppm&rules=1'.format(db_in)
         o = urlparse(url)
-        if o.scheme != "http" and o.netloc != "multiomics-int.cs.bham.ac.uk":
+        if o.scheme != "http" and o.netloc != "mfdb.bham.ac.uk":
             raise ValueError("No database or local db available")
         else:
             r = requests.get(url_test)
@@ -636,21 +636,23 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                 if "conn_mem" in locals():
                     records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct], rules)
                 else:
-                    params = {"lower": min_tol - lib_adducts.lib[adduct], "upper": max_tol - lib_adducts.lib[adduct], "rules": int(rules)}
+                    params = {"lower": min_tol - lib_adducts.lib[adduct],
+                              "upper": max_tol - lib_adducts.lib[adduct],
+                              "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
 
                 for record in records:
+                    record["id"] = name
                     if "CHNOPS" not in record:  # MFdb API specific
                         record["CHNOPS"] = True  # MFdb API specific
-                    record["id"] = name
-                    if "ExactMass" in record:  # TODO: Remove when API has been updated
-                        record["exact_mass"] = record["ExactMass"]
-                        del record["ExactMass"]
+                    if "rules" in record:
+                        record.update(record["rules"])
+                        del record["rules"]
+                    if "atoms" in record:
+                        record.update(record["atoms"])
+                        del record["atoms"]
                     record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]
-                    if "DoubleBondEquivalents" in record: # TODO: Remove when API has been updated
-                        record["double_bond_equivalents"] = record["DoubleBondEquivalents"]
-                        del record["DoubleBondEquivalents"]
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
@@ -659,7 +661,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                 records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
                 values.extend([list(record.values()) for record in records])
 
-        time.sleep(0.05)
+        time.sleep(0.02)
         if len(values) > 0:
             cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                                """.format(",".join(map(str, list(record.keys())))), values)
