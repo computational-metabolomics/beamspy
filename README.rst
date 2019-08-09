@@ -1,6 +1,6 @@
 BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
 ===============================================================
-|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| 
+|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| |mybinder|
 
 BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
 
