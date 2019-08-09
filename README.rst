@@ -1,6 +1,6 @@
 BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
 ===============================================================
-|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov|
+|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| 
 
 BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
 
@@ -80,9 +80,6 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 .. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
    :target: http://bioconda.github.io/recipes/beams/README.html
 
-.. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
-   :target: http://bioconda.github.io/recipes/beams/README.html
-
 .. |License| image:: https://img.shields.io/pypi/l/beams.svg?style=flat&maxAge=3600
    :target: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -91,6 +88,9 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 
 .. |codecov| image:: https://codecov.io/gh/computational-metabolomics/beams/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/computational-metabolomics/beams
+
+.. |mybinder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/computational-metabolomics/beams.git/test-binder?filepath=notebooks
 
 .. |documentation| raw:: html
 
