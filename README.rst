@@ -90,7 +90,7 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
    :target: https://codecov.io/gh/computational-metabolomics/beams
 
 .. |mybinder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/computational-metabolomics/beams.git/test-binder?filepath=notebooks
+   :target: https://mybinder.org/v2/gh/computational-metabolomics/beams/master?filepath=notebooks
 
 .. |documentation| raw:: html
 
