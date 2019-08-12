@@ -79,11 +79,11 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 .. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
    :target: http://bioconda.github.io/recipes/beams/README.html
 
-.. |License| image:: https://img.shields.io/pypi/l/beams.svg?style=flat&maxAge=3600
+.. |License| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
    :target: https://www.gnu.org/licenses/gpl-3.0.html
 
 .. |RTD doc| image:: https://img.shields.io/badge/documentation-RTD-71B360.svg?style=flat&maxAge=3600
-   :target: http://beams.readthedocs.io/en/latest/beams/index.html
+   :target: https://beams.readthedocs.io/en/latest/
 
 .. |codecov| image:: https://codecov.io/gh/computational-metabolomics/beams/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/computational-metabolomics/beams
@@ -93,7 +93,7 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 
 .. |documentation| raw:: html
 
-   <a href="http://beams.readthedocs.io/en/latest/beams/index.html" target="_blank">Documentation</a>
+   <a href="https://beams.readthedocs.io/en/latest/" target="_blank">Documentation</a>
 
 .. |source| raw:: html
 
