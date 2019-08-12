@@ -24,10 +24,9 @@ def main():
         install_requires=install_requires,
         include_package_data=True,
         classifiers=[
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
             "Topic :: Scientific/Engineering :: Bio-Informatics",
             "Topic :: Scientific/Engineering :: Chemistry",
             "Topic :: Utilities",

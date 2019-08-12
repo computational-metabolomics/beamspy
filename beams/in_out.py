@@ -4,6 +4,7 @@
 import copy
 import os
 import collections
+import numpy as np
 from pandas import read_csv
 import pandas as pd
 from pyteomics import mass as pyteomics_mass
@@ -141,6 +142,7 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
     df = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
+    df.replace(0, np.nan, inplace=True)
 
     if not samples_in_columns:
         df = df.T
@@ -152,31 +154,48 @@ def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz
     return pd.concat([df_peaklist, df_matrix], axis=1)
 
 
-def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt"}, merge_on="name", samples_in_columns=True):
+def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", median_intensity=True,
+                            mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"},
+                            merge_on="name", samples_in_columns=True):
     if "mz" not in mapping and "rt" not in mapping and "name" not in mapping:
         raise ValueError("Incorrect column mapping: provide column names for mz, and name")
 
     df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
     df_matrix = pd.read_csv(fn_matrix, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
+    df_matrix.replace(0, np.nan, inplace=True)
 
     if not samples_in_columns:
         df_matrix = df_matrix.T
 
-    df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
-    df_peaklist.columns = ["name", "mz", "rt"]
+    if mapping["mz"] in df_peaklist.columns and mapping["name"] not in df_peaklist.columns and mapping["mz"] in df_matrix.columns:
+        df_peaklist = read_peaklist(fn_peaklist, separator=separator)
+        df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], "intensity"]]
 
-    df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
+        df_matrix = df_matrix.rename(columns={"mz": 'name'})
+        df_matrix["name"] = [str(x).replace(".", "_") for x in df_matrix["name"]]
+    else:
+        df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"]]]
+        df_peaklist.columns = ["name", "mz", "rt"]
+
+        df_matrix = df_matrix.rename(columns={mapping["name"]: 'name'})
+
+    if mapping["intensity"] not in df_peaklist.columns:
+        if median_intensity:
+            df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
+        else:
+            df_peaklist["intensity"] = pd.Series(df_matrix.mean(axis=1, skipna=True), index=df_matrix.index)
 
     if len(df_peaklist[mapping["name"]].unique()) != len(df_peaklist[mapping["name"]]):
         raise ValueError("Peaklist: Values column '{}' are not unique".format(mapping["name"]))
     if len(df_matrix[mapping["name"]].unique()) != len(df_matrix[mapping["name"]]):
         raise ValueError("Matrix: Values column '{}' are not unique".format(mapping["name"]))
 
-    df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
 
 
-def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
+
+def read_peaklist(fn_peaklist, separator="\t",
+                  mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
     df_peaklist = pd.read_csv(fn_peaklist, header=0, sep=separator, dtype={"name": str}, float_precision="round_trip")
     if mapping["mz"] not in df_peaklist.columns.values or mapping["intensity"] not in df_peaklist.columns.values:
@@ -189,9 +208,12 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
             df_peaklist.columns = ["mz", "intensity"]
             df_peaklist.insert(0, "name", [str(x).replace(".","_") for x in df_peaklist[mapping["mz"]]])
             df_peaklist["mz"] = df_peaklist["mz"].astype(float)
+            df_peaklist["intensity"] = df_peaklist["intensity"].astype(float)
         else:
             df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["intensity"]]]
             df_peaklist.columns = ["name", "mz", "intensity"]
+            df_peaklist["mz"] = df_peaklist["mz"].astype(float)
+            df_peaklist["intensity"] = df_peaklist["intensity"].astype(float)
         df_peaklist.insert(2, "rt", 0.0)
     elif "rt" in mapping:
         if mapping["name"] in df_peaklist.columns.values:
@@ -211,5 +233,9 @@ def read_peaklist(fn_peaklist, separator="\t", mapping={"name": "name", "mz": "m
     else:
         df_peaklist = df_peaklist[[mapping["name"], mapping["mz"], mapping["rt"], mapping["intensity"]]]
         df_peaklist.columns = ["name", "mz", "rt", "intensity"]
+
+    df_peaklist["mz"] = df_peaklist["mz"].astype(float)
+    df_peaklist["rt"] = df_peaklist["rt"].astype(float)
+    df_peaklist["intensity"] = df_peaklist["intensity"].astype(float)
 
     return df_peaklist

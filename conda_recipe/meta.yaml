@@ -1,0 +1,57 @@
+package:
+    name: beams
+    version: 0.1.0
+
+source:
+    git_rev: dev_databases
+    git_url: https://github.com/computational-metabolomics/beams.git
+
+build:
+    number: 0
+
+requirements:
+    build:
+        - python
+        - setuptools
+        - future
+        - networkx
+        - numpy
+        - scipy
+        - pandas
+        - requests
+        - biopython
+        - pyteomics
+        - matplotlib
+        - tqdm
+        - seaborn
+        - pyqt
+        - cryptography-vectors >=2.3.1
+    run:
+        - python
+        - setuptools
+        - future
+        - networkx
+        - numpy
+        - scipy
+        - pandas
+        - requests
+        - biopython
+        - pyteomics
+        - matplotlib
+        - tqdm
+        - seaborn
+        - pyqt
+        - cryptography-vectors >=2.3.1
+
+test:
+    imports:
+        - beams
+
+about:
+    home: https://github.com/computational-metabolomics/beams
+    license: GPL-3
+    license_family: GPL3
+
+extra:
+    copy_test_source_files: true
+    final: true

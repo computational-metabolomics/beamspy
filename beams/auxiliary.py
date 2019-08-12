@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
+import gzip
+import sqlite3
+import pandas as pd
 from pyteomics import mass as pyteomics_mass
 from beams.db_parsers import parse_nist_database
 
@@ -139,3 +142,22 @@ def nist_database_to_pyteomics(fn, skip_lines=10):
 
     es = list(order_composition_by_hill(lib.keys()))
     return OrderedDict((k, lib[k]) for k in es)
+
+
+def convert_sql_to_text(path_sql, table_name, path_out, separator="\t"):
+
+    if path_sql.endswith(".gz"):
+        db_dump = gzip.GzipFile(path_sql, mode='rb')
+    else:
+        db_dump = open(path_sql, mode='rb')
+
+    conn = sqlite3.connect(":memory:")
+    cursor = conn.cursor()
+    cursor.executescript(db_dump.read().decode('utf-8'))
+    conn.commit()
+
+    df = pd.read_sql_query("select * from " + table_name, conn)
+    df.to_csv(path_out, sep=separator)
+
+    conn.close()
+    db_dump.close()

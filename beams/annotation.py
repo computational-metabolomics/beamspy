@@ -574,7 +574,7 @@ def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
     return
 
 
-def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://multiomics-int.cs.bham.ac.uk", rules=True, max_mz=None):
+def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://mfdb.bham.ac.uk", rules=True, max_mz=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -607,10 +607,10 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         conn_mem = DbMolecularFormulaeMemory(db_in)
         max_mz = None
     else:
-        url = '{}/mass_range'.format(db_in)
-        url_test = '{}//mass?mass=180.06339&tol=0.0&unit=ppm&rules=1'.format(db_in)
+        url = '{}/api/formula/mass_range'.format(db_in)
+        url_test = '{}/api/formula/mass?mass=180.06339&tol=0.0&tol_unit=ppm&rules=1'.format(db_in)
         o = urlparse(url)
-        if o.scheme != "http" and o.netloc != "multiomics-int.cs.bham.ac.uk":
+        if o.scheme != "http" and o.netloc != "mfdb.bham.ac.uk":
             raise ValueError("No database or local db available")
         else:
             r = requests.get(url_test)
@@ -636,21 +636,23 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                 if "conn_mem" in locals():
                     records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct], rules)
                 else:
-                    params = {"lower": min_tol - lib_adducts.lib[adduct], "upper": max_tol - lib_adducts.lib[adduct], "rules": int(rules)}
+                    params = {"lower": min_tol - lib_adducts.lib[adduct],
+                              "upper": max_tol - lib_adducts.lib[adduct],
+                              "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
 
                 for record in records:
+                    record["id"] = name
                     if "CHNOPS" not in record:  # MFdb API specific
                         record["CHNOPS"] = True  # MFdb API specific
-                    record["id"] = name
-                    if "ExactMass" in record:  # TODO: Remove when API has been updated
-                        record["exact_mass"] = record["ExactMass"]
-                        del record["ExactMass"]
+                    if "rules" in record:
+                        record.update(record["rules"])
+                        del record["rules"]
+                    if "atoms" in record:
+                        record.update(record["atoms"])
+                        del record["atoms"]
                     record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]
-                    if "DoubleBondEquivalents" in record: # TODO: Remove when API has been updated
-                        record["double_bond_equivalents"] = record["DoubleBondEquivalents"]
-                        del record["DoubleBondEquivalents"]
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
@@ -659,7 +661,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                 records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
                 values.extend([list(record.values()) for record in records])
 
-        time.sleep(0.05)
+        time.sleep(0.02)
         if len(values) > 0:
             cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                                """.format(",".join(map(str, list(record.keys())))), values)
@@ -674,7 +676,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
         path_dbs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
         conn_local = None
         for db_local in os.listdir(path_dbs):
-            if db_name == db_local.strip(".sql.gz"):
+            if db_name == db_local.replace(".sql.gz", ""):
 
                 with gzip.GzipFile(os.path.join(path_dbs, db_local), mode='rb') as db_dump:
 
@@ -683,8 +685,10 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                     cursor_local.executescript(db_dump.read().decode('utf-8'))
                     conn_local.commit()
 
+                    cursor_local.execute("CREATE INDEX idx_exact_mass ON {} (exact_mass)".format(db_name.replace(".sql.gz", "")))
+
                     cursor_local.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                    if (db_name.strip(".sql.gz"), ) not in cursor_local.fetchall():
+                    if (db_name.replace(".sql.gz", ""), ) not in cursor_local.fetchall():
                         raise ValueError("Database {} not available".format(db_name))
                     break
 
@@ -882,7 +886,7 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
             comp = pyteomics_mass.Composition(mf)
             record.update(comp)
             record["molecular_formula"] = composition_to_string(comp)
-            record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(mf), mass_data=nist_db), 6)
+            record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(mf), mass_data=nist_database), 6)
             record["CHNOPS"] = sum([comp[e] for e in comp if e in ["C", "H", "N", "O", "P", "S"]]) == sum(list(comp.values()))
             records.append(record)
 
@@ -919,7 +923,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS peaklist")
-    df[['name', 'mz', 'rt', "intensity"]].sort_values(by=["rt", "mz"]).to_sql('peaklist', conn, index=False)
+    df[["name", "mz", "rt", "intensity"]].to_sql("peaklist", conn, index=False)
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
@@ -1037,7 +1041,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         else:
             query += query_amo.replace("peak_id_amo", "peak_id")
         cursor.execute(query)
-
     if flag_amo:
         cursor.execute('PRAGMA table_info("peak_labels")')
         columns = cursor.fetchall()
@@ -1113,7 +1116,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         else:
             union_mf_sub_query = "LEFT JOIN mf_cd ON peaklist.name = mf_cd.id"
 
-
     elif not flag_mf and flag_cpd:
         mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
         mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id"
@@ -1138,76 +1140,91 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         union_mf_sub_query = ""
 
     cursor.execute('PRAGMA table_info("peak_labels")')
-    columns = cursor.fetchall()
+    columns_peak_labels = cursor.fetchall()
 
-    if len(columns) == 0 and mf_cpc_columns == "":
+    if len(columns_peak_labels) == 0 and mf_cpc_columns == "":
         raise ValueError("No annotation results available to create summary from")
 
     exclude_cns = ["peak_id"]
-    pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in columns if cn[1] not in exclude_cns]))
+
+    if len(columns_peak_labels) > 0:
+        pl_columns = ", " + ", ".join(map(str, ["peak_labels.{}".format(cn[1]) for cn in columns_peak_labels if cn[1] not in exclude_cns]))
+        join_peak_labels = """
+                           LEFT JOIN
+                           peak_labels
+                           ON peaklist.name = peak_labels.peak_id
+                           """
+    else:
+        pl_columns = ""
+        join_peak_labels = ""
+
     query = """CREATE TABLE summary AS SELECT
-               peaklist.name, peaklist.mz, peaklist.rt{}{}
+               peaklist.name, peaklist.mz, peaklist.rt, peaklist.intensity{}{}
                FROM peaklist
-               LEFT JOIN
-               peak_labels
-               ON peaklist.name = peak_labels.peak_id
                {}
                {}
-               ORDER BY peaklist.rt, peaklist.mz""".format(pl_columns, mf_cpc_columns, union_mf_sub_query, unions_cpd_sub_query)
+               {}
+               """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
+               # ORDER BY peaklist.rt, peaklist.mz
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
     conn.commit()
 
+    columns_to_select = []
+    if ("groups",) in tables:
+        columns_to_select.append("group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges")
+    if ("adduct_pairs",) in tables or ("oligomers",) in tables or ("multiple_charged_ions",) in tables:
+        columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
+        from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
+        ) as label_charge_oligomer""")
+    if ("isotopes",) in tables:
+        columns_to_select.append("isotope_labels_a, isotope_ids, isotope_labels_b, atoms")
+
     if single_row:
 
         if flag_cpd:
             if single_column:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(
                                  molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
                                  '||'
                              ) as annotation
-                             """
+                             """)
             else:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(molecular_formula, '||') as molecular_formula,
                              group_concat(adduct, '||') as adduct, 
                              group_concat(ifnull(compound_name, "None"), '||') as compound_name, 
                              group_concat(ifnull(compound_id, "None"), '||') as compound_id,
                              group_concat(exact_mass, '||') as exact_mass,
                              group_concat(round(ppm_error, 2), '||') as ppm_error
-                             """
+                             """)
         elif flag_mf:
             if single_column:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(
-                                 molecular_formula || '::' || adduct || '::' || ifnull(compound_name, "None") || '::' || ifnull(compound_id, "None")  || '::' || exact_mass || '::' || round(ppm_error, 2) ,
+                                 molecular_formula || '::' || adduct || '::' || exact_mass || '::' || round(ppm_error, 2) ,
                                  '||'
                              ) as annotation
-                             """
+                             """)
             else:
-                concat_str = """
+                columns_to_select.append("""
                              group_concat(molecular_formula, '||') as molecular_formula, 
                              group_concat(adduct, '||') as adduct,
                              group_concat(exact_mass, '||') as exact_mass,
                              group_concat(round(ppm_error, 2), '||') as ppm_error
-                             """
-        else:
-            concat_str = ""
+                             """)
 
-        if ("groups",) in tables:
-            groups_str = "group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges, "
-        else:
-            groups_str = ""
-
-        query = """SELECT DISTINCT name, mz, rt, {}label,
-                   {}
+        query = """SELECT DISTINCT name, mz, rt, intensity, {}
                    from summary
                    GROUP BY NAME
-                   """.format(groups_str, concat_str)
+                   ORDER BY rowid
+                   """.format(", ".join(map(str, columns_to_select)))
+
         df_out = pd.read_sql(query, conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
+
         if flag_cpd:
             if not single_column:
                 df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})

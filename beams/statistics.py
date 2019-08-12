@@ -62,7 +62,9 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
         raise ValueError("Incorrect column names: [name, mz, rt] or [mz, intensity]")
 
     if ncpus is None:
-        ncpus = cpu_count() - 1
+        ncpus = cpu_count()
+        if ncpus > 1:
+            ncpus -= 1
 
     column_names = ["name_a", "name_b", "r_value", "p_value"]
     df_coeffs = pd.DataFrame(columns=column_names)

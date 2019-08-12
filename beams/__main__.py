@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from . import __version__
+from beams import __version__
 import argparse
 import sys
+import os
 import networkx as nx
 from beams import in_out
 from beams import grouping
 from beams import annotation
+from beams import plots
 
 
 def map_delimiter(delimiter):
@@ -19,7 +21,7 @@ def map_delimiter(delimiter):
 
 
 def main():
-    print("Executing BEAMS version %s." % __version__)
+    print("Executing BEAMS version {}.".format(__version__))
 
     parser = argparse.ArgumentParser(description='Annotation package of LC-MS and DIMS data',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -27,8 +29,6 @@ def main():
 
     subparsers = parser.add_subparsers(dest='step')
 
-
-    parser_fi = subparsers.add_parser('format-inputs', help='Convert and format input files.')
 
     parser_gf = subparsers.add_parser('group-features', help='Group features.')
 
@@ -42,22 +42,6 @@ def main():
 
     parser_gui = subparsers.add_parser('start-gui', help='Start GUI.')
 
-    #################################
-    # FORMAT INPUTS
-    #################################
-
-    parser_fi.add_argument('-l', '--peaklist',
-                           type=str, required=True, help="Tab-delimited peaklist.")
-
-    parser_fi.add_argument('-m', '--intensity-matrix',
-                           type=str, required=True, help="Tab-delimited intensity matrix.")
-
-    parser_fi.add_argument('-o', '--output', type=str, required=True,
-                           help="Filename / Path to save the merged peaklist and intensity matrix.")
-
-    parser_fi.add_argument('-s', '--sep', default="tab", choices=["tab", "comma"], required=True,
-                           help="Values on each line of the file are separated by this character.")
-
 
     #################################
     # GROUP FEATURES
@@ -67,7 +51,7 @@ def main():
                            type=str, required=True, help="Tab-delimited peaklist.")
 
     parser_gf.add_argument('-i', '--intensity-matrix',
-                           type=str, required=False, help="Tab-delimited intensity matrix.")
+                           type=str, required=True, help="Tab-delimited intensity matrix.")
 
     #parser_gf.add_argument('-x', '--xset-matrix',
     #                       type=str, required=False, help="Tab-delimited intensity matrix")
@@ -113,18 +97,18 @@ def main():
                              help="Annotate adducts.")
 
     parser_app.add_argument('-b', '--adducts-library', action='append', required=False,
-                             help="List of adducts.")
+                             default=[], help="List of adducts.")
 
     parser_app.add_argument('-e', '--isotopes', action='store_true', required=False,
                              help="Annotate isotopes.")
 
-    parser_app.add_argument('-f', '--isotopes-library', action='append', required=False,
+    parser_app.add_argument('-f', '--isotopes-library', required=False,
                              help="List of isotopes.")
 
     parser_app.add_argument('-r', '--multiple-charged-ions', action='store_true', required=False,
                              help="Annotate multiple-charged ions.")
 
-    parser_app.add_argument('-s', '--multiple-charged-ions-library', action='append', required=False,
+    parser_app.add_argument('-s', '--multiple-charged-ions-library', required=False,
                              help="List of multiple charged ions.")
 
     parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
@@ -136,7 +120,10 @@ def main():
     parser_app.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                              help="Mass tolerance in parts per million.")
 
+    parser_app.add_argument('-u', '--max-monomer-units', default=2, type=int, required=False,
+                             help="Maximum number of monomer units.")
 
+                             
     #################################
     # ANNOTATE MOLECULAR FORMULAE
     #################################
@@ -150,10 +137,10 @@ def main():
     parser_amf.add_argument('-d', '--db', type=str, required=True,
                             help="Sqlite database to write results.")
 
-    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
+    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://mfdb.bham.ac.uk",
                             help="Molecular formulae database (reference).")
 
-    parser_amf.add_argument('-a', '--adducts-library', required=True,
+    parser_amf.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
                             help="List of adducts to search for.")
 
     parser_amf.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
@@ -162,7 +149,7 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
-    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=700.0,
+    parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=500.0,
                             help="Maximum m/z value to assign molecular formula(e).")
 
 
@@ -179,12 +166,12 @@ def main():
     parser_am.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database to write results.")
 
-    parser_am.add_argument('-c', '--db-compounds', type=str, required=True, help="Metabolite database (reference).")
+    parser_am.add_argument('-c', '--db-compounds', type=str, required=False, help="Metabolite database (reference).")
 
-    parser_am.add_argument('-n', '--db-name', type=str, default="", required=False,
+    parser_am.add_argument('-n', '--db-name', type=str, default="", required=True,
                            help="Name compound / metabolite database (within --db-compounds).")
 
-    parser_am.add_argument('-a', '--adducts-library', required=True,
+    parser_am.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
                            help="List of adducts to search for.")
 
     parser_am.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
@@ -221,22 +208,17 @@ def main():
     parser_sr.add_argument('-c', '--single-column', action="store_true",
                            help="Concatenate the annotations for each spectral feature and keep seperate columns for molecular formula, adduct, name, etc.")
 
-    parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=True,
+    parser_sr.add_argument('-n', '--ndigits-mz', default=None, type=int, required=False,
                            help="Digits after the decimal point for m/z values.")
 
-    parser_sr.add_argument('-t', '--convert-rt', default=None, choices=["sec", "min", None], required=True,
-                           help="Covert the retention time to seconds or minutes. An additional column will be added.")
+    parser_sr.add_argument('-t', '--convert-rt', default=None, choices=["sec", "min", None],
+                           required=False, help="Covert the retention time to seconds or minutes. An additional column will be added.")
 
     args = parser.parse_args()
 
     print(args)
 
     separators = {"tab": "\t", "comma": ","}
-
-    if args.step == "format-inputs":
-
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
-        df.to_csv(args.output, sep=separators[args.sep], index=False)
 
     if args.step == "group-features":
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
@@ -249,68 +231,112 @@ def main():
 
         if args.gml_file:
             inp = nx.read_gml(args.gml_file)
-        else:
+        elif args.intensity_matrix:
             inp = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        else:
+            inp = in_out.read_peaklist(args.peaklist)
 
         if args.adducts:
-            for i, a in enumerate(args.adducts_library):
-                try:
-                    lib = in_out.read_adducts(a, args.ion_mode)
-                except:
-                    lib = in_out.read_mass_differences(a, args.ion_mode)
-                if i > 0:
-                    add = True
-                else:
-                    add = False
-                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
-
+            if len(args.adducts_library) > 0 and args.adducts_library is not None:
+                for i, a in enumerate(args.adducts_library):
+                    try:
+                        lib = in_out.read_adducts(a, args.ion_mode)
+                    except:
+                        lib = in_out.read_mass_differences(a, args.ion_mode)
+                    if i > 0:
+                        add = True
+                    else:
+                        add = False
+                    annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+            else:
+                path = 'data/adducts.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_adducts(p, args.ion_mode)
+                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
 
         if args.isotopes:
-            for i in args.isotopes_library:
-                lib = in_out.read_isotopes(i, args.ion_mode)
+            if args.isotopes_library is not None:
+                lib = in_out.read_isotopes(args.isotopes_library, args.ion_mode)
+                annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            else:
+                path = 'data/isotopes.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_isotopes(p, args.ion_mode)
                 annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.multiple_charged_ions:
-            for i, m in enumerate(args.multiple_charged_ions_library):
-                try:
-                    lib = in_out.read_multiple_charged_ions(m, args.ion_mode)
-                except:
-                    lib = in_out.read_mass_differences(m, args.ion_mode)
+            if len(args.multiple_charged_ions_library) > 0 and args.multiple_charged_ions_library is not None:
+                for i, m in enumerate(args.multiple_charged_ions_library):
+                    try:
+                        lib = in_out.read_multiple_charged_ions(m, args.ion_mode)
+                    except:
+                        lib = in_out.read_mass_differences(m, args.ion_mode)
 
-                if i > 0:
-                    add = True
-                else:
-                    add = False
+                    if i > 0:
+                        add = True
+                    else:
+                        add = False
 
-                annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
-
+                    annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+            else:
+                path = 'data/multiple_charged_ions.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_multiple_charged_ions(p, args.ion_mode)
+                
         if args.oligomers:
             annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
     if args.step == "annotate-mf":
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
-        lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+        
+        if args.intensity_matrix:
+            df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        else:
+            df = in_out.read_peaklist(args.peaklist)
+
+        if args.adducts_library:
+            lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+        else:
+            path = 'data/adducts.txt'
+            p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+            lib = in_out.read_adducts(p, args.ion_mode)
+
         annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf, max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
-        lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
-        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_in=args.db_compounds, db_name=args.db_name)
+        
+        if args.intensity_matrix:
+            df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        else:
+            df = in_out.read_peaklist(args.peaklist)
+
+        if args.adducts_library:
+            lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+        else:
+            path = 'data/adducts.txt'
+            p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+            lib = in_out.read_adducts(p, args.ion_mode)
+
+        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in="")
 
     if args.step == "summary-results":
-        df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        
+        if args.intensity_matrix:
+            df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
+        else:
+            df = in_out.read_peaklist(args.peaklist)
+
         df_out = annotation.summary(df, db=args.db, single_row=args.single_row, single_column=args.single_column, convert_rt=args.convert_rt, ndigits_mz=args.ndigits_mz)
-        df_out.to_csv(args.output, sep=separators[args.sep], index=False)
+        df_out.to_csv(args.output, sep=separators[args.sep], index=False, encoding="utf-8")
         if args.pdf:
             plots.report(db=args.db, pdf_out=args.pdf,
-                         column_corr="r_value", column_pvalue="pvalue",
+                         column_corr="r_value", column_pvalue="p_value",
                          column_ppm_error="ppm_error", column_adducts="adduct")
 
     if args.step == "start-gui":
-        from PyQt5 import QtWidgets
+        from PySide2 import QtWidgets
         from beams.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
-        app.setStyle(QtWidgets.QStyleFactory.create("fusion"))
+        app.setStyle("Fusion")
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())

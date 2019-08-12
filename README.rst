@@ -1,15 +1,15 @@
 BEAMS - Birmingham mEtabolite Annotation for Mass SpectroMetry
-===============================================================
-|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov|
+================================================================
+|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| |mybinder|
 
-BEAMS is a Python Package **(Beta version)** to annotate LC-MS and DIMS data. **Stable release coming soon.**
+BEAMS is a Python Package to annotate LC-MS and DIMS data.
 
-- Documentation (Available soon)
+- |documentation|
 - |source|
 - |bug reports|
 
 Installation
---------
+------------------------
 
 Conda_
 ~~~~~~~
@@ -17,24 +17,23 @@ Conda_
 1. Install |miniconda|. Follow the steps described |conda_install|.
 2. Run the following commands to install BEAMS.
 
-Windows-64
+Windows-64, Linux-64 and OSx
 
 ::
 
-    $ conda create -n beams python=2.7 -y --name beams python=2.7 numpy scipy networkx requests pandas -c conda-forge
+    $ conda create -n beams beams -c conda-forge -c bioconda -c computational-metabolomics
     $ activate beams
-    $ pip install git+https://github.com/computational-metabolomics/beams.git@dev
 
 Linux-64 and OSx
 
 ::
 
-    $ conda create -n beams python=2.7 -y --name beams python=2.7 numpy scipy networkx requests pandas pyqt -c conda-forge
+    $ conda create -n beams beams -c conda-forge -c bioconda -c computational-metabolomics
     $ source activate beams
-    $ pip install git+https://github.com/computational-metabolomics/beams.git@dev
+
 
 Usage
-------
+------------------------
 
 Command line
 ~~~~~~~~~~~~~
@@ -51,14 +50,14 @@ GUI
     $ beams start-gui
 
 Bugs
-----
+------------------------
 
 Please report any bugs that you find `here <https://github.com/computational-metabolomics/beams/issues>`_.
 Or fork the repository on `GitHub <https://github.com/computational-metabolomics/beams/>`_
 and create a pull request (PR). We welcome all contributions, and we will help you to make the PR if you are new to `git <https://guides.github.com/activities/hello-world/>`_.
 
 License
--------
+------------------------
 
 Released under the GNU General Public License v3.0 (see `LICENSE file <https://github.com/computational-metabolomics/beams/LICENSE>`_)
 
@@ -80,9 +79,6 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 .. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
    :target: http://bioconda.github.io/recipes/beams/README.html
 
-.. |Bioconda| image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat&maxAge=3600
-   :target: http://bioconda.github.io/recipes/beams/README.html
-
 .. |License| image:: https://img.shields.io/pypi/l/beams.svg?style=flat&maxAge=3600
    :target: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -92,9 +88,12 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 .. |codecov| image:: https://codecov.io/gh/computational-metabolomics/beams/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/computational-metabolomics/beams
 
+.. |mybinder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/computational-metabolomics/beams/master?filepath=notebooks
+
 .. |documentation| raw:: html
 
-   <a href="https://computational-metabolomics.github.io/beams" target="_blank">Documentation</a>
+   <a href="http://beams.readthedocs.io/en/latest/beams/index.html" target="_blank">Documentation</a>
 
 .. |source| raw:: html
 

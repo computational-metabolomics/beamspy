@@ -11,7 +11,7 @@ from beams.grouping import group_features
 class GroupFeaturesTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_theoretical.txt"))
+        self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_lcms_theoretical.txt"))
 
     def test_group_features(self):
         fn_sql = "results_pearson.sqlite"
