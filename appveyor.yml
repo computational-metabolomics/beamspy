@@ -1,0 +1,12 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python37"
+
+build_script:
+  - '%PYTHON%\python.exe -m pip install .'
+
+before_test:
+  - '%PYTHON%\python.exe -m pip install coverage green'
+
+test_script:
+  - '%PYTHON%\python.exe -m green -vvv --run-coverage'

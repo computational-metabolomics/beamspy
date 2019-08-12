@@ -1,0 +1,22 @@
+dist: xenial
+language: python
+python:
+  - "3.7"
+
+services:
+  - xvfb
+
+install:
+  - pip install coverage
+  - pip install green codecov
+  - pip install .
+
+before_script:
+  - "export DISPLAY=:99.0"
+
+script:
+  - beams --help
+  - green -vvv --run-coverage
+
+after_script:
+  - python -m codecov
