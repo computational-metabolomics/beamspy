@@ -137,7 +137,7 @@ def main():
     parser_amf.add_argument('-d', '--db', type=str, required=True,
                             help="Sqlite database to write results.")
 
-    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://multiomics-int.cs.bham.ac.uk",
+    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://mfdb.bham.ac.uk",
                             help="Molecular formulae database (reference).")
 
     parser_amf.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
@@ -333,10 +333,10 @@ def main():
                          column_ppm_error="ppm_error", column_adducts="adduct")
 
     if args.step == "start-gui":
-        from PyQt5 import QtWidgets
+        from PySide2 import QtWidgets
         from beams.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
-        app.setStyle(QtWidgets.QStyleFactory.create("fusion"))
+        app.setStyle("Fusion")
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())

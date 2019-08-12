@@ -1,1 +1,1 @@
-pyuic5 -o form.py form.ui
+pyside2-uic form.ui -o form.py

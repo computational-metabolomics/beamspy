@@ -8,15 +8,16 @@ from beams import in_out
 from beams import grouping
 from beams import annotation
 from beams import plots
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
 from beams.qt import form
+
 from collections import OrderedDict
 from multiprocessing import cpu_count
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
-    def __init__(self, parent=None):
-        super(BeamsApp, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super(BeamsApp, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.pushButton_cancel.clicked.connect(QtCore.QCoreApplication.instance().quit)
@@ -420,7 +421,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 rules = None
                 max_mz = None
             else:
-                db_in = "http://multiomics-int.cs.bham.ac.uk"
+                db_in = "http://mfdb.bham.ac.uk"
                 rules = self.checkBox_heuristic_rules.isChecked()
                 max_mz = self.spinBox_max_mz.value()
 
