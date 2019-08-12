@@ -1,3 +1,3 @@
-Galaxy tools & Workflows
+Galaxy tools & workflows
 ==================================
 
