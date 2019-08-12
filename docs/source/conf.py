@@ -34,7 +34,7 @@ extensions = [
 	'sphinx.ext.autodoc',
 	'sphinx.ext.doctest',
 	'sphinx.ext.viewcode',
-	'sphinxcontrib.napoleon',
+	'sphinx.ext.napoleon',
 	'sphinx.ext.todo'
     'sphinx.ext.mathjax'
 ]
