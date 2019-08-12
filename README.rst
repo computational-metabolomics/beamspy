@@ -22,7 +22,7 @@ Windows-64, Linux-64 and OSx
 ::
 
     $ conda create -n beams beams -c conda-forge -c bioconda -c computational-metabolomics
-    $ source activate beams
+    $ activate beams
 
 Linux-64 and OSx
 
