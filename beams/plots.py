@@ -8,7 +8,7 @@ if "linux" in sys.platform:
     gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
 elif sys.platform == "darwin":
     try:
-        import PyQt5
+        import PySide2
         gui_env = ['Qt5Agg']
     except ImportError:
         gui_env = ['TkAgg', 'GTKAgg', 'Qt5Agg', 'WXAgg']
