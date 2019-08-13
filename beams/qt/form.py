@@ -527,7 +527,7 @@ class Ui_MainWindow(object):
         self.pushButton_cancel.setText(QtWidgets.QApplication.translate("MainWindow", "Cancel", None, -1))
         self.label_filename_mf.setText(QtWidgets.QApplication.translate("MainWindow", "Reference file:", None, -1))
         self.checkBox_annotate_molecular_formulae.setText(QtWidgets.QApplication.translate("MainWindow", "Annotate Molecular Formulae", None, -1))
-        self.comboBox_source_mf.setItemText(0, QtWidgets.QApplication.translate("MainWindow", "http://multiomics-int.cs.bham.ac.uk", None, -1))
+        self.comboBox_source_mf.setItemText(0, QtWidgets.QApplication.translate("MainWindow", "http://mfdb.bham.ac.uk", None, -1))
         self.comboBox_source_mf.setItemText(1, QtWidgets.QApplication.translate("MainWindow", "Tab-delimited text file", None, -1))
         self.label_source_mf.setText(QtWidgets.QApplication.translate("MainWindow", "Source:", None, -1))
         self.pushButton_filename_mf.setText(QtWidgets.QApplication.translate("MainWindow", "Browse...", None, -1))
