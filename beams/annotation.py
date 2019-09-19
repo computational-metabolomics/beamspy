@@ -7,7 +7,7 @@ import itertools
 import gzip
 import sqlite3
 from collections import OrderedDict
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 import requests
 import pandas as pd
 import numpy as np
