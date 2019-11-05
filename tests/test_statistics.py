@@ -20,7 +20,7 @@ class StatisticsTestCase(unittest.TestCase):
         df_coeffs_comp = pd.DataFrame({"name_a": ["M169T120", "M169T120", "M337T121", "M215T170", "M492T190"],
                             "name_b": ["M337T121", "M505T122", "M505T122", "M231T174", "M493T192"],
                             "r_value": [np.float64(1.0), np.float64(1.0), np.float64(1.0), np.float64(1.0), np.float64(1.0)],
-                            "p_value": [np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(5.854150141280045e-157)]}, columns=["name_a", "name_b", "r_value", "p_value"])
+                            "p_value": [np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(5.85415087865495e-157)]}, columns=["name_a", "name_b", "r_value", "p_value"])
         df_coeffs = correlation_coefficients(self.df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
         pd.testing.assert_frame_equal(df_coeffs, df_coeffs_comp, check_exact=True)
 
