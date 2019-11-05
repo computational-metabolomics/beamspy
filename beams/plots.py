@@ -70,7 +70,7 @@ def plot_correlations(column_corr, column_pvalue, df):
     ax_xcum_dist.hist(x=column_corr, data=df, bins=bins, cumulative=True, histtype='step',
                       density=True, color='darkblue', align='mid')
     ax_xcum_dist.set(xlim=(-1.1, 1.1))
-    ax_xcum_dist.tick_params(column_corr, colors='darkblue')
+    ax_xcum_dist.tick_params(axis="y", colors='darkblue')
     ax_xcum_dist.set_ylabel('cumulative', color='darkblue')
     ax_xcum_dist.set(yticks=np.arange(0.0, 1.2, 0.2))
 
@@ -81,7 +81,7 @@ def plot_correlations(column_corr, column_pvalue, df):
     ax_ycum_dist = ax_y_dist.twiny()
     ax_ycum_dist.hist(x=column_pvalue, data=df, bins=bins, cumulative=True, histtype='step',
                       density=True, color='darkblue', align='mid', orientation='horizontal')
-    ax_ycum_dist.tick_params(column_pvalue, colors='darkblue')
+    ax_ycum_dist.tick_params(axis="x", colors='darkblue')
     ax_ycum_dist.set_xlabel('cumulative', color='darkblue')
     ax_ycum_dist.set(xticks=np.arange(0.0, 1.2, 0.2), ylim=(-bin_size_pvalue, max_pvalue * 1.1))
 

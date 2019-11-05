@@ -117,12 +117,12 @@ def _check_tolerance(mz_x, mz_y, lib_pair, ppm):
 def _annotate_pairs_from_graph(G, ppm, lib_pairs):
 
     for e in G.edges(data=True):
-        #if G.node[e[0]]["mz"] < G.node[e[1]]["mz"]:
-        #    mz_x = G.node[e[0]]["mz"]
-        #    mz_y = G.node[e[1]]["mz"]
+        #if G.nodes[e[0]]["mz"] < G.nodes[e[1]]["mz"]:
+        #    mz_x = G.nodes[e[0]]["mz"]
+        #    mz_y = G.nodes[e[1]]["mz"]
         #else:
-        mz_x = G.node[e[0]]["mz"]
-        mz_y = G.node[e[1]]["mz"]
+        mz_x = G.nodes[e[0]]["mz"]
+        mz_y = G.nodes[e[1]]["mz"]
 
         for lib_pair in lib_pairs:
             ct = _check_tolerance(mz_x, mz_y, lib_pair, ppm)
@@ -425,8 +425,8 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
 
                     for nn in neighbors:
 
-                        mz_x = graph.node[n]["mz"]
-                        mz_y = graph.node[nn]["mz"]
+                        mz_x = graph.nodes[n]["mz"]
+                        mz_y = graph.nodes[nn]["mz"]
 
                         if mz_x < mz_y:
 

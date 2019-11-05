@@ -118,7 +118,7 @@ class AnnotationTestCase(unittest.TestCase):
         db_mfdb_results = "results_mfdb.sqlite"
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(db_mfdb_results))
         self.assertEqual(sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae"), sqlite_records(to_test_data(db_mfdb_results), "molecular_formulae"))
-        self.assertEqual(sqlite_count(to_test_results(db_mfdb_results), "molecular_formulae"), 1155)
+        self.assertEqual(sqlite_count(to_test_results(db_mfdb_results), "molecular_formulae"), 586)
 
     def test_summary(self):
 
