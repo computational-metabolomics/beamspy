@@ -1,6 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+:q
 
+q
+q
 import setuptools
 import beams
 
@@ -20,12 +23,12 @@ def main():
         platforms=["Windows, UNIX"],
         keywords=["Metabolomics", "Mass spectrometry", "Liquid-Chromatography Mass Spectrometry", "Metabolite Annotation"],
         packages=setuptools.find_packages(),
+        python_requires=">=3.7",
         test_suite="tests.suite",
         install_requires=install_requires,
         include_package_data=True,
         classifiers=[
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Topic :: Scientific/Engineering :: Bio-Informatics",
             "Topic :: Scientific/Engineering :: Chemistry",
