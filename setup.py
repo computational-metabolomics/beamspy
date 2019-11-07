@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-:q
 
-q
-q
 import setuptools
 import beams
 
