@@ -948,7 +948,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         G = nx.OrderedDiGraph()
         G.add_edges_from(records)
 
-        graphs = list(nx.weakly_connected_component_subgraphs(G))
+        graphs = list(G.subgraph(c) for c in nx.weakly_connected_components(G))
 
         to_add = []
         for i, g in enumerate(graphs):

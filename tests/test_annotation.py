@@ -146,6 +146,10 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
+        fn_summary = "summary_mr_mc_graphs.txt"
+        df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 if __name__ == '__main__':
     unittest.main()
