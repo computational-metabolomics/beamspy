@@ -19,7 +19,6 @@ if sys.platform != "win32":
     for gui in gui_env:
         try:
             matplotlib.use(gui, warn=False, force=True)
-            print(gui)
             break
         except:
             continue
@@ -154,7 +153,7 @@ def report(db, pdf_out, column_corr, column_pvalue, column_ppm_error, column_add
         conn = sqlite3.connect(db)
         cursor = conn.cursor()
         cursor.execute("""SELECT name FROM sqlite_master WHERE type='table';""")
-        title = "Summary - BEAMS\n\n\n"
+        title = "Summary - BEAMSpy\n\n\n"
         for i, table in enumerate(cursor.fetchall()):
             if str(table[0]) == "groups":
 

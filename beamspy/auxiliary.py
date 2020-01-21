@@ -6,7 +6,7 @@ import gzip
 import sqlite3
 import pandas as pd
 from pyteomics import mass as pyteomics_mass
-from beams.db_parsers import parse_nist_database
+from beamspy.db_parsers import parse_nist_database
 
 
 def order_composition_by_hill(composition):

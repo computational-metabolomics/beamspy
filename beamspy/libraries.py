@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from beams.auxiliary import order_composition_by_hill
+from beamspy.auxiliary import order_composition_by_hill
 
 
 class Adducts:

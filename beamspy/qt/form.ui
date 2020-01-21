@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BEAMS - Birmingham mEtabolite Annotation for Mass Spectrometry</string>
+   <string>BEAMSpy - Birmingham mEtabolite Annotation for Mass Spectrometry (Python package)</string>
   </property>
   <property name="animated">
    <bool>false</bool>

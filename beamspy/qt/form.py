@@ -485,7 +485,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "BEAMS - Birmingham mEtabolite Annotation for Mass Spectrometry", None, -1))
+        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "BEAMSpy - Birmingham mEtabolite Annotation for Mass Spectrometry", None, -1))
         self.pushButton_peaklist.setText(QtWidgets.QApplication.translate("MainWindow", "Browse...", None, -1))
         self.label_peaklist.setText(QtWidgets.QApplication.translate("MainWindow", "Peaklist:", None, -1))
         self.label_intensity_matrix.setText(QtWidgets.QApplication.translate("MainWindow", "Intensity matrix:", None, -1))

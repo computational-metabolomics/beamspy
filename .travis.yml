@@ -15,7 +15,7 @@ before_script:
   - "export DISPLAY=:99.0"
 
 script:
-  - beams --help
+  - beamspy --help
   - green -vvv --run-coverage
 
 after_script:

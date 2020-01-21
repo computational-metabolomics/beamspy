@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import setuptools
-import beams
+import beamspy
 
 
 def main():
 
     install_requires = open("requirements.txt").read().splitlines()
 
-    setuptools.setup(name="beams",
-        version=beams.__version__,
+    setuptools.setup(name="beamspy",
+        version=beamspy.__version__,
         description="Python package to annotate LC-MS and DIMS data",
         long_description=open("README.rst").read(),
         author="Ralf Weber",
         author_email="r.j.weber@bham.ac.uk",
-        url="https://github.com/computational-metabolomics/beams",
+        url="https://github.com/computational-metabolomics/beamspy",
         license="GPLv3",
         platforms=["Windows, UNIX"],
         keywords=["Metabolomics", "Mass spectrometry", "Liquid-Chromatography Mass Spectrometry", "Metabolite Annotation"],
@@ -35,7 +35,7 @@ def main():
         ],
         entry_points={
             "console_scripts": [
-                "beams = beams.__main__:main"
+                "beamspy = beamspy.__main__:main"
             ]
         }
     )

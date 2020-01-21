@@ -4,12 +4,12 @@
 import os
 from functools import partial
 import networkx as nx
-from beams import in_out
-from beams import grouping
-from beams import annotation
-from beams import plots
+from beamspy import in_out
+from beamspy import grouping
+from beamspy import annotation
+from beamspy import plots
 from PySide2 import QtCore, QtGui, QtWidgets
-from beams.qt import form
+from beamspy.qt import form
 
 from collections import OrderedDict
 from multiprocessing import cpu_count
