@@ -46,8 +46,8 @@ class StatisticsTestCase(unittest.TestCase):
         e1 = list(graph.edges(data=True))[-1]
 
         # order is different between python 2 and 3
-        np.testing.assert_almost_equal([n0[1]["mz"], n0[1]["intensity"], n0[1]["rt"]], [168.9896544, 520.0, 120.0])
-        np.testing.assert_almost_equal([n1[1]["mz"], n1[1]["intensity"], n1[1]["rt"]], [493.0637654, 163.33, 192.5])
+        np.testing.assert_almost_equal([n0[1]["mz"], n0[1]["intensity"], n0[1]["rt"]], [168.989654, 520.0, 120.0])
+        np.testing.assert_almost_equal([n1[1]["mz"], n1[1]["intensity"], n1[1]["rt"]], [493.063765, 163.33, 192.5])
         np.testing.assert_almost_equal([e0[2]["rvalue"], e0[2]["pvalue"], e0[2]["mzdiff"], e0[2]["rtdiff"]], [1.0, 0.0, 167.982378, 1.0])
         np.testing.assert_almost_equal([e1[2]["rvalue"], e1[2]["pvalue"], e1[2]["mzdiff"], e1[2]["rtdiff"]], [1.0, 0.0, 1.003355, 2.5])
 

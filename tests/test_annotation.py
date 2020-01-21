@@ -128,7 +128,9 @@ class AnnotationTestCase(unittest.TestCase):
                     lines_results = result.read().splitlines()
                     lines_test_data = test_data.read().splitlines()
                     for i in range(len(lines_results)):
-                        self.assertTrue(lines_results[i], lines_test_data[i])
+                        print(lines_results[i])
+                        print(lines_test_data[i])
+                        self.assertEqual(lines_results[i], lines_test_data[i])
                         self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
 
         fn_summary = "summary_mr_mc.txt"
