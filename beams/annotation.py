@@ -363,6 +363,8 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
                 if x == 0.0 or y == 0.0:
                     atoms = None
+                elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                    atoms = x / y
                 else:
                     atoms = y/x
 
@@ -379,6 +381,8 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
             if x == 0.0 or y == 0.0:
                 atoms = None
+            elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                atoms = x/y
             else:
                 atoms = y/x
 
