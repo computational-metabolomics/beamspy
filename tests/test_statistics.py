@@ -6,8 +6,8 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from beams.in_out import combine_peaklist_matrix
-from beams.statistics import correlation_coefficients, correlation_graphs
+from beamspy.in_out import combine_peaklist_matrix
+from beamspy.statistics import correlation_coefficients, correlation_graphs
 from tests.utils import to_test_data
 
 

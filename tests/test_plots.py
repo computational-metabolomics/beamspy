@@ -6,7 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 from tests.utils import to_test_data, to_test_results
-from beams.plots import report
+from beamspy.plots import report
 
 
 class PlotsTestCase(unittest.TestCase):

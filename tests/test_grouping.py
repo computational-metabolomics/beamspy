@@ -4,8 +4,8 @@
 import unittest
 import numpy as np
 from tests.utils import to_test_data, to_test_results, sqlite_records
-from beams.in_out import combine_peaklist_matrix
-from beams.grouping import group_features
+from beamspy.in_out import combine_peaklist_matrix
+from beamspy.grouping import group_features
 
 
 class GroupFeaturesTestCase(unittest.TestCase):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-from beams import statistics
+from beamspy import statistics
 import networkx as nx
 
 

@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import os
-from beams import in_out
+from beamspy import in_out
 import networkx as nx
-from beams.grouping import group_features
-from beams.annotation import annotate_adducts
-from beams.annotation import annotate_isotopes
-from beams.annotation import annotate_oligomers
-from beams.annotation import annotate_multiple_charged_ions
-from beams.annotation import annotate_compounds
-from beams.annotation import annotate_molecular_formulae
-from beams.annotation import summary
-from beams import plots
+from beamspy.grouping import group_features
+from beamspy.annotation import annotate_adducts
+from beamspy.annotation import annotate_isotopes
+from beamspy.annotation import annotate_oligomers
+from beamspy.annotation import annotate_multiple_charged_ions
+from beamspy.annotation import annotate_compounds
+from beamspy.annotation import annotate_molecular_formulae
+from beamspy.annotation import summary
+from beamspy import plots
 
 
 def main():
@@ -32,8 +32,7 @@ def main():
     nx.write_gml(graphs, "graphs.gml")
     # graphs = nx.read_gml("graphs.gml")
 
-
-    path = "../beams/data"
+    path = "../beamspy/data"
     lib_isotopes = in_out.read_isotopes(os.path.join(path, "isotopes.txt"), ion_mode)
     lib_adducts = in_out.read_adducts(os.path.join(path, "adducts.txt"), ion_mode)
     lib_multiple_charged_ions = in_out.read_multiple_charged_ions(os.path.join(path, "multiple_charged_ions.txt"), ion_mode)

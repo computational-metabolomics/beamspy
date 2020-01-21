@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'BEAMS'
+project = 'BEAMSpy'
 copyright = '2019, Ralf Weber'
 author = 'Ralf Weber'
 

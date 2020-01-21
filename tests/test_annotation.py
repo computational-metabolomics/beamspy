@@ -7,9 +7,9 @@ import shutil
 import pandas as pd
 import filecmp
 
-from beams.annotation import *
-from beams.grouping import group_features
-from beams.in_out import *
+from beamspy.annotation import *
+from beamspy.grouping import group_features
+from beamspy.in_out import *
 from tests.utils import *
 
 
@@ -20,10 +20,10 @@ class AnnotationTestCase(unittest.TestCase):
         self.df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical.txt"), to_test_data("dataMatrix_lcms_theoretical.txt"))
         self.path, f = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 
-        self.lib_isotopes = read_isotopes(os.path.join(self.path, "beams", "data", "isotopes.txt"), "pos")
-        self.lib_adducts = read_adducts(os.path.join(self.path, "beams", "data", "adducts.txt"), "pos")
-        self.lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beams", "data", "multiple_charged_ions.txt"), "pos")
-        # lib_mass_differences = read_mass_differences(os.path.join(self.path, "beams", "data", "multiple_charged_differences.txt"), "pos")
+        self.lib_isotopes = read_isotopes(os.path.join(self.path, "beamspy", "data", "isotopes.txt"), "pos")
+        self.lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "adducts.txt"), "pos")
+        self.lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
+        # lib_mass_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "multiple_charged_differences.txt"), "pos")
 
         self.db_results = "results_annotation.sqlite"
         self.db_results_graph = "results_annotation_graph.sqlite"
@@ -79,7 +79,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         db_name = "hmdb_full_v4_0_v1"
 
-        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beams", "data", "databases", db_name + ".sql.gz")
+        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", db_name + ".sql.gz")
         path_hmdb_sqlite = to_test_results("{}.sqlite".format(db_name))
 
         if os.path.isfile(path_hmdb_sqlite):
@@ -104,13 +104,13 @@ class AnnotationTestCase(unittest.TestCase):
                          sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
 
-        path_db_txt = os.path.join(os.getcwd(), "beams", "data", "db_compounds.txt")
+        path_db_txt = os.path.join(os.getcwd(), "beamspy", "data", "db_compounds.txt")
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
         #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
 
     def test_annotate_molecular_formulae(self):
-        fn_mf = os.path.join(self.path, "beams", "data", "db_mf.txt")
+        fn_mf = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), fn_mf)
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"), sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
@@ -128,8 +128,6 @@ class AnnotationTestCase(unittest.TestCase):
                     lines_results = result.read().splitlines()
                     lines_test_data = test_data.read().splitlines()
                     for i in range(len(lines_results)):
-                        print(lines_results[i])
-                        print(lines_test_data[i])
                         self.assertEqual(lines_results[i], lines_test_data[i])
                         self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
 

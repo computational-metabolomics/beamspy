@@ -5,6 +5,6 @@ include examples/*.*
 include tests/*.py
 include tests/test_data/*.*
 include tests/test_results/.gitignore
-include beams/data/*.txt
-include beams/data/databases/*.sql.gz
-include beams/data/databases/databases.txt
+include beamspy/data/*.txt
+include beamspy/data/databases/*.sql.gz
+include beamspy/data/databases/databases.txt

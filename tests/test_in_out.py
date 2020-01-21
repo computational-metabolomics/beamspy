@@ -3,7 +3,7 @@
 
 import unittest
 from collections import OrderedDict
-from beams.in_out import *
+from beamspy.in_out import *
 from tests.utils import to_test_data
 import numpy as np
 
@@ -97,7 +97,7 @@ class InOutTestCase(unittest.TestCase):
 
     def test_read_molecular_formulae(self):
 
-        db_molecular_formula = os.path.join(self.path, "beams", "data", "db_mf.txt")
+        db_molecular_formula = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         records = read_molecular_formulae(db_molecular_formula, separator="\t")
         self.assertEqual(len(records), 13061)
 
@@ -117,7 +117,7 @@ class InOutTestCase(unittest.TestCase):
 
     def test_read_compounds(self):
 
-        db_compounds = os.path.join(self.path, "beams", "data", "db_compounds.txt")
+        db_compounds = os.path.join(self.path, "beamspy", "data", "db_compounds.txt")
         records = read_compounds(db_compounds, separator="\t")
         self.assertEqual(len(records), 31644)
         record_01 = [("composition", OrderedDict([('C', 10), ('Cl', 10), ('O', 1)])), ('CHNOPS', False),
@@ -142,7 +142,7 @@ class InOutTestCase(unittest.TestCase):
 
 
     def test_read_adducts(self):
-        adducts_lib = os.path.join(self.path, "beams", "data", "adducts.txt")
+        adducts_lib = os.path.join(self.path, "beamspy", "data", "adducts.txt")
         records_pos = read_adducts(adducts_lib, "pos")
         records_pos_comp = [('[M+H]+', 1.007276), ('[M+Na]+', 22.989221),
                             ('[M+K]+', 38.963158)]
@@ -154,7 +154,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(records_neg.lib, OrderedDict(records_neg_comp))
 
     def test_read_isotopes(self):
-        isotopes_lib = os.path.join(self.path, "beams", "data", "isotopes.txt")
+        isotopes_lib = os.path.join(self.path, "beamspy", "data", "isotopes.txt")
         records_pos = read_isotopes(isotopes_lib, "pos")
         records_pos_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355)]),
                             OrderedDict([('S', {'abundance': 100.0}), ('(34S)', {'abundance': 4.21}), ('mass_difference', 1.995796)]),
@@ -167,7 +167,7 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(records_neg.lib, records_neg_comp)
 
     def test_read_mass_differences(self):
-        differences_lib = os.path.join(self.path, "beams", "data", "adducts_differences.txt")
+        differences_lib = os.path.join(self.path, "beamspy", "data", "adducts_differences.txt")
         records = read_mass_differences(differences_lib, ion_mode="pos")
         self.assertEqual(records.lib, [OrderedDict([('[M+H]+', {'charge': 1.0}),
                                                     ('[M+Na]+', {'charge': 1.0}),

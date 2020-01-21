@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from beams import __version__
+from beamspy import __version__
 import argparse
 import sys
 import os
 import networkx as nx
-from beams import in_out
-from beams import grouping
-from beams import annotation
-from beams import plots
+from beamspy import in_out
+from beamspy import grouping
+from beamspy import annotation
+from beamspy import plots
 
 
 def map_delimiter(delimiter):
@@ -21,7 +21,7 @@ def map_delimiter(delimiter):
 
 
 def main():
-    print("Executing BEAMS version {}.".format(__version__))
+    print("Executing BEAMSpy version {}.".format(__version__))
 
     parser = argparse.ArgumentParser(description='Annotation package of LC-MS and DIMS data',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -137,7 +137,7 @@ def main():
     parser_amf.add_argument('-d', '--db', type=str, required=True,
                             help="Sqlite database to write results.")
 
-    parser_amf.add_argument('-c', '--db-mf', type=str, required=True, default="http://mfdb.bham.ac.uk",
+    parser_amf.add_argument('-c', '--db-mf', type=str, default="http://mfdb.bham.ac.uk",
                             help="Molecular formulae database (reference).")
 
     parser_amf.add_argument('-a', '--adducts-library', type=str, default=None, required=False,
@@ -334,7 +334,7 @@ def main():
 
     if args.step == "start-gui":
         from PySide2 import QtWidgets
-        from beams.gui import BeamsApp
+        from beamspy.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
         app.setStyle("Fusion")
         form = BeamsApp()

@@ -1,74 +1,74 @@
-BEAMS package
+BEAMSpy package
 ==================================
 
-beams.annotation module
+beamspy.annotation module
 -----------------------
 
-.. automodule:: beams.annotation
+.. automodule:: beamspy.annotation
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.auxiliary module
+beamspy.auxiliary module
 ----------------------
 
-.. automodule:: beams.auxiliary
+.. automodule:: beamspy.auxiliary
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.db\_parsers module
+beamspy.db\_parsers module
 ------------------------
 
-.. automodule:: beams.db_parsers
+.. automodule:: beamspy.db_parsers
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.grouping module
+beamspy.grouping module
 ---------------------
 
-.. automodule:: beams.grouping
+.. automodule:: beamspy.grouping
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.gui module
+beamspy.gui module
 ----------------
 
-.. automodule:: beams.gui
+.. automodule:: beamspy.gui
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.in\_out module
+beamspy.in\_out module
 --------------------
 
-.. automodule:: beams.in_out
+.. automodule:: beamspy.in_out
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.libraries module
+beamspy.libraries module
 ----------------------
 
-.. automodule:: beams.libraries
+.. automodule:: beamspy.libraries
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.plots module
+beamspy.plots module
 ------------------
 
-.. automodule:: beams.plots
+.. automodule:: beamspy.plots
    :members:
    :undoc-members:
    :show-inheritance:
 
-beams.statistics module
+beamspy.statistics module
 -----------------------
 
-.. automodule:: beams.statistics
+.. automodule:: beamspy.statistics
    :members:
    :undoc-members:
    :show-inheritance:
