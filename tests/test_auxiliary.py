@@ -4,7 +4,7 @@
 import os
 import unittest
 from collections import OrderedDict
-from beams.auxiliary import *
+from beamspy.auxiliary import *
 
 
 class AuxiliaryTestCase(unittest.TestCase):

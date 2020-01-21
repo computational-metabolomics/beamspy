@@ -1,0 +1,6 @@
+label	exact_mass	charge	ion_mode
+[M+H]+	1.007276	1	pos
+[M+Na]+ 	22.989221	1	pos
+[M/2+2H]2+	1.007276	2	pos
+[M/2+H+Na]2+	11.998249	2	pos
+[M/3+3H]3+	1.007276	3	pos

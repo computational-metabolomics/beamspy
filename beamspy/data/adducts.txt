@@ -1,0 +1,1 @@
+label	exact_mass	ion_mode[M+H]+	1.007276	pos[M+Na]+	22.989221	pos[M+K]+	38.963158	pos[M-H]-	-1.007276	neg[M+Cl]-	34.969401	neg[M+Na-2H]-	20.974668	neg[M+K-2H]-	36.948605	neg[M+Hac-H]-	59.013853	neg

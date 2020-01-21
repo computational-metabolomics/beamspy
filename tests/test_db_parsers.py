@@ -4,7 +4,7 @@
 import os
 import unittest
 from collections import OrderedDict
-from beams.db_parsers import *
+from beamspy.db_parsers import *
 from tests.utils import to_test_data
 import numpy as np
 
@@ -36,7 +36,7 @@ class DbParsersTestCase(unittest.TestCase):
         self.assertEqual(records[0]["Compound_id"], "2-METHYL-6-SOLANYL-14-BENZOQUINONE")
 
     def parse_nist_database(self):
-        records = parse_nist_database(os.path.join(self.path, "beams", "data", "nist_database.txt"))
+        records = parse_nist_database(os.path.join(self.path, "beamspy", "data", "nist_database.txt"))
         self.assertEqual(records[0]["Atomic Number"], 1)
         self.assertEqual(records[0]["Atomic Symbol"], "H")
         self.assertEqual(records[0]["Mass Number"], 1)

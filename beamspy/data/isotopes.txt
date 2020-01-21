@@ -1,0 +1,1 @@
+label_x	label_y	mass_difference	abundance_x	abundance_y	ion_modeC	(13C)	1.003355	100	1.07	bothS	(34S)	1.995796	100	4.21	bothK	(41K)	1.998119	100	6.73	posCl	(37Cl)	1.997050	100	24.23	neg

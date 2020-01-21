@@ -3,7 +3,7 @@
 
 import unittest
 from collections import OrderedDict
-from beams.in_out import *
+from beamspy.in_out import *
 from tests.utils import to_test_data
 import numpy as np
 
@@ -20,8 +20,8 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(self.df_peaklist["name"].iloc[0], "M127T60")
         self.assertEqual(self.df_peaklist["name"].iloc[-1], "M550T200")
 
-        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
-        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
+        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.979204)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.065890)
 
         self.assertEqual(self.df_peaklist["rt"].iloc[0], 60)
         self.assertEqual(self.df_peaklist["rt"].iloc[-1], 200)
@@ -34,8 +34,8 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(self.df_peaklist["name"].iloc[0], "M127T60")
         self.assertEqual(self.df_peaklist["name"].iloc[-1], "M550T200")
 
-        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
-        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
+        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.979204)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.065890)
 
         self.assertEqual(self.df_peaklist["rt"].iloc[0], 60)
         self.assertEqual(self.df_peaklist["rt"].iloc[-1], 200)
@@ -45,11 +45,11 @@ class InOutTestCase(unittest.TestCase):
 
         self.df_peaklist = read_peaklist(to_test_data("peaklist_dims_pos_theoretical.txt"))
 
-        self.assertEqual(self.df_peaklist["name"].iloc[0], "126_9792044")
-        self.assertEqual(self.df_peaklist["name"].iloc[-1], "550_0658904")
+        self.assertEqual(self.df_peaklist["name"].iloc[0], "126_979204")
+        self.assertEqual(self.df_peaklist["name"].iloc[-1], "550_065890")
 
-        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.9792044)
-        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.0658904)
+        self.assertEqual(self.df_peaklist["mz"].iloc[0], 126.979204)
+        self.assertEqual(self.df_peaklist["mz"].iloc[-1], 550.065890)
 
         self.assertEqual(self.df_peaklist["intensity"].iloc[0], 1421.78)
         self.assertEqual(self.df_peaklist["intensity"].iloc[-1], 4549.65)
@@ -60,8 +60,8 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(df["name"].iloc[0], "M127T60")
         self.assertEqual(df["name"].iloc[-1], "M550T200")
 
-        self.assertEqual(df["mz"].iloc[0], 126.9792044)
-        self.assertEqual(df["mz"].iloc[-1], 550.0658904)
+        self.assertEqual(df["mz"].iloc[0], 126.979204)
+        self.assertEqual(df["mz"].iloc[-1], 550.065890)
 
         self.assertEqual(df["rt"].iloc[0], 60)
         self.assertEqual(df["rt"].iloc[-1], 200)
@@ -71,11 +71,11 @@ class InOutTestCase(unittest.TestCase):
 
         df = combine_peaklist_matrix(to_test_data("peaklist_dims_pos_theoretical.txt"), to_test_data("dataMatrix_dims_theoretical.txt"))
 
-        self.assertEqual(df["name"].iloc[0], "126_9792044")
-        self.assertEqual(df["name"].iloc[-1], "550_0658904")
+        self.assertEqual(df["name"].iloc[0], "126_979204")
+        self.assertEqual(df["name"].iloc[-1], "550_065890")
         
-        self.assertEqual(df["mz"].iloc[0], 126.9792044)
-        self.assertEqual(df["mz"].iloc[-1], 550.0658904)
+        self.assertEqual(df["mz"].iloc[0], 126.979204)
+        self.assertEqual(df["mz"].iloc[-1], 550.065890)
 
         self.assertEqual(df["intensity"].iloc[0], 1421.78)
         self.assertEqual(df["intensity"].iloc[-1], 4549.65)
@@ -86,8 +86,8 @@ class InOutTestCase(unittest.TestCase):
         self.assertEqual(df["name"].iloc[0], "M127T60")
         self.assertEqual(df["name"].iloc[-1], "M550T200")
 
-        np.testing.assert_almost_equal(df["mz"].iloc[0], 126.9792044, 8)
-        np.testing.assert_almost_equal(df["mz"].iloc[-1], 550.0658904, 8)
+        np.testing.assert_almost_equal(df["mz"].iloc[0], 126.979204, 8)
+        np.testing.assert_almost_equal(df["mz"].iloc[-1], 550.065890, 8)
 
         self.assertEqual(df["rt"].iloc[0], 60)
         self.assertEqual(df["rt"].iloc[-1], 200)
@@ -97,7 +97,7 @@ class InOutTestCase(unittest.TestCase):
 
     def test_read_molecular_formulae(self):
 
-        db_molecular_formula = os.path.join(self.path, "beams", "data", "db_mf.txt")
+        db_molecular_formula = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         records = read_molecular_formulae(db_molecular_formula, separator="\t")
         self.assertEqual(len(records), 13061)
 
@@ -117,7 +117,7 @@ class InOutTestCase(unittest.TestCase):
 
     def test_read_compounds(self):
 
-        db_compounds = os.path.join(self.path, "beams", "data", "db_compounds.txt")
+        db_compounds = os.path.join(self.path, "beamspy", "data", "db_compounds.txt")
         records = read_compounds(db_compounds, separator="\t")
         self.assertEqual(len(records), 31644)
         record_01 = [("composition", OrderedDict([('C', 10), ('Cl', 10), ('O', 1)])), ('CHNOPS', False),
@@ -142,32 +142,32 @@ class InOutTestCase(unittest.TestCase):
 
 
     def test_read_adducts(self):
-        adducts_lib = os.path.join(self.path, "beams", "data", "adducts.txt")
+        adducts_lib = os.path.join(self.path, "beamspy", "data", "adducts.txt")
         records_pos = read_adducts(adducts_lib, "pos")
-        records_pos_comp = [('[M+H]+', 1.0072764), ('[M+Na]+', 22.9892214),
-                            ('[M+K]+', 38.9631594)]
+        records_pos_comp = [('[M+H]+', 1.007276), ('[M+Na]+', 22.989221),
+                            ('[M+K]+', 38.963158)]
         self.assertEqual(records_pos.lib, OrderedDict(records_pos_comp))
         records_neg = read_adducts(adducts_lib, "neg")
-        records_neg_comp = [('[M-H]-', -1.0072764), ('[M+Na-2H]-', 20.9746686),
-                            ('[M+Cl]-', 34.9694016), ('[M+K-2H]-', 36.9486066),
-                            ('[M+Hac-H]-', 59.0138536)]
+        records_neg_comp = [('[M-H]-', -1.007276), ('[M+Na-2H]-', 20.974668),
+                            ('[M+Cl]-', 34.969401), ('[M+K-2H]-', 36.948605),
+                            ('[M+Hac-H]-', 59.013853)]
         self.assertEqual(records_neg.lib, OrderedDict(records_neg_comp))
 
     def test_read_isotopes(self):
-        isotopes_lib = os.path.join(self.path, "beams", "data", "isotopes.txt")
+        isotopes_lib = os.path.join(self.path, "beamspy", "data", "isotopes.txt")
         records_pos = read_isotopes(isotopes_lib, "pos")
-        records_pos_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.1}), ('mass_difference', 1.003355)]),
+        records_pos_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355)]),
                             OrderedDict([('S', {'abundance': 100.0}), ('(34S)', {'abundance': 4.21}), ('mass_difference', 1.995796)]),
-                            OrderedDict([('K', {'abundance': 100.0}), ('(41K)', {'abundance': 6.73}), ('mass_difference', 1.998117)])]
+                            OrderedDict([('K', {'abundance': 100.0}), ('(41K)', {'abundance': 6.73}), ('mass_difference', 1.998119)])]
         self.assertEqual(records_pos.lib, records_pos_comp)
         records_neg = read_isotopes(isotopes_lib, "neg")
-        records_neg_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.1}), ('mass_difference', 1.003355)]),
+        records_neg_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355)]),
                             OrderedDict([('S', {'abundance': 100.0}), ('(34S)', {'abundance': 4.21}), ('mass_difference', 1.995796)]),
-                            OrderedDict([('Cl', {'abundance': 100.0}), ('(37Cl)', {'abundance': 24.23}), ('mass_difference', 1.99705)])]
+                            OrderedDict([('Cl', {'abundance': 100.0}), ('(37Cl)', {'abundance': 24.23}), ('mass_difference', 1.997050)])]
         self.assertEqual(records_neg.lib, records_neg_comp)
 
     def test_read_mass_differences(self):
-        differences_lib = os.path.join(self.path, "beams", "data", "adducts_differences.txt")
+        differences_lib = os.path.join(self.path, "beamspy", "data", "adducts_differences.txt")
         records = read_mass_differences(differences_lib, ion_mode="pos")
         self.assertEqual(records.lib, [OrderedDict([('[M+H]+', {'charge': 1.0}),
                                                     ('[M+Na]+', {'charge': 1.0}),
