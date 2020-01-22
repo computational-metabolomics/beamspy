@@ -13,8 +13,8 @@ untargeted metabolomics studies. The user can use the standard reference files i
 their own reference files.
 
 
-- |documentation|
-- |bug reports|
+- `Documentation (Read the Docs) <https://beamspy.readthedocs.io/en/latest/>`_
+- `Bug reports <https://github.com/computational-metabolomics/beamspy/issues>`_
 
 
 .. _quick_installation:
@@ -25,7 +25,7 @@ Quick installation
 Conda_
 ~~~~~~~
 
-1. Install |miniconda|. Follow the steps described |conda_install|.
+1. `Install Miniconda <https://conda.io/docs/user-guide/install>`_.
 2. Run the following commands to install BEAMSpy.
 
 Windows-64, Linux-64 and OSx
@@ -101,22 +101,6 @@ Released under the GNU General Public License v3.0 (see `LICENSE file <https://g
 
 .. |mybinder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/computational-metabolomics/beamspy/master?filepath=notebooks
-
-.. |documentation| raw:: html
-
-   <a href="https://beamspy.readthedocs.io/en/latest/" target="_blank">Documentation</a>
-
-.. |bug reports| raw:: html
-
-   <a href="https://github.com/computational-metabolomics/beamspy/issues" target="_blank">Bug reports</a>
-
-.. |conda_install| raw:: html
-
-   <a href="https://conda.io/docs/user-guide/install" target="_blank">here</a>
-
-.. |miniconda| raw:: html
-
-   <a href="http://conda.pydata.org/miniconda.html" target="_blank">Miniconda</a>
 
 .. _pip: https://pip.pypa.io/
 .. _Conda: http://conda.pydata.org/docs/
