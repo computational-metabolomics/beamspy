@@ -166,7 +166,8 @@ def main():
     parser_am.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database to write results.")
 
-    parser_am.add_argument('-c', '--db-compounds', type=str, required=False, help="Metabolite database (reference).")
+    parser_am.add_argument('-c', '--db-compounds', type=str, default="", required=False, 
+                           help="Metabolite database (reference).")
 
     parser_am.add_argument('-n', '--db-name', type=str, default="", required=True,
                            help="Name compound / metabolite database (within --db-compounds).")
@@ -315,8 +316,8 @@ def main():
             path = 'data/adducts.txt'
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
-
-        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in="")
+            
+        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in=args.db_compounds)
 
     if args.step == "summary-results":
         
