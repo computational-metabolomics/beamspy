@@ -25,6 +25,10 @@ def calculate_mz_tolerance(mass, ppm):
     return min_tol, max_tol
 
 
+def calculate_rt_tolerance(rt, rt_tol):
+    return rt - rt_tol, rt + rt_tol
+
+
 def calculate_ppm_error(mass, theo_mass):
     return float(theo_mass - mass) / (theo_mass * 0.000001)
 
@@ -189,15 +193,26 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
 
 class DbCompoundsMemory:
 
-    def __init__(self, filename):
+    def __init__(self, filename, lib_adducts=[]):
 
         self.filename = filename
+        self.lib_adducts = lib_adducts
+
+        records = read_compounds(self.filename, lib_adducts=self.lib_adducts)
+
+        if "retention_time" in list(records[0].keys()):
+            rt_column = "retention_time REAL DEFAULT NULL,"
+        else:
+            rt_column = ""
+
         self.conn = sqlite3.connect(":memory:")
         self.cursor = self.conn.cursor()
+
         self.cursor.execute("""CREATE TABLE COMPOUNDS(
-                            compound_id TEXT PRIMARY KEY  NOT NULL,
+                            compound_id TEXT PRIMARY KEY NOT NULL,
                             compound_name TEXT,
                             exact_mass REAL,
+                            {}
                             C INTEGER DEFAULT 0,
                             H INTEGER DEFAULT 0,
                             N INTEGER DEFAULT 0,
@@ -205,10 +220,10 @@ class DbCompoundsMemory:
                             P INTEGER DEFAULT 0,
                             S INTEGER DEFAULT 0,
                             CHNOPS INTEGER DEFAULT NULL,
-                            molecular_formula TEXT DEFAULT NULL
-                            );""")
+                            molecular_formula TEXT DEFAULT NULL,
+                            adduct TEXT DEFAULT NULL
+                            );""".format(rt_column))
 
-        records = read_compounds(self.filename)
         records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
         records = _flatten_composition(records)
         for record in records:
@@ -220,11 +235,15 @@ class DbCompoundsMemory:
         self.cursor.execute("""CREATE INDEX IDX_EXACT_MASS ON COMPOUNDS (exact_mass);""")
         self.conn.commit()
 
-    def select_compounds(self, min_tol, max_tol):
-        col_names = ["compound_id", "compound_name", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula"]
-        self.cursor.execute("""SELECT {} FROM COMPOUNDS WHERE 
-                            exact_mass >= {} and exact_mass <= {}
-                            """.format(",".join(map(str, col_names)), min_tol, max_tol))
+    def select_compounds(self, min_tol, max_tol, min_rt=None, max_rt=None):
+        col_names = ["compound_id", "compound_name", "exact_mass", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula", "adduct"]
+        if min_rt:
+            col_names.insert(3, "retention_time")
+            sql_rt = " and retention_time >= {} and retention_time <= {}".format(min_rt, max_rt)
+        else:
+            sql_rt = ""
+        sql_str = """SELECT {} FROM COMPOUNDS WHERE exact_mass >= {} and exact_mass <= {}{}""".format(",".join(map(str, col_names)), min_tol, max_tol, sql_rt)
+        self.cursor.execute(sql_str)
         return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
 
     def close(self):
@@ -674,7 +693,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     return
 
 
-def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
+def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in="", rt_tol=None):
 
     if db_in is None or db_in == "":
         path_dbs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'databases')
@@ -708,7 +727,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                 if not (db_name, ) in cursor_local.fetchall():
                     raise ValueError("Database {} not available".format(db_name))
             else:
-                conn_mem = DbCompoundsMemory(db_in)
+                conn_mem = DbCompoundsMemory(db_in, lib_adducts=lib_adducts)
     else:
         raise IOError("[Errno 2] No such file or directory: {}".format(db_in))
 
@@ -721,6 +740,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
                    mz REAL DEFAULT NULL,
                    exact_mass REAL DEFAULT NULL,
                    ppm_error REAL DEFAULT NULL,
+                   rt_diff REAL DEFAULT NULL,
                    adduct TEXT DEFAULT NULL,
                    C INTEGER DEFAULT 0,
                    H INTEGER DEFAULT 0,
@@ -738,30 +758,48 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, db_in=""):
     for i in range(len(peaklist.iloc[:, 0])):
         mz = float(peaklist["mz"].iloc[i])
         name = str(peaklist["name"].iloc[i])
-        min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
+        rt = float(peaklist["rt"].iloc[i])
+        min_mz, max_mz = calculate_mz_tolerance(mz, ppm)
+        if rt_tol:
+            min_rt, max_rt = calculate_rt_tolerance(rt, rt_tol)
+        else:
+            min_rt, max_rt = None, None
 
-        for adduct in lib_adducts.lib:
+        if min_rt and max_rt:
+            records = conn_mem.select_compounds(min_mz, max_mz, min_rt, max_rt)
+            for record in records:
+                record["id"] = name
+                # record["exact_mass"] = record["exact_mass"] # Already retrieved from the database
+                record["mz"] = mz
+                record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
+                record["rt_diff"] = rt - float(record["retention_time"])
+                del record["retention_time"]
+                # record["adduct"] = adduct # Already retrieved from the database
+                cursor.execute("""insert into compounds_{} ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                               """.format(db_name, ",".join(map(str, list(record.keys())))), list(record.values()))
+        else:
+            for adduct in lib_adducts.lib:
 
-            if mz - lib_adducts.lib[adduct] > 0.5:
+                if mz - lib_adducts.lib[adduct] > 0.5:
 
-                if "conn_mem" in locals():
-                    records = conn_mem.select_compounds(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct])
-                elif "conn_local" in locals():
-                    col_names = ["compound_id", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula", "compound_name", "exact_mass"]
-                    cursor_local.execute("""SELECT id, C, H, N, O, P, S, CHNOPS,
-                                            molecular_formula, name, exact_mass
-                                            from {} where exact_mass >= {} and exact_mass <= {}
-                                            """.format(db_name, min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct]))
-                    records = [OrderedDict(zip(col_names, list(record))) for record in cursor_local.fetchall()]
+                    if "conn_mem" in locals():
+                        records = conn_mem.select_compounds(min_mz - lib_adducts.lib[adduct], max_mz - lib_adducts.lib[adduct])
+                    elif "conn_local" in locals():
+                        col_names = ["compound_id", "C", "H", "N", "O", "P", "S", "CHNOPS", "molecular_formula", "compound_name", "exact_mass"]
+                        cursor_local.execute("""SELECT id, C, H, N, O, P, S, CHNOPS,
+                                                molecular_formula, name, exact_mass
+                                                from {} where exact_mass >= {} and exact_mass <= {}
+                                                """.format(db_name, min_mz - lib_adducts.lib[adduct], max_mz - lib_adducts.lib[adduct]))
+                        records = [OrderedDict(zip(col_names, list(record))) for record in cursor_local.fetchall()]
 
-                for record in records:
-                    record["id"] = name
-                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct])
-                    record["mz"] = mz
-                    record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
-                    record["adduct"] = adduct
-                    cursor.execute("""insert into compounds_{} ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                                   """.format(db_name, ",".join(map(str, list(record.keys())))), list(record.values()))
+                    for record in records:
+                        record["id"] = name
+                        record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct])
+                        record["mz"] = mz
+                        record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
+                        record["adduct"] = adduct
+                        cursor.execute("""insert into compounds_{} ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                                       """.format(db_name, ",".join(map(str, list(record.keys())))), list(record.values()))
     conn.commit()
     conn.close()
     return
@@ -1057,18 +1095,18 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             else:
                 columns_to_select.append(cn[1])
 
-        query = "INSERT INTO peak_labels"
-        query += " SELECT {} FROM peak_labels where label is not NULL".format(", ".join(map(str, columns_to_select)))
-
+        query = """INSERT INTO peak_labels
+                   SELECT {} FROM peak_labels where label is not NULL""".format(", ".join(map(str, columns_to_select)))
         cursor.execute(query)
         conn.commit()
+
 
     cpd_tables = [tn[0] for tn in tables if "compound" in tn[0]]
 
     flag_mf = ("molecular_formulae",) in tables
     flag_cpd = len(cpd_tables) > 0
 
-    columns = ["exact_mass", "ppm_error", "adduct", "C", "H", "N", "O", "P", "S", "molecular_formula"]
+    columns = ["exact_mass", "ppm_error", "rt_diff", "adduct", "C", "H", "N", "O", "P", "S", "molecular_formula"]
 
     if len(cpd_tables) > 1:
         unions_cpd_sub_query = "LEFT JOIN (select * from "
@@ -1088,13 +1126,15 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         unions_cpd_sub_query = ""
 
         query = """CREATE TEMP TABLE mf_cd as
-                   SELECT mf.id, mf.exact_mass, mf.ppm_error, mf.adduct, mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
+                   SELECT mf.id, mf.exact_mass, mf.ppm_error, cpds.rt_diff, mf.adduct, 
+                   mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
                    mf.molecular_formula, cpds.compound_name, cpds.compound_id
                    FROM molecular_formulae as mf
                    LEFT JOIN compounds as cpds
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
                    UNION
-                   SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.adduct, cpds.C, cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
+                   SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.rt_diff, cpds.adduct, cpds.C, 
+                   cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
                    cpds.molecular_formula, cpds.compound_name, cpds.compound_id
                    FROM compounds as cpds
                    LEFT JOIN molecular_formulae as mf

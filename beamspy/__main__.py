@@ -123,7 +123,7 @@ def main():
     parser_app.add_argument('-u', '--max-monomer-units', default=2, type=int, required=False,
                              help="Maximum number of monomer units.")
 
-                             
+
     #################################
     # ANNOTATE MOLECULAR FORMULAE
     #################################
@@ -166,7 +166,7 @@ def main():
     parser_am.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database to write results.")
 
-    parser_am.add_argument('-c', '--db-compounds', type=str, default="", required=False, 
+    parser_am.add_argument('-c', '--db-compounds', type=str, default="", required=False,
                            help="Metabolite database (reference).")
 
     parser_am.add_argument('-n', '--db-name', type=str, default="", required=True,
@@ -180,6 +180,9 @@ def main():
 
     parser_am.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                            help="Mass tolerance in parts per million.")
+
+    parser_am.add_argument('-r', '--rt', default=None, type=float, required=True,
+                           help="Retention time tolerance in seconds.")
 
     #################################
     # SUMMARY RESULTS
@@ -256,14 +259,13 @@ def main():
                 annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
 
         if args.isotopes:
-            if args.isotopes_library is not None:
+            if args.isotopes_library:
                 lib = in_out.read_isotopes(args.isotopes_library, args.ion_mode)
-                annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
             else:
                 path = 'data/isotopes.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_isotopes(p, args.ion_mode)
-                annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.multiple_charged_ions:
             if len(args.multiple_charged_ions_library) > 0 and args.multiple_charged_ions_library is not None:
@@ -283,12 +285,20 @@ def main():
                 path = 'data/multiple_charged_ions.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_multiple_charged_ions(p, args.ion_mode)
-                
+                annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+
         if args.oligomers:
-            annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            if args.adducts_library:
+                lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+            else:
+                path = 'data/adducts.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_adducts(p, args.ion_mode)
+
+            annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib, maximum=args.max_monomer_units)
 
     if args.step == "annotate-mf":
-        
+
         if args.intensity_matrix:
             df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         else:
@@ -301,7 +311,8 @@ def main():
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
 
-        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf, max_mz=args.max_mz)
+        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf,
+                                               max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
         
@@ -317,7 +328,7 @@ def main():
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
             
-        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in=args.db_compounds)
+        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in=args.db_compounds, rt_tol=args.rt)
 
     if args.step == "summary-results":
         
@@ -341,6 +352,7 @@ def main():
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

@@ -74,7 +74,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
     return records
 
 
-def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
+def read_compounds(filename, separator="\t", calculate=True, lib_adducts=[], filename_atoms=""):
 
     if calculate:
         path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
@@ -93,10 +93,21 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
                 record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_database),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
+
             record["compound_id"] = row.compound_id
             record["compound_name"] = row.compound_name
             comp = pyteomics_mass.Composition(str(row.molecular_formula))
             record["molecular_formula"] = composition_to_string(comp)
+
+            if "retention_time" in df.columns:
+                record["retention_time"] = row.retention_time
+            elif "rt" in df.columns:
+                record["retention_time"] = row.rt
+            if "adduct" in df.columns:
+                record["adduct"] = row.adduct
+                if lib_adducts and calculate:
+                    record["exact_mass"] += lib_adducts.lib[row.adduct]
+
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
