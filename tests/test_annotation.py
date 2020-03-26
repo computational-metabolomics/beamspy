@@ -92,7 +92,7 @@ class AnnotationTestCase(unittest.TestCase):
             conn.commit()
             conn.close()
 
-        # sqlite profile provided
+        # sqlite file provided
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name, path_hmdb_sqlite)
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
                          sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
@@ -105,14 +105,38 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
 
         path_db_txt = os.path.join(os.getcwd(), "beamspy", "data", "db_compounds.txt")
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), "test", path_db_txt)
-        #self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 57)
+        db_name = "test"
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name, path_db_txt)
+        self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
+                         sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 72)
+
+        # path_db_txt = to_test_results("db_compounds_rt.txt")
+        # db_name = "test_rt"
+        # with open(path_db_txt, "w") as out:
+        #     out.write("compound_id\tmolecular_formula\tcompound_name\tadduct\tretention_time\n")
+        #     out.write("HMDB0000161\tC3H7NO2\tL-Alanine\t[M+H]+\t50.0\n")
+        #
+        # df_rt = pd.DataFrame({'name': ["M1"], 'mz': [89.047678473 + 1.007276], 'rt': [48], 'intensity': [1000.0],
+        #                       'sample01': [1000.0]})
+        #
+        # annotate_compounds(df_rt, self.lib_adducts, 100.0, to_test_results(self.db_results), db_name, path_db_txt, rt_tol=5.0)
+        # self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 1)
+
+        path_db_txt = to_test_results("db_compounds_rt.txt")
+        db_name = "test_rt"
+        with open(path_db_txt, "w") as out:
+            out.write("compound_id\tmolecular_formula\tcompound_name\tadduct\tretention_time\n")
+            out.write("HMDB0000263\tC3H5O6P\tPhosphoenolpyruvic acid\t[M+H]+\t118.0\n")
+
+        annotate_compounds(self.df, self.lib_adducts, 100.0, to_test_results(self.db_results), db_name, path_db_txt, rt_tol=5.0)
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 1)
 
     def test_annotate_molecular_formulae(self):
         fn_mf = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), fn_mf)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"), sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
+        self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"),
+                         sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 16)
 
         db_mfdb_results = "results_mfdb.sqlite"
@@ -129,27 +153,37 @@ class AnnotationTestCase(unittest.TestCase):
                     lines_test_data = test_data.read().splitlines()
                     for i in range(len(lines_results)):
                         self.assertEqual(lines_results[i], lines_test_data[i])
-                        self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"), sqlite_records(to_test_data(self.db_results), "summary"))
+                        self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"),
+                                         sqlite_records(to_test_data(self.db_results), "summary"))
 
         fn_summary = "summary_mr_mc.txt"
-        df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary = summary(self.df, to_test_data(self.db_results), single_row=False, single_column=False,
+                             convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        self.assertSequenceEqual(df_summary.shape, (132, 24))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_mc.txt"
-        df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary = summary(self.df, to_test_data(self.db_results), single_row=True, single_column=False,
+                             convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        self.assertSequenceEqual(df_summary.shape, (17, 16))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_sc.txt"
-        df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=True, convert_rt=None, ndigits_mz=None)
+        df_summary = summary(self.df, to_test_data(self.db_results), single_row=True, single_column=True,
+                             convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        self.assertSequenceEqual(df_summary.shape, (17, 10))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs.txt"
-        df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False, convert_rt=None, ndigits_mz=None)
+        df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False,
+                             convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        self.assertSequenceEqual(df_summary.shape, (17, 17))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
+
 
 if __name__ == '__main__':
     unittest.main()
