@@ -1113,19 +1113,30 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     columns = ["exact_mass", "ppm_error", "rt_diff", "adduct", "C", "H", "N", "O", "P", "S", "molecular_formula"]
 
+    cpd_t_flags = []
+    for i in range(0, len(cpd_tables)):
+        b = [0] * len(cpd_tables)
+        b[i] = 1
+        cpd_t_flags.append(["{} as {}".format(flag[0], flag[1]) for flag in list(zip(b, cpd_tables))])
+
     if len(cpd_tables) > 1:
-        unions_cpd_sub_query = "LEFT JOIN (select * from "
-        unions_cpd_sub_query += " union select * from ".join(map(str, cpd_tables))
+        unions_cpd_sub_query = "LEFT JOIN (select *, {} from {}".format(", ".join(map(str, cpd_t_flags[0])), cpd_tables[0])
+        for i, cpd_t in enumerate(cpd_tables[1:], start=1):
+            unions_cpd_sub_query += " union select *, {} from {}".format(", ".join(map(str, cpd_t_flags[i])), cpd_t)
         unions_cpd_sub_query += ") as ct "
     elif len(cpd_tables) == 1:
-        unions_cpd_sub_query = "LEFT JOIN (select * from {}) as ct".format(cpd_tables[0])
+        unions_cpd_sub_query = "LEFT JOIN (select *, 1 as {} from {}) as ct".format(cpd_tables[0], cpd_tables[0])
     else:
         unions_cpd_sub_query = ""
 
     if flag_mf and flag_cpd:
 
-        unions_cpd_query = "CREATE TEMP TABLE compounds AS select * from "
-        unions_cpd_query += " union select * from ".join(map(str, cpd_tables))
+        # unions_cpd_query = "CREATE TEMP TABLE compounds AS select * from "
+        # unions_cpd_query += " union select * from ".join(map(str, cpd_tables))
+
+        unions_cpd_query = "CREATE TEMP TABLE compounds AS select *, {} from {}".format(", ".join(map(str, cpd_t_flags[0])), cpd_tables[0])
+        for i, cpd_t in enumerate(cpd_tables[1:], start=1):
+            unions_cpd_query += " union select *, {} from {}".format(", ".join(map(str, cpd_t_flags[i])), cpd_t)
 
         cursor.execute(unions_cpd_query)
         unions_cpd_sub_query = ""
@@ -1133,32 +1144,25 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         query = """CREATE TEMP TABLE mf_cd as
                    SELECT mf.id, mf.exact_mass, mf.ppm_error, cpds.rt_diff, mf.adduct, 
                    mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
-                   mf.molecular_formula, cpds.compound_name, cpds.compound_id
+                   mf.molecular_formula, cpds.compound_name, cpds.compound_id, {}
                    FROM molecular_formulae as mf
                    LEFT JOIN compounds as cpds
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
                    UNION
                    SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.rt_diff, cpds.adduct, cpds.C, 
                    cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
-                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id
+                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id, {}
                    FROM compounds as cpds
                    LEFT JOIN molecular_formulae as mf
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
-                   WHERE mf.molecular_formula IS NULL"""
+                   WHERE mf.molecular_formula IS NULL
+                """.format(", ".join(map(str, ["cpds." + ct for ct in cpd_tables])),
+                           ", ".join(map(str, ["cpds." + ct for ct in cpd_tables])))
 
         cursor.execute(query)
-
-        # mf_cpc_columns = "".join(map(str, [", mf.{} as {}".format(c, c) for c in columns]))
-        # mf_cpc_columns += ", ct.compound_name as compound_name, ct.compound_id as compound_id"
-        # unions_cpd_sub_query += " ON mf.molecular_formula = ct.molecular_formula AND mf.adduct = ct.adduct"
-        # if flag_amoi:
-        #    union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON (peaklist.name = mf.id and peak_labels.label = mf.adduct)"
-        #     union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf.id and label = mf.adduct))"
-        # else:
-        #     union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf ON peaklist.name = mf.id"
-
         mf_cpc_columns = "".join(map(str, [", mf_cd.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id"
+        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id, "
+        mf_cpc_columns += ", ".join(map(str, cpd_tables))
         if flag_amoi:
             union_mf_sub_query = "LEFT JOIN mf_cd ON (peaklist.name = mf_cd.id and peak_labels.label = mf_cd.adduct)"
             union_mf_sub_query += " OR (peaklist.name = mf_cd.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf_cd.id and label = mf_cd.adduct))"
@@ -1167,7 +1171,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     elif not flag_mf and flag_cpd:
         mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id"
+        mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id, "
+        mf_cpc_columns += ", ".join(map(str, cpd_tables))
         if flag_amoi:
             unions_cpd_sub_query += " ON (peaklist.name = ct.id AND peak_labels.label = adduct)"
             unions_cpd_sub_query += " OR (peaklist.name = ct.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = ct.id and label = ct.adduct))"
@@ -1255,18 +1260,22 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
         if flag_cpd:
             if single_column:
-                columns_to_select.append("""
-                    group_concat(
-                        molecular_formula || '::' || 
-                        adduct || '::' || 
-                        ifnull(compound_name, "None") || '::' || 
-                        ifnull(compound_id, "None")  || '::' || 
-                        exact_mass || '::' || 
-                        round(ppm_error, 2) || '::' || 
-                        ifnull(round(rt_diff, 2), "None") ,
-                        '||'
-                    ) as annotation
-                    """)
+                for cpd_t in cpd_tables:
+
+                    columns_to_select.append("""
+                        group_concat(
+                            CASE WHEN {} = 1 THEN 
+                                molecular_formula || '::' || 
+                                adduct || '::' || 
+                                ifnull(compound_name, "None") || '::' || 
+                                ifnull(compound_id, "None")  || '::' || 
+                                exact_mass || '::' || 
+                                round(ppm_error, 2) || '::' || 
+                                ifnull(round(rt_diff, 2), "None")
+                            ELSE NULL END
+                            , '||' 
+                        ) as {}
+                        """.format(cpd_t, cpd_t))
             else:
                 columns_to_select.append("""
                     group_concat(molecular_formula, '||') as molecular_formula,
@@ -1311,7 +1320,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                 df_out["compound_id"] = df_out["compound_id"].replace({"None": ""})
                 df_out["compound_name"] = df_out["compound_name"].replace({"None": ""})
             else:
-                df_out["annotation"] = df_out["annotation"].replace({"None": ""})
+                for cpd_t in cpd_tables:
+                    df_out[cpd_t] = df_out[cpd_t].replace({"None": ""})
     else:
         df_out = pd.read_sql("select * from summary", conn)
         df_out.columns = [name.replace("peaklist.", "").replace("peak_labels.", "") for name in list(df_out.columns.values)]
@@ -1332,8 +1342,12 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     # Workaround for Pandas casting INT fo Float when Nan is present
     for c in df_out.columns:
-        if c in ["charge", "oligomer", "group_id", "degree_cor", "sub_group_id", "degree", "n_nodes", "n_edges", "C", "H", "N", "O", "P", "S"]:
-            df_out[c] = df_out[c].astype('Int64')
+        columns = ["charge", "oligomer", "group_id", "degree_cor", "sub_group_id", "degree", "n_nodes", "n_edges", "C", "H", "N", "O", "P", "S"]
+        columns.extend(cpd_tables) # include compound tables
+
+        if not single_row and not single_column:
+            if c in columns:
+                df_out[c] = df_out[c].astype('Int64')
 
     conn.close()
     return df_out

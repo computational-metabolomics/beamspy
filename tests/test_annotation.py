@@ -160,7 +160,7 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (132, 24))
+        self.assertSequenceEqual(df_summary.shape, (132, 27))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_mc.txt"
@@ -174,7 +174,7 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=True,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (17, 10))
+        self.assertSequenceEqual(df_summary.shape, (17, 12))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs.txt"
