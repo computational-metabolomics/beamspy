@@ -72,7 +72,7 @@ and create a pull request (PR). We welcome all contributions, and we will help y
 License
 ------------------------
 
-Released under the GNU General Public License v3.0 (see `LICENSE file <https://github.com/computational-metabolomics/beams/LICENSE>`_)
+Released under the GNU General Public License v3.0 (see `LICENSE <https://github.com/computational-metabolomics/beamspy/blob/master/LICENSE>`_)
 
 .. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beamspy.svg?branch=dev&style=flat&maxAge=3600&label=Travis-CI
    :target: https://travis-ci.com/computational-metabolomics/beamspy
