@@ -6,9 +6,13 @@ python:
 services:
   - xvfb
 
+before_install:
+  - python --version
+  - pip install -U pip
+  - pip install -U pytest
+  - pip install codecov pytest-cov
+  
 install:
-  - pip install coverage
-  - pip install green codecov
   - pip install .
 
 before_script:
@@ -16,7 +20,8 @@ before_script:
 
 script:
   - beamspy --help
-  - green -vvv --run-coverage
+  - pytest --cov=beamspy tests/
 
 after_script:
-  - python -m codecov
+  - codecov
+
