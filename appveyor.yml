@@ -6,7 +6,7 @@ build_script:
   - '%PYTHON%\python.exe -m pip install .'
 
 before_test:
-  - '%PYTHON%\python.exe -m pip install coverage green'
+  - '%PYTHON%\python.exe -m pip install pytest'
 
 test_script:
-  - '%PYTHON%\python.exe -m green -vvv --run-coverage'
+  - '%PYTHON%\python.exe -m pytest'
