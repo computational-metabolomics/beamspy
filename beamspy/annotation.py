@@ -30,7 +30,7 @@ def calculate_rt_tolerance(rt, rt_tol):
 
 
 def calculate_ppm_error(mass, theo_mass):
-    return float(theo_mass - mass) / (theo_mass * 0.000001)
+    return float(mass - theo_mass) / (theo_mass * 0.000001)
 
 
 def _remove_elements_from_compositions(records, keep):
