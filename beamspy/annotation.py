@@ -312,6 +312,8 @@ class DbMolecularFormulaeMemory:
 
         return [OrderedDict(zip(col_names, list(record))) for record in self.cursor.fetchall()]
 
+    def close(self):
+        self.conn.close()
 
 def annotate_adducts(source, db_out, ppm, lib, add=False):
 
@@ -758,7 +760,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     exact_mass REAL DEFAULT NULL,
                     ppm_error REAL DEFAULT NULL,
                     adduct TEXT DEFAULT NULL,
-                    isotope TEXT DEFAULT NULL,
+                    isotope TEXT DEFAULT '',
                     C INTEGER DEFAULT 0,
                     H INTEGER DEFAULT 0,
                     N INTEGER DEFAULT 0,
@@ -777,10 +779,10 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
 
     if os.path.isfile(db_in):
         conn_mem = DbMolecularFormulaeMemory(db_in)
-        conn_type = "mem"
+        source = "sqlite"
         max_mz = None
     else:
-        conn_type = "api"
+        source = "api"
         url = '{}/api/formula/mass_range'.format(db_in)
         url_test = '{}/api/formula/mass?mass=180.06339&tol=0.0&tol_unit=ppm&rules=1'.format(db_in)
         o = urlparse(url)
@@ -793,109 +795,25 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
     nist_database = nist_database_to_pyteomics(path_nist_database)
 
-    rows = _select_unions_peak_patterns(cursor)
-    names_to_skip = []
+    def _select_mfs(source, peak_id, mz, adducts, isotope, min_mz, max_mz, exact_mass_isotope=0.0, rules=True):
 
-    for row in rows:
-
-        for index, name in enumerate(row[0:2]):
-
-            if not name:
-                continue
-
-            index_name = peaklist["name"].tolist().index(str(name))
-            mz = float(peaklist["mz"].iloc[index_name])
-            rt = float(peaklist["rt"].iloc[index_name])
-
-            names_to_skip.append(name)
-
-            # print(index_name, name, mz, rt)
-
-            if row[6] and index == 1:
-                exact_mass_isotope = float(row[6])
-                isotope = row[5]
-            else:
-                exact_mass_isotope = 0.0
-                isotope = row[4]
-
-            if row[2]:
-                adducts = [str(row[2])]
-            else:
-                adducts = lib_adducts.lib.keys()
-
-            min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
-
-            if max_mz is not None and mz > max_mz:  # TODO
-                continue
-
-            values = []
-            for adduct in adducts:
-
-                if mz - lib_adducts.lib[adduct] > 0.5:
-
-                    if conn_type == "mem":
-                        records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct] - exact_mass_isotope, max_tol - lib_adducts.lib[adduct] - exact_mass_isotope, rules)
-                    else:
-                        params = {"lower": min_tol - lib_adducts.lib[adduct] - exact_mass_isotope,
-                                  "upper": max_tol - lib_adducts.lib[adduct] - exact_mass_isotope,
-                                  "rules": int(rules)}
-                        response = requests.get(url, params=params)
-                        records = response.json()["records"]
-
-                    for record in records:
-                        record["id"] = name
-                        if "CHNOPS" not in record:  # MFdb API specific
-                            record["CHNOPS"] = True  # MFdb API specific
-                        if "rules" in record:
-                            record.update(record["rules"])
-                            del record["rules"]
-                        if "atoms" in record:
-                            record.update(record["atoms"])
-                            del record["atoms"]
-                        record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct] + exact_mass_isotope
-                        record["mz"] = mz
-                        record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
-                        comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
-                        record["molecular_formula"] = composition_to_string(comp)
-                        record["adduct"] = adduct
-                        record["isotope"] = isotope
-                    records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
-                    values.extend([list(record.values()) for record in records])
-
-            time.sleep(0.02)
-            if len(values) > 0:
-                cursor.executemany("""insert into molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                                   """.format(",".join(map(str, list(record.keys())))), values)
-    conn.commit()
-
-    for i in range(len(peaklist.iloc[:, 0])):
-        mz = float(peaklist["mz"].iloc[i])
-        name = str(peaklist["name"].iloc[i])
-
-        if name in names_to_skip and filter:
-            continue
-
-        min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
-
-        if max_mz is not None and mz > max_mz:  # TODO
-            continue
-
-        values = []
-        for adduct in lib_adducts.lib:
+        mf_records = []
+        for adduct in adducts:
 
             if mz - lib_adducts.lib[adduct] > 0.5:
 
-                if conn_type == "mem":
-                    records = conn_mem.select_mf(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct], rules)
-                else:
-                    params = {"lower": min_tol - lib_adducts.lib[adduct],
-                              "upper": max_tol - lib_adducts.lib[adduct],
+                if source == "api":
+                    params = {"lower": min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
+                              "upper": max_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
                               "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
+                else:
+                    records = conn_mem.select_mf(min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
+                                                 max_mz - lib_adducts.lib[adduct] - exact_mass_isotope, rules=rules)
 
                 for record in records:
-                    record["id"] = name
+                    record["id"] = peak_id
                     if "CHNOPS" not in record:  # MFdb API specific
                         record["CHNOPS"] = True  # MFdb API specific
                     if "rules" in record:
@@ -904,19 +822,91 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     if "atoms" in record:
                         record.update(record["atoms"])
                         del record["atoms"]
-                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]
+                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct] + exact_mass_isotope
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
                     record["molecular_formula"] = composition_to_string(comp)
                     record["adduct"] = adduct
-                records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
-                values.extend([list(record.values()) for record in records])
+                    if isotope:
+                        record["isotope"] = isotope
+                    else:
+                        record["isotope"] = ""
 
-        time.sleep(0.01)
-        if len(values) > 0:
-            cursor.executemany("""INSERT OR IGNORE INTO molecular_formulae ({}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                               """.format(",".join(map(str, list(record.keys())))), values)
+                records = _remove_elements_from_compositions(records, keep=["C", "H", "N", "O", "P", "S"])
+                mf_records.extend(records)
+
+        return mf_records
+
+    rows = _select_unions_peak_patterns(cursor)
+    names_to_skip = []
+    records = []
+
+    for row in rows:
+
+        if row[2]:
+            adducts = [str(row[2])]
+        else:
+            adducts = lib_adducts.lib.keys()
+
+        index_name = peaklist["name"].tolist().index(str(row[0]))
+        mz = peaklist["mz"].iloc[index_name]
+        min_mz, max_mz = calculate_mz_tolerance(peaklist["mz"].iloc[index_name], ppm)
+        records_a = _select_mfs(source, row[0], mz, adducts, row[4], min_mz, max_mz, 0.0, rules=rules)
+
+        if row[1]:
+            names_to_skip.append(row[0])
+            names_to_skip.append(row[1])
+
+            index_name = peaklist["name"].tolist().index(str(row[1]))
+            mz = peaklist["mz"].iloc[index_name]
+            min_mz, max_mz = calculate_mz_tolerance(mz, ppm)
+
+            if row[3]:  # different adducts - label_a and label_b?
+                exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
+            else:
+                exact_mass_diff = float(row[6])
+
+            records_b = _select_mfs(source, row[1], mz, adducts, row[5], min_mz, max_mz, exact_mass_diff, rules=rules)
+            for record_a in records_a:
+                for record_b in records_b:
+                    if record_a["molecular_formula"] == record_b["molecular_formula"]:
+                        records.append(record_a)
+                        records.append(record_b)
+        else:
+            names_to_skip.append(row[0])
+            records.extend(records_a)
+
+    if len(records) > 0:
+        sql_str = """INSERT INTO molecular_formulae ({}) VALUES (:{})
+                  """.format(",".join(map(str, records[0].keys())), ", :".join(map(str, records[0].keys())))
+        cursor.executemany(sql_str, records)
+        conn.commit()
+
+    cursor.execute("select id, molecular_formula from molecular_formulae")
+    mfs_subset = cursor.fetchall()
+
+    for i in range(len(peaklist.iloc[:, 0])):
+
+        mz = float(peaklist["mz"].iloc[i])
+        name = str(peaklist["name"].iloc[i])
+        rt = float(peaklist["rt"].iloc[i])
+
+        min_mz, max_mz = calculate_mz_tolerance(mz, ppm)
+        if name in names_to_skip and filter:
+            continue
+
+        records = _select_mfs(source, name, mz, lib_adducts.lib.keys(), None, min_mz, max_mz, 0.0)
+
+        records_filt = [record for record in records if (record["id"], record["molecular_formula"]) not in mfs_subset]
+        if len(records_filt) > 0:
+            sql_str = """INSERT OR IGNORE INTO molecular_formulae ({}) VALUES (:{})
+                      """.format(",".join(map(str, records_filt[0].keys())), ", :".join(map(str, records_filt[0].keys())))
+            cursor.executemany(sql_str, records_filt)
+
+    if source != "api":
+        conn_mem.close()
+
     conn.commit()
     conn.close()
     return
