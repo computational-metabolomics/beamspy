@@ -85,6 +85,9 @@ class AnnotationTestCase(unittest.TestCase):
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
         annotate_isotopes(self.df, to_test_results(self.db_results), self.ppm, self.lib_isotopes)
 
+        annotate_adducts(self.df, to_test_results(self.db_results_graph), self.ppm, self.lib_adducts)
+        annotate_isotopes(self.df, to_test_results(self.db_results_graph), self.ppm, self.lib_isotopes)
+
         if os.path.isfile(path_hmdb_sqlite):
             os.remove(path_hmdb_sqlite)
 
