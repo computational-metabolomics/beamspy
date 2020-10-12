@@ -1492,6 +1492,16 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         pl_columns = ""
         join_peak_labels = ""
 
+    sql_str_order = "ORDER BY peaklist.rowid"
+    if ".label," in pl_columns:
+        sql_str_order += ", label NULLS LAST"
+    if "isotope" in pl_columns:
+        sql_str_order += ", isotope_labels_a NULLS LAST"
+    if "ppm_error" in mf_cpc_columns:
+        sql_str_order += ", abs(ppm_error)"
+    if "compound_name" in mf_cpc_columns:
+        sql_str_order += ", compound_name, adduct"
+
     query = """
             CREATE TABLE summary AS SELECT
             peaklist.name, peaklist.mz, peaklist.rt, peaklist.intensity{}{}
@@ -1499,7 +1509,10 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             {}
             {}
             {}
-            """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
+            {}
+            """.format(pl_columns, mf_cpc_columns, join_peak_labels,
+                       union_mf_sub_query, unions_cpd_sub_query,
+                       sql_str_order)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
