@@ -224,10 +224,10 @@ class AnnotationTestCase(unittest.TestCase):
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs.txt"
-        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
-                                 sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
+                                 sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
         self.assertSequenceEqual(df_summary.shape, ((60, 31)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))

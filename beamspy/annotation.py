@@ -1494,13 +1494,13 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     sql_str_order = "ORDER BY peaklist.rowid"
     if ".label," in pl_columns:
-        sql_str_order += ", label NULLS LAST"
+        sql_str_order += ", label is NULL, label"
     if "isotope" in pl_columns:
-        sql_str_order += ", isotope_labels_a NULLS LAST"
+        sql_str_order += ", isotope_labels_a is NULL, isotope_labels_a"
     if "ppm_error" in mf_cpc_columns:
-        sql_str_order += ", abs(ppm_error)"
+        sql_str_order += ", abs(ppm_error) is NULL, abs(ppm_error)"
     if "compound_name" in mf_cpc_columns:
-        sql_str_order += ", compound_name, adduct"
+        sql_str_order += ", compound_name is NULL, compound_name, adduct"
 
     query = """
             CREATE TABLE summary AS SELECT
