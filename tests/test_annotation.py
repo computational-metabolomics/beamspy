@@ -36,29 +36,33 @@ class AnnotationTestCase(unittest.TestCase):
 
     def test_annotate_adducts(self):
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "adduct_pairs"), sqlite_records(to_test_data(self.db_results), "adduct_pairs"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "adduct_pairs"),
+                                 sqlite_records(to_test_data(self.db_results), "adduct_pairs"))
 
         annotate_adducts(self.graph, to_test_results(self.db_results_graph), self.ppm, self.lib_adducts)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "adduct_pairs"), sqlite_records(to_test_data(self.db_results_graph), "adduct_pairs"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "adduct_pairs"),
+                                 sqlite_records(to_test_data(self.db_results_graph), "adduct_pairs"))
 
     def test_annotate_isotopes(self):
         annotate_isotopes(self.df, to_test_results(self.db_results), self.ppm, self.lib_isotopes)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "isotopes"), sqlite_records(to_test_data(self.db_results), "isotopes"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "isotopes"),
+                                 sqlite_records(to_test_data(self.db_results), "isotopes"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "isotopes"), 1)
 
         annotate_isotopes(self.graph, to_test_results(self.db_results_graph), self.ppm, self.lib_isotopes)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "isotopes"), sqlite_records(to_test_data(self.db_results_graph), "isotopes"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "isotopes"),
+                                 sqlite_records(to_test_data(self.db_results_graph), "isotopes"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "isotopes"), 1)
 
     def test_annotate_oligomers(self):
         annotate_oligomers(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts, maximum=5)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "oligomers"),
-                         sqlite_records(to_test_data(self.db_results), "oligomers"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "oligomers"),
+                                 sqlite_records(to_test_data(self.db_results), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "oligomers"), 2)
 
         annotate_oligomers(self.graph, to_test_results(self.db_results_graph), self.ppm, self.lib_adducts)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "oligomers"),
-                         sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "oligomers"),
+                                 sqlite_records(to_test_data(self.db_results_graph), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "oligomers"), 2)
 
     # def test_annotate_drug_products(self):
@@ -101,22 +105,22 @@ class AnnotationTestCase(unittest.TestCase):
         # sqlite file provided
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
                            filter=True, db_in=path_hmdb_sqlite)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
-                         sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
+                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 58)
 
         # internal sqlite databases
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
                            filter=True, db_in="")
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
-                         sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
+                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 58)
 
         # internal sqlite databases, including grouping
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results_graph), db_name,
                            filter=True, db_in="")
-        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)),
-                         sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(db_name)))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)),
+                                 sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)), 58)
 
         # internal sqlite databases (excl. patterns)
@@ -133,8 +137,8 @@ class AnnotationTestCase(unittest.TestCase):
         db_name = "test"
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
                            filter=True, db_in=path_db_txt)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
-                         sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
+                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 70)
 
         path_db_txt = to_test_results("db_compounds_rt.txt")
@@ -147,20 +151,27 @@ class AnnotationTestCase(unittest.TestCase):
                            db_in=path_db_txt, rt_tol=5.0)
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 1)
 
-
     def test_annotate_molecular_formulae(self):
         fn_mf = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results),
                                     fn_mf, filter=True)
-        self.assertEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"),
-                         sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
+
+        #records_test = sqlite_records(to_test_results(self.db_results), "molecular_formulae")
+        #records_data = sqlite_records(to_test_data(self.db_results), "molecular_formulae")
+        #for i, record in enumerate(records_test):
+        #    print(records_test[i])
+        #    print(records_data[i])
+        #    input()
+
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"),
+                                 sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "molecular_formulae"), 14)
 
         db_mfdb_results = "results_mfdb.sqlite"
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(db_mfdb_results),
                                     filter=False, rules=True)
-        self.assertEqual(sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae"),
-                         sqlite_records(to_test_data(db_mfdb_results), "molecular_formulae"))
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae"),
+                                 sqlite_records(to_test_data(db_mfdb_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(db_mfdb_results), "molecular_formulae"), 586)
 
         db_mfdb_results = "results_mfdb_excl_hrules.sqlite"
@@ -186,9 +197,14 @@ class AnnotationTestCase(unittest.TestCase):
                         self.assertEqual(sqlite_records(to_test_results(self.db_results), "summary"),
                                          sqlite_records(to_test_data(self.db_results), "summary"))
 
+
         fn_summary = "summary_mr_mc.txt"
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
+
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "summary"),
+                                sqlite_records(to_test_data(self.db_results), "summary"))
+
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
         self.assertSequenceEqual(df_summary.shape, (131, 27))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
@@ -208,6 +224,8 @@ class AnnotationTestCase(unittest.TestCase):
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs.txt"
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
+                                 sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
