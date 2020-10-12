@@ -20,8 +20,9 @@ class LibrariesTestCase(unittest.TestCase):
     def test_read_adducts(self):
         lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "adducts.txt"), "pos")
         self.assertTrue("in library" in lib_adducts.__str__())
-        lib_adducts.add("test", 10)
-        self.assertEqual(lib_adducts.lib["test"], 10)
+        lib_adducts.add("test", 100.0, 1)
+        self.assertEqual(lib_adducts.lib["test"]["mass"], 100.0)
+        self.assertEqual(lib_adducts.lib["test"]["charge"], 1)
 
         lib_adducts.remove("*")
         self.assertEqual(lib_adducts.lib, OrderedDict())

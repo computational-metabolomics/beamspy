@@ -22,7 +22,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         self.lib_isotopes = read_isotopes(os.path.join(self.path, "beamspy", "data", "isotopes.txt"), "pos")
         self.lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "adducts.txt"), "pos")
-        self.lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
+        # self.lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
         # lib_mass_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "multiple_charged_differences.txt"), "pos")
 
         self.db_results = "results_annotation.sqlite"
@@ -109,6 +109,13 @@ class AnnotationTestCase(unittest.TestCase):
                          sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 58)
 
+        # internal sqlite databases, including grouping
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results_graph), db_name,
+                           filter=True, db_in="")
+        self.assertEqual(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)),
+                         sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)), 58)
+
         # internal sqlite databases (excl. patterns)
         db_results_excl_patterns = self.db_results.replace(".sqlite", "_excl_pattern.sqlite")
         annotate_adducts(self.df, to_test_results(db_results_excl_patterns), self.ppm, self.lib_adducts)
@@ -126,18 +133,6 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
                          sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 70)
-
-        # path_db_txt = to_test_results("db_compounds_rt.txt")
-        # db_name = "test_rt"
-        # with open(path_db_txt, "w") as out:
-        #     out.write("compound_id\tmolecular_formula\tcompound_name\tadduct\tretention_time\n")
-        #     out.write("HMDB0000161\tC3H7NO2\tL-Alanine\t[M+H]+\t50.0\n")
-        #
-        # df_rt = pd.DataFrame({'name': ["M1"], 'mz': [89.047678473 + 1.007276], 'rt': [48], 'intensity': [1000.0],
-        #                       'sample01': [1000.0]})
-        #
-        # annotate_compounds(df_rt, self.lib_adducts, 100.0, to_test_results(self.db_results), db_name, patterns=True, db_in=path_db_txt, rt_tol=5.0)
-        # self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 1)
 
         path_db_txt = to_test_results("db_compounds_rt.txt")
         db_name = "test_rt"
@@ -213,7 +208,7 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary = summary(self.df, to_test_results(self.db_results_graph), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (17, 17))
+        self.assertSequenceEqual(df_summary.shape, ((60, 31)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 

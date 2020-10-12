@@ -146,12 +146,18 @@ class InOutTestCase(unittest.TestCase):
         records_pos = read_adducts(adducts_lib, "pos")
         records_pos_comp = [('[M+H]+', 1.007276), ('[M+Na]+', 22.989221),
                             ('[M+K]+', 38.963158)]
+        records_pos_comp = OrderedDict([('[M+H]+', OrderedDict([('mass', 1.007276), ('charge', 1)])),
+                                        ('[M+Na]+', OrderedDict([('mass', 22.989221), ('charge', 1)])),
+                                        ('[M+K]+', OrderedDict([('mass', 38.963158), ('charge', 1)]))])
         self.assertEqual(records_pos.lib, OrderedDict(records_pos_comp))
         records_neg = read_adducts(adducts_lib, "neg")
-        records_neg_comp = [('[M-H]-', -1.007276), ('[M+Na-2H]-', 20.974668),
-                            ('[M+Cl]-', 34.969401), ('[M+K-2H]-', 36.948605),
-                            ('[M+Hac-H]-', 59.013853)]
+        records_neg_comp = OrderedDict([('[M-H]-', OrderedDict([('mass', -1.007276), ('charge', 1)])),
+                                        ('[M+Na-2H]-', OrderedDict([('mass', 20.974668), ('charge', 1)])),
+                                        ('[M+Cl]-', OrderedDict([('mass', 34.969401), ('charge', 1)])),
+                                        ('[M+K-2H]-', OrderedDict([('mass', 36.948605), ('charge', 1)])),
+                                        ('[M+Hac-H]-', OrderedDict([('mass', 59.013853), ('charge', 1)]))])
         self.assertEqual(records_neg.lib, OrderedDict(records_neg_comp))
+        print(records_neg.lib)
 
     def test_read_isotopes(self):
         isotopes_lib = os.path.join(self.path, "beamspy", "data", "isotopes.txt")
