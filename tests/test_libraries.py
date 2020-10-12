@@ -26,13 +26,6 @@ class LibrariesTestCase(unittest.TestCase):
         lib_adducts.remove("*")
         self.assertEqual(lib_adducts.lib, OrderedDict())
 
-    def test_multiple_charged_ions(self):
-        lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
-        self.assertTrue("in library" in lib_multiple_charged_ions.__str__())
-
-        lib_multiple_charged_ions.remove("*")
-        self.assertEqual(lib_multiple_charged_ions.lib, OrderedDict())
-
     def test_mass_differences(self):
         lib_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "adducts_differences.txt"), "pos")
         self.assertTrue("in library" in lib_differences.__str__())

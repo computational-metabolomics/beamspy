@@ -60,14 +60,24 @@ def _prep_lib(lib):
     if isinstance(lib, OrderedDict):
         combs = list(itertools.combinations(lib, 2))
         for pair in combs:
-            if isinstance(lib[pair[0]], float):
-                lib_pairs.append(OrderedDict([(pair[0], {"mass": lib[pair[0]], "charge": 1}),
-                                              (pair[1], {"mass": lib[pair[1]], "charge": 1})]))
-            else:
+            if lib[pair[0]]["charge"] == lib[pair[1]]["charge"]:
+                if lib[pair[0]]["mass"] < lib[pair[1]]["mass"]:
+                    # print("yes", lib[pair[0]]["mass"], lib[pair[1]]["mass"], lib[pair[0]]["mass"] < lib[pair[1]]["mass"])
+                    lib_pairs.append(OrderedDict([(pair[0], {"mass": lib[pair[0]]["mass"], "charge": lib[pair[0]]["charge"]}),
+                                                  (pair[1], {"mass": lib[pair[1]]["mass"], "charge": lib[pair[1]]["charge"]})]))
+                else:
+                    lib_pairs.append(OrderedDict([(pair[1], {"mass": lib[pair[1]]["mass"], "charge": lib[pair[1]]["charge"]}),
+                                                  (pair[0], {"mass": lib[pair[0]]["mass"], "charge": lib[pair[0]]["charge"]})]))
+            elif lib[pair[0]]["charge"] > lib[pair[1]]["charge"]:
                 lib_pairs.append(OrderedDict([(pair[0], {"mass": lib[pair[0]]["mass"], "charge": lib[pair[0]]["charge"]}),
                                               (pair[1], {"mass": lib[pair[1]]["mass"], "charge": lib[pair[1]]["charge"]})]))
-        lib_pairs = sorted(lib_pairs, key=lambda pair: (list(pair.items())[0][1]["mass"] - list(pair.items())[1][1]["mass"]), reverse=True)
+            else:
+                lib_pairs.append(OrderedDict([(pair[1], {"mass": lib[pair[1]]["mass"], "charge": lib[pair[1]]["charge"]}),
+                                              (pair[0], {"mass": lib[pair[0]]["mass"], "charge": lib[pair[0]]["charge"]})]))
+
+        #lib_pairs = sorted(lib_pairs, key=lambda pair: (list(pair.items())[0][1]["mass"] - list(pair.items())[1][1]["mass"]), reverse=True)
         return lib_pairs
+
     elif isinstance(lib, list) and isinstance(lib[0], OrderedDict):
         if "mass_difference" in lib[0]:
             return sorted(lib, key=lambda d: d["mass_difference"], reverse=True)
@@ -89,20 +99,22 @@ def _annotate_artifacts(peaklist, diff=0.02):
                 yield i, j, mz_diff, ppm_error
 
 
-def _check_tolerance(mz_x, mz_y, lib_pair, ppm):
+def _check_tolerance(mz_x, mz_y, lib_pair, ppm, charge):
     min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x, ppm)
     min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
     if "mass_difference" in lib_pair.keys():
         # Need to fix the order, charge is one
-        min_tol_b = (min_tol_b - lib_pair["mass_difference"])
-        max_tol_b = (max_tol_b - lib_pair["mass_difference"])
+        min_tol_b = (min_tol_b - lib_pair["mass_difference"] / charge)
+        max_tol_b = (max_tol_b - lib_pair["mass_difference"] / charge)
     elif "mass" in list(lib_pair.items())[0][1]:
         # Need to fix the order
-        min_tol_a = (min_tol_a - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"]
-        max_tol_a = (max_tol_a - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"]
+        charge_a = list(lib_pair.items())[0][1]["charge"]
+        charge_b = list(lib_pair.items())[1][1]["charge"]
+        min_tol_a = (min_tol_a - list(lib_pair.items())[0][1]["mass"] / charge_a) * charge_a
+        max_tol_a = (max_tol_a - list(lib_pair.items())[0][1]["mass"] / charge_a) * charge_a
 
-        min_tol_b = (min_tol_b - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"]
-        max_tol_b = (max_tol_b - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"]
+        min_tol_b = (min_tol_b - list(lib_pair.items())[1][1]["mass"] / charge_b) * charge_b
+        max_tol_b = (max_tol_b - list(lib_pair.items())[1][1]["mass"] / charge_b) * charge_b
     else:
         raise ValueError("Incorrect format: {}".format(lib_pair))
     #if min_tol_b > min_tol_a and min_tol_b > max_tol_a:
@@ -118,18 +130,16 @@ def _check_tolerance(mz_x, mz_y, lib_pair, ppm):
     return 0
 
 
-def _annotate_pairs_from_graph(G, ppm, lib_pairs):
+def _annotate_pairs_from_graph(G, ppm, lib_pairs, charge):
 
     for e in G.edges(data=True):
-        #if G.nodes[e[0]]["mz"] < G.nodes[e[1]]["mz"]:
-        #    mz_x = G.nodes[e[0]]["mz"]
-        #    mz_y = G.nodes[e[1]]["mz"]
-        #else:
+
         mz_x = G.nodes[e[0]]["mz"]
         mz_y = G.nodes[e[1]]["mz"]
 
         for lib_pair in lib_pairs:
-            ct = _check_tolerance(mz_x, mz_y, lib_pair, ppm)
+
+            ct = _check_tolerance(mz_x, mz_y, lib_pair, ppm, charge)
             if ct == 1 or ct == True:
 
                 if "charge" in list(lib_pair.items())[0][1]:
@@ -140,15 +150,18 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs):
                     charge_b = 1
 
                 if "mass_difference" in lib_pair:
+                    if not charge:
+                        charge = 1.0
                     ppm_error = calculate_ppm_error(
                         mz_x,
-                        mz_y - lib_pair["mass_difference"])
-                    exact_mass_diff = lib_pair["mass_difference"]
+                        mz_y - (lib_pair["mass_difference"] / charge))
+
+                    exact_mass_diff = lib_pair["mass_difference"] / charge
                 else:
                     ppm_error = calculate_ppm_error(
-                        (mz_x - list(lib_pair.items())[0][1]["mass"]) * charge_a,
-                        (mz_y - list(lib_pair.items())[1][1]["mass"]) * charge_b)
-                    exact_mass_diff = list(lib_pair.items())[1][1]["mass"] - list(lib_pair.items())[0][1]["mass"]
+                        (mz_x - list(lib_pair.items())[0][1]["mass"] / charge_a) * charge_a,
+                        (mz_y - list(lib_pair.items())[1][1]["mass"] / charge_b) * charge_b)
+                    exact_mass_diff = list(lib_pair.items())[1][1]["mass"] / charge_b - list(lib_pair.items())[0][1]["mass"] / charge_a
 
                 yield OrderedDict([("peak_id_a", e[0]), ("peak_id_b", e[1]),
                                    ("label_a", list(lib_pair.keys())[0]),
@@ -159,13 +172,13 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs):
                                    ('ppm_error', round(ppm_error, 2))])
 
 
-def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
-    n = len(peaklist.iloc[:,1])
+def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs, charge):
+    n = len(peaklist.iloc[:, 1])
     for i in range(n):
         for j in range(i + 1, n):
 
             for lib_pair in lib_pairs:
-                ct = _check_tolerance(peaklist.iloc[i,1], peaklist.iloc[j,1], lib_pair, ppm)
+                ct = _check_tolerance(peaklist.iloc[i, 1], peaklist.iloc[j, 1], lib_pair, ppm, charge)
 
                 if ct == 1 or ct == True:
 
@@ -178,15 +191,15 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
 
                     if "mass_difference" in lib_pair:
                         ppm_error = calculate_ppm_error(
-                            peaklist.iloc[i,1],
-                            peaklist.iloc[j,1] - lib_pair["mass_difference"])
-                        exact_mass_diff = lib_pair["mass_difference"]
+                            peaklist.iloc[i, 1],
+                            peaklist.iloc[j, 1] - lib_pair["mass_difference"] / charge)
+                        exact_mass_diff = lib_pair["mass_difference"] / charge
 
                     else:
                         ppm_error = calculate_ppm_error(
-                            (peaklist.iloc[i,1] - list(lib_pair.items())[0][1]["mass"]) * list(lib_pair.items())[0][1]["charge"],
-                            (peaklist.iloc[j,1] - list(lib_pair.items())[1][1]["mass"]) * list(lib_pair.items())[1][1]["charge"])
-                        exact_mass_diff = list(lib_pair.items())[1][1]["mass"] - list(lib_pair.items())[0][1]["mass"]
+                            (peaklist.iloc[i, 1] - list(lib_pair.items())[0][1]["mass"] / charge_a) * charge_a,
+                            (peaklist.iloc[j, 1] - list(lib_pair.items())[1][1]["mass"] / charge_b) * charge_b)
+                        exact_mass_diff = list(lib_pair.items())[1][1]["mass"] / charge_b - list(lib_pair.items())[0][1]["mass"] / charge_a
 
                     yield OrderedDict([("peak_id_a", peaklist.iloc[i,0]), ("peak_id_b", peaklist.iloc[j,0]),
                                        ("label_a", list(lib_pair.keys())[0]),
@@ -194,7 +207,7 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs):
                                        ('charge_a', charge_a),
                                        ('charge_b', charge_b),
                                        ('exact_mass_diff', exact_mass_diff),
-                                       ('ppm_error', round(ppm_error,2))])
+                                       ('ppm_error', round(ppm_error, 2))])
 
 
 class DbCompoundsMemory:
@@ -315,6 +328,7 @@ class DbMolecularFormulaeMemory:
     def close(self):
         self.conn.close()
 
+
 def annotate_adducts(source, db_out, ppm, lib, add=False):
 
     conn = sqlite3.connect(db_out)
@@ -328,8 +342,11 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
                        peak_id_b TEXT DEFAULT NULL,
                        label_a TEXT DEFAULT NULL,
                        label_b TEXT DEFAULT NULL,
+                       charge_a INTEGER DEFAULT NULL,
+                       charge_b INTEGER DEFAULT NULL,
                        exact_mass_diff REAL DEFAULT NULL,
                        ppm_error REAL DEFAULT NULL,
+                       
                        PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
@@ -339,22 +356,26 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
 
     if isinstance(source, list) and len(source) > 0 and isinstance(source[0], nx.classes.digraph.DiGraph):
         for i, graph in enumerate(source):
-            for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
+            for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm, charge=None):
                 cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, 
                                label_a, label_b, 
+                               charge_a, charge_b,
                                exact_mass_diff, ppm_error)
-                               values (?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
+                               values (?,?,?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
                                                          assignment["label_a"], assignment["label_b"],
+                                                         assignment["charge_a"], assignment["charge_b"],
                                                          float(assignment["exact_mass_diff"]),
                                                          float(assignment["ppm_error"])))
 
     elif isinstance(source, pd.core.frame.DataFrame):
-        for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
+        for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm, charge=None):
             cursor.execute("""INSERT OR REPLACE into adduct_pairs (peak_id_a, peak_id_b, 
-                           label_a, label_b, 
+                           label_a, label_b,
+                           charge_a, charge_b,
                            exact_mass_diff, ppm_error)
-                           values (?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
+                           values (?,?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
                                                      assignment["label_a"], assignment["label_b"],
+                                                     assignment["charge_a"], assignment["charge_b"],
                                                      float(assignment["exact_mass_diff"]),
                                                      float(assignment["ppm_error"])))
     conn.commit()
@@ -362,7 +383,7 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
     return
 
 
-def annotate_isotopes(source, db_out, ppm, lib):
+def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -377,6 +398,7 @@ def annotate_isotopes(source, db_out, ppm, lib):
                    atoms REAL DEFAULT NULL,
                    exact_mass_diff REAL DEFAULT NULL,
                    ppm_error REAL DEFAULT NULL,
+                   charge INT DEFAULT 1,
                    PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
@@ -395,10 +417,31 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
             peaklist = graph.nodes(data=True)
 
-            for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
+            for charge in range(1, max_charge + 1):
+                for assignment in _annotate_pairs_from_graph(G=graph, lib_pairs=lib_pairs, ppm=ppm, charge=charge):
 
-                y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
-                x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
+                    y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
+                    x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
+
+                    if x == 0.0 or y == 0.0:
+                        atoms = None
+                    elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                        atoms = x/y
+                    else:
+                        atoms = y/x
+
+                    cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, 
+                                   atoms, exact_mass_diff, ppm_error, charge)
+                                   values (?,?,?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
+                                   assignment["label_a"], assignment["label_b"], float(atoms),
+                                   float(assignment["exact_mass_diff"]), float(assignment["ppm_error"]), charge))
+
+    elif isinstance(source, pd.core.frame.DataFrame):
+        for charge in range(1, max_charge + 1):
+            for assignment in _annotate_pairs_from_peaklist(peaklist=source, lib_pairs=lib_pairs, ppm=ppm, charge=charge):
+
+                y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
+                x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
 
                 if x == 0.0 or y == 0.0:
                     atoms = None
@@ -407,31 +450,11 @@ def annotate_isotopes(source, db_out, ppm, lib):
                 else:
                     atoms = y/x
 
-                cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, atoms, exact_mass_diff, ppm_error)
-                               values (?,?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
-                               assignment["label_a"], assignment["label_b"], float(atoms),
-                               float(assignment["exact_mass_diff"]), float(assignment["ppm_error"])))
-
-    elif isinstance(source, pd.core.frame.DataFrame):
-
-        for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
-
-            y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
-            x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
-
-            if x == 0.0 or y == 0.0:
-                atoms = None
-            elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
-                atoms = x/y
-            else:
-                atoms = y/x
-
-            cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, atoms, exact_mass_diff, ppm_error)
-                           values (?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
-                           assignment["label_a"], assignment["label_b"], atoms,
-                           float(assignment["exact_mass_diff"]), assignment["ppm_error"]))
-            conn.commit()
-
+                cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, 
+                               atoms, exact_mass_diff, ppm_error, charge)
+                               values (?,?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
+                               assignment["label_a"], assignment["label_b"], atoms,
+                               float(assignment["exact_mass_diff"]), assignment["ppm_error"], charge))
     conn.commit()
     conn.close()
     return
@@ -477,25 +500,25 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
 
                             for adduct in lib.lib.keys():
 
-                                min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x + ((mz_x - lib.lib[adduct]) * d), ppm)
+                                min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x + ((mz_x - lib.lib[adduct]["mass"]) * d), ppm)
                                 min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
 
                                 if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
                                     #print(source.iloc[i][1], source.iloc[j][1], adduct)
                                     break
 
-                                min_tol_a = min_tol_a - lib.lib[adduct]
-                                max_tol_a = max_tol_a - lib.lib[adduct]
+                                min_tol_a = min_tol_a - lib.lib[adduct]["mass"]
+                                max_tol_a = max_tol_a - lib.lib[adduct]["mass"]
 
-                                min_tol_b = min_tol_b - lib.lib[adduct]
-                                max_tol_b = max_tol_b - lib.lib[adduct]
+                                min_tol_b = min_tol_b - lib.lib[adduct]["mass"]
+                                max_tol_b = max_tol_b - lib.lib[adduct]["mass"]
 
                                 if min_tol_a < max_tol_b and min_tol_b < max_tol_a:
 
-                                    a = (mz_x - lib.lib[adduct]) + (mz_x - lib.lib[adduct]) * d
-                                    b = mz_y - lib.lib[adduct]
+                                    a = (mz_x - lib.lib[adduct]["mass"]) + (mz_x - lib.lib[adduct]["mass"]) * d
+                                    b = mz_y - lib.lib[adduct]["mass"]
 
-                                    ratio = (mz_y - lib.lib[adduct]) / (mz_x - lib.lib[adduct])
+                                    ratio = (mz_y - lib.lib[adduct]["mass"]) / (mz_x - lib.lib[adduct]["mass"])
                                     ppm_error =calculate_ppm_error(a, b)
 
                                     if "M" in adduct:
@@ -514,25 +537,25 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                 for d in range(1, maximum):
                     for j in range(i + 1, n):
 
-                        min_tol_a, max_tol_a = calculate_mz_tolerance(source.iloc[i][1] + ((source.iloc[i][1] - lib.lib[adduct]) * d), ppm)
+                        min_tol_a, max_tol_a = calculate_mz_tolerance(source.iloc[i][1] + ((source.iloc[i][1] - lib.lib[adduct]["mass"]) * d), ppm)
                         min_tol_b, max_tol_b = calculate_mz_tolerance(source.iloc[j][1], ppm)
 
                         if (min_tol_b > max_tol_a and max_tol_b > max_tol_a):# or (min_tol_a < min_tol_b and max_tol_a < min_tol_b):
                             #print(source.iloc[i][1], source.iloc[j][1], adduct)
                             break
 
-                        min_tol_a = min_tol_a - lib.lib[adduct]
-                        max_tol_a = max_tol_a - lib.lib[adduct]
+                        min_tol_a = min_tol_a - lib.lib[adduct]["mass"]
+                        max_tol_a = max_tol_a - lib.lib[adduct]["mass"]
 
-                        min_tol_b = min_tol_b - lib.lib[adduct]
-                        max_tol_b = max_tol_b - lib.lib[adduct]
+                        min_tol_b = min_tol_b - lib.lib[adduct]["mass"]
+                        max_tol_b = max_tol_b - lib.lib[adduct]["mass"]
 
                         if min_tol_a < max_tol_b and min_tol_b < max_tol_a:
 
-                            a = (source.iloc[i][1] - lib.lib[adduct]) + (source.iloc[i][1] - lib.lib[adduct]) * d
-                            b = source.iloc[j][1] - lib.lib[adduct]
+                            a = (source.iloc[i][1] - lib.lib[adduct]["mass"]) + (source.iloc[i][1] - lib.lib[adduct]["mass"]) * d
+                            b = source.iloc[j][1] - lib.lib[adduct]["mass"]
 
-                            ratio = (source.iloc[j][1] - lib.lib[adduct]) / (source.iloc[i][1] - lib.lib[adduct])
+                            ratio = (source.iloc[j][1] - lib.lib[adduct]["mass"]) / (source.iloc[i][1] - lib.lib[adduct]["mass"])
                             ppm_error = calculate_ppm_error(a, b)
 
                             if "M" in adduct:
@@ -576,47 +599,6 @@ def annotate_artifacts(source, db_out, diff):
                            values (?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"], assignment["label_a"], assignment["label_b"]))
 
     conn.commit()
-    return
-
-
-def annotate_multiple_charged_ions(source, db_out, ppm, lib, add=False):
-
-    conn = sqlite3.connect(db_out)
-    cursor = conn.cursor()
-
-    if not add:
-        cursor.execute("DROP TABLE IF EXISTS multiple_charged_ions")
-
-        cursor.execute("""CREATE TABLE multiple_charged_ions (
-                       peak_id_a TEXT DEFAULT NULL,
-                       peak_id_b TEXT DEFAULT NULL,
-                       label_a TEXT DEFAULT NULL,
-                       label_b TEXT DEFAULT NULL,
-                       charge_a INTEGER DEFAULT NULL,
-                       charge_b INTEGER DEFAULT NULL,
-                       exact_mass_diff REAL DEFAULT NULL,
-                       ppm_error REAL DEFAULT NULL,
-                       PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b));""")
-
-    lib_pairs = _prep_lib(lib.lib)
-
-    if isinstance(source, nx.classes.digraph.DiGraph):
-        source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
-
-    if (isinstance(source, list) or isinstance(source, np.ndarray)) and isinstance(source[0], nx.classes.graph.Graph):
-        for graph in source:
-            for assignment in _annotate_pairs_from_graph(graph, lib_pairs=lib_pairs, ppm=ppm):
-                cursor.execute("""INSERT OR REPLACE into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
-                               values (?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"], assignment["label_a"], assignment["label_b"],
-                                                           assignment["charge_a"], assignment["charge_b"], assignment["ppm_error"]))
-
-    elif isinstance(source, pd.core.frame.DataFrame):
-        for assignment in _annotate_pairs_from_peaklist(source, lib_pairs=lib_pairs, ppm=ppm):
-            cursor.execute("""INSERT OR REPLACE into multiple_charged_ions (peak_id_a, peak_id_b, label_a, label_b, charge_a, charge_b, ppm_error)
-                           values (?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
-                                                       assignment["label_a"], assignment["label_b"], assignment["charge_a"], assignment["charge_b"], assignment["ppm_error"]))
-    conn.commit()
-    conn.close()
     return
 
 
@@ -800,17 +782,17 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         mf_records = []
         for adduct in adducts:
 
-            if mz - lib_adducts.lib[adduct] > 0.5:
+            if mz - lib_adducts.lib[adduct]["mass"] > 0.5:
 
                 if source == "api":
-                    params = {"lower": min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
-                              "upper": max_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
+                    params = {"lower": min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                              "upper": max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
                               "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
                 else:
-                    records = conn_mem.select_mf(min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
-                                                 max_mz - lib_adducts.lib[adduct] - exact_mass_isotope, rules=rules)
+                    records = conn_mem.select_mf(min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                                                 max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope, rules=rules)
 
                 for record in records:
                     record["id"] = peak_id
@@ -822,7 +804,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     if "atoms" in record:
                         record.update(record["atoms"])
                         del record["atoms"]
-                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct] + exact_mass_isotope
+                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]["mass"] + exact_mass_isotope
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
@@ -986,7 +968,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
         else:
             for adduct in adducts:
 
-                if min_mz - lib_adducts.lib[adduct] < 0.5:
+                if min_mz - lib_adducts.lib[adduct]["mass"] < 0.5:
                     continue
 
                 if isinstance(db_cursor, sqlite3.Cursor):
@@ -996,15 +978,15 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
                                          molecular_formula, name, exact_mass
                                          from {} where exact_mass >= {} and exact_mass <= {}
                                          """.format(db_name,
-                                                    min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
-                                                    max_mz - lib_adducts.lib[adduct] - exact_mass_isotope))
+                                                    min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                                                    max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope))
                     cpd_records_subset = [OrderedDict(zip(col_names, list(record))) for record in db_cursor.fetchall()]
                 else:
-                    cpd_records_subset = db_cursor.select_compounds(min_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
-                                                                    max_mz - lib_adducts.lib[adduct] - exact_mass_isotope,
+                    cpd_records_subset = db_cursor.select_compounds(min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                                                                    max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
                                                                     min_rt=min_rt, max_rt=max_rt)
                 for record in cpd_records_subset:
-                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct]) + exact_mass_isotope
+                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct]["mass"]) + exact_mass_isotope
                     record["adduct"] = adduct
 
                 cpd_records.extend(cpd_records_subset)
@@ -1244,13 +1226,13 @@ def annotate_drug_products(peaklist, db_out, list_smiles, lib_adducts, ppm, phas
         min_tol, max_tol = calculate_mz_tolerance(mz, ppm)
         for adduct in lib_adducts.lib:
 
-            if mz - lib_adducts.lib[adduct] > 0.5:
+            if mz - lib_adducts.lib[adduct]["mass"] > 0.5:
 
-                records = conn_mem.select(min_tol - lib_adducts.lib[adduct], max_tol - lib_adducts.lib[adduct])
+                records = conn_mem.select(min_tol - lib_adducts.lib[adduct]["mass"], max_tol - lib_adducts.lib[adduct]["mass"])
 
                 for record in records:
                     record["id"] = name
-                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct])
+                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct]["mass"])
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     record["adduct"] = adduct
@@ -1272,7 +1254,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
 
-    tables_amoi = ["adduct_pairs", "multiple_charged_ions", "oligomers", "isotopes"]
+    tables_amoi = ["adduct_pairs", "oligomers", "isotopes"]
     tables_to_union = []
     for tn in tables:
         if tn[0] in tables_amoi:
@@ -1337,10 +1319,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                     sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, 1 as charge, 1 as oligomer from adduct_pairs
                     union
                     select peak_id_b as peak_id_amoi, label_b as label, 1 as charge, 1 as oligomer from adduct_pairs""")
-                elif tl == "multiple_charged_ions":
-                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, charge_a as charge, 1 as oligomer from multiple_charged_ions
-                    union
-                    select peak_id_b as peak_id_amoi, label_b as label, charge_b as charge, 1 as oligomer from multiple_charged_ions""")
                 elif tl == "oligomers":
                     sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, 1 as charge, 1 as oligomer from oligomers
                     union
@@ -1522,7 +1500,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             {}
             {}
             """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
-            # ORDER BY peaklist.rt, peaklist.mz
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     cursor.execute(query)
@@ -1551,7 +1528,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     columns_to_select = []
     if ("groups",) in tables:
         columns_to_select.append("group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges")
-    if ("adduct_pairs",) in tables or ("oligomers",) in tables or ("multiple_charged_ions",) in tables:
+    if ("adduct_pairs",) in tables or ("oligomers",) in tables:
         columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
         from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
         ) as label_charge_oligomer""")

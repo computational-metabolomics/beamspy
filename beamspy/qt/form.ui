@@ -768,47 +768,47 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_multiple_charged">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>56</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_multiple_charged">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>58</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Use default</string>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
+<!--    <widget class="QPushButton" name="pushButton_multiple_charged">-->
+<!--     <property name="enabled">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--     <property name="geometry">-->
+<!--      <rect>-->
+<!--       <x>490</x>-->
+<!--       <y>56</y>-->
+<!--       <width>71</width>-->
+<!--       <height>23</height>-->
+<!--      </rect>-->
+<!--     </property>-->
+<!--     <property name="minimumSize">-->
+<!--      <size>-->
+<!--       <width>63</width>-->
+<!--       <height>23</height>-->
+<!--      </size>-->
+<!--     </property>-->
+<!--     <property name="text">-->
+<!--      <string>Browse...</string>-->
+<!--     </property>-->
+<!--    </widget>-->
+<!--    <widget class="QLineEdit" name="lineEdit_multiple_charged">-->
+<!--     <property name="enabled">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--     <property name="geometry">-->
+<!--      <rect>-->
+<!--       <x>390</x>-->
+<!--       <y>58</y>-->
+<!--       <width>91</width>-->
+<!--       <height>20</height>-->
+<!--      </rect>-->
+<!--     </property>-->
+<!--     <property name="text">-->
+<!--      <string>Use default</string>-->
+<!--     </property>-->
+<!--     <property name="readOnly">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--    </widget>-->
     <widget class="QLineEdit" name="lineEdit_isotopes">
      <property name="enabled">
       <bool>true</bool>
@@ -850,25 +850,25 @@
       <string>Browse...</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_multiple_charged">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>33</y>
-       <width>171</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Multiple charged ions</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
+<!--    <widget class="QCheckBox" name="checkBox_multiple_charged">-->
+<!--     <property name="enabled">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--     <property name="geometry">-->
+<!--      <rect>-->
+<!--       <x>390</x>-->
+<!--       <y>33</y>-->
+<!--       <width>171</width>-->
+<!--       <height>17</height>-->
+<!--      </rect>-->
+<!--     </property>-->
+<!--     <property name="text">-->
+<!--      <string>Multiple charged ions</string>-->
+<!--     </property>-->
+<!--     <property name="checked">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--    </widget>-->
     <widget class="QCheckBox" name="checkBox_oligomers">
      <property name="enabled">
       <bool>true</bool>

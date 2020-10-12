@@ -33,7 +33,6 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                                        self.lineEdit_adduct_library))
         self.pushButton_adduct_library.clicked.connect(partial(self.open_file, self.lineEdit_adduct_library))
         self.pushButton_isotopes.clicked.connect(partial(self.open_file, self.lineEdit_isotopes))
-        self.pushButton_multiple_charged.clicked.connect(partial(self.open_file, self.lineEdit_multiple_charged))
 
         self.checkBox_filename_reference.clicked.connect(self.source_compounds)
         self.pushButton_filename_reference.clicked.connect(partial(self.open_file, self.lineEdit_filename_reference))
@@ -50,7 +49,6 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.comboBox_source_mf.activated.connect(self.source_mf)
         self.checkBox_adduct_library.clicked.connect(self.source_peak_patterns)
         self.checkBox_isotopes.clicked.connect(self.source_peak_patterns)
-        self.checkBox_multiple_charged.clicked.connect(self.source_peak_patterns)
         self.checkBox_oligomers.clicked.connect(self.source_peak_patterns)
 
         self.checkBox_mz_digits.clicked.connect(self.create_summary)
@@ -128,12 +126,6 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         else:
             self.lineEdit_isotopes.setEnabled(True)
             self.pushButton_isotopes.setEnabled(True)
-        if not self.checkBox_multiple_charged.isChecked():
-            self.pushButton_multiple_charged.setEnabled(False)
-            self.lineEdit_multiple_charged.setEnabled(False)
-        else:
-            self.pushButton_multiple_charged.setEnabled(True)
-            self.lineEdit_multiple_charged.setEnabled(True)
         if not self.checkBox_oligomers.isChecked():
             self.spinBox_max_monomer_units.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
@@ -191,18 +183,14 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.pushButton_adduct_library.setEnabled(False)
             self.checkBox_adduct_library.setEnabled(False)
             self.checkBox_isotopes.setEnabled(False)
-            self.pushButton_multiple_charged.setEnabled(False)
-            self.lineEdit_multiple_charged.setEnabled(False)
             self.lineEdit_isotopes.setEnabled(False)
             self.pushButton_isotopes.setEnabled(False)
-            self.checkBox_multiple_charged.setEnabled(False)
             self.checkBox_oligomers.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
             self.spinBox_max_monomer_units.setEnabled(False)
         else:
             self.checkBox_adduct_library.setEnabled(True)
             self.checkBox_isotopes.setEnabled(True)
-            self.checkBox_multiple_charged.setEnabled(True)
             self.checkBox_oligomers.setEnabled(True)
             self.source_peak_patterns()
         self.source_graph_file()
@@ -368,19 +356,6 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print("")
                 print(lib)
                 annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
-                print("Done")
-
-            if self.checkBox_multiple_charged.isChecked():
-                print("Multiple charged ions...."),
-                if self.lineEdit_multiple_charged.text() == "Use default":
-                    path = 'data/multiple_charged_ions.txt'
-                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                    lib = in_out.read_multiple_charged_ions(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                elif os.path.isfile(self.lineEdit_multiple_charged.text()):
-                    lib = in_out.read_multiple_charged_ions(self.lineEdit_multiple_charged.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                else:
-                    raise IOError("Provide a valid filename for multiple charged ions or 'Use default'")
-                annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_oligomers.isChecked():

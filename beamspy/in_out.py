@@ -23,11 +23,11 @@ def read_adducts(filename, ion_mode, separator="\t"):
     adducts.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
     return adducts
 
 
@@ -106,27 +106,13 @@ def read_compounds(filename, separator="\t", calculate=True, lib_adducts=[], fil
             if "adduct" in df.columns:
                 record["adduct"] = row.adduct
                 if lib_adducts and calculate:
-                    record["exact_mass"] += lib_adducts.lib[row.adduct]
+                    record["exact_mass"] += lib_adducts.lib[row.adduct]["mass"]
 
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
 
     return records
-
-
-def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator, float_precision="round_trip")
-    multiple_charges = libraries.MultipleChargedIons()
-    multiple_charges.remove("*")
-    for index, row in df.iterrows():
-        if "ion_mode" not in row:
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-    return multiple_charges
 
 
 def read_mass_differences(filename, ion_mode, separator="\t"):
