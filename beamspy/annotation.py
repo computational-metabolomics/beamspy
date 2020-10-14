@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
 import itertools
 import gzip
 import sqlite3
 from collections import OrderedDict
 from urllib.parse import urlparse
 import requests
+import difflib
 import pandas as pd
 import numpy as np
 import networkx as nx
@@ -460,7 +460,7 @@ def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
     return
 
 
-def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
+def annotate_oligomers(source, db_out, ppm, lib, maximum=3):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -474,6 +474,8 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                    mz_b REAL DEFAULT NULL,
                    label_a TEXT DEFAULT NULL,
                    label_b TEXT DEFAULT NULL,
+                   charge_a INTEGER DEFAULT NULL,
+                   charge_b INTEGER DEFAULT NULL,
                    mz_ratio REAL DEFAULT NULL,
                    ppm_error REAL DEFAULT NULL,
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
@@ -489,7 +491,7 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
 
                 neighbors = list(graph.neighbors(n))
 
-                for d in range(1, len(neighbors)+1):
+                for d in range(1, maximum):
 
                     for nn in neighbors:
 
@@ -526,8 +528,9 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                                     else:
                                         adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
 
-                                    cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
-                                                   values (?,?,?,?,?,?,?,?)""", (n, nn, mz_x, mz_y, adduct, adduct_oligo, round(ratio, 2), round(ppm_error, 2)))
+                                    cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, charge_a, charge_b, mz_ratio, ppm_error)
+                                                   values (?,?,?,?,?,?,?,?,?,?)""", (n, nn, mz_x, mz_y, adduct, adduct_oligo,
+                                                                                     lib.lib[adduct]["charge"], lib.lib[adduct]["charge"], round(ratio, 2), round(ppm_error, 2)))
 
     elif isinstance(source, pd.core.frame.DataFrame):
 
@@ -562,8 +565,9 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=2):
                                 adduct_oligo = adduct.replace("M", "{}M".format(int(round(ratio))))
                             else:
                                 adduct_oligo = "{}{}".format(int(round(ratio)), adduct)
-                            cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, mz_ratio, ppm_error)
-                                           values (?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo, round(ratio, 2), round(ppm_error, 2)))
+                            cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, charge_a, charge_b, mz_ratio, ppm_error)
+                                           values (?,?,?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo,
+                                                                             lib.lib[adduct]["charge"], lib.lib[adduct]["charge"], round(ratio, 2), round(ppm_error, 2)))
     conn.commit()
     conn.close()
     return
@@ -607,43 +611,46 @@ def _select_unions_peak_patterns(cursor):
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
 
-    t_adduct_pairs = False
-    t_isotopes = False
-    for tn in tables:
-        if str(tn[0]) == "adduct_pairs":
-            t_adduct_pairs = True
-        elif str(tn[0]) == "isotopes":
-            t_isotopes = True
-
     sql_unions = []
 
-    if t_adduct_pairs and t_isotopes:
+    for t in ["adduct_pairs", "oligomers"]:
 
-        sql_str_adducts_isotopes = """
-                                 SELECT    ap.peak_id_a  AS peak_id_a,
-                                           iso.peak_id_b AS peak_id_b,
-                                           ap.label_a    AS adduct_label_a,
-                                           ap.peak_id_b = iso.peak_id_b,
-                                           iso.label_a   AS iso_label_a,
-                                           iso.label_b   AS iso_label_b,
-                                           iso.exact_mass_diff as exact_mass_diff
-                                 FROM      adduct_pairs AS ap
-                                 LEFT JOIN isotopes     AS iso
-                                 where     ap.peak_id_a = iso.peak_id_a
-                                 UNION
-                                 SELECT    ap.peak_id_b  AS peak_id_a,
-                                           iso.peak_id_b AS peak_id_b,
-                                           ap.label_b    AS adduct_label,
-                                           0,
-                                           iso.label_a   AS iso_label_a,
-                                           iso.label_b   AS iso_label_b,
-                                           iso.exact_mass_diff as exact_mass_diff
-                                 FROM      adduct_pairs AS ap
-                                 LEFT JOIN isotopes     AS iso
-                                 WHERE     ap.peak_id_b = iso.peak_id_a
-                                 """
-        sql_unions.append(sql_str_adducts_isotopes)
-        if t_isotopes:
+        if (t,) in tables and ("isotopes",) in tables:
+
+            if t == "oligomers":
+                col_mz_ratio = "ap.mz_ratio as mz_ratio"
+            else:
+                col_mz_ratio = "1 as mz_ratio"
+
+            sql_str_adducts_isotopes = """
+                                     SELECT    ap.peak_id_a  AS peak_id_a,
+                                               iso.peak_id_b AS peak_id_b,
+                                               ap.label_a    AS adduct_label,
+                                               ap.peak_id_b = iso.peak_id_b,
+                                               iso.label_a   AS iso_label_a,
+                                               iso.label_b   AS iso_label_b,
+                                               ap.charge_a as charge,
+                                               1 as mz_ratio,
+                                               iso.exact_mass_diff as exact_mass_diff
+                                     FROM      {} AS ap
+                                     LEFT JOIN isotopes     AS iso
+                                     where     ap.peak_id_a = iso.peak_id_a
+                                     UNION
+                                     SELECT    ap.peak_id_b  AS peak_id_a,
+                                               iso.peak_id_b AS peak_id_b,
+                                               ap.label_b    AS adduct_label,
+                                               0,
+                                               iso.label_a   AS iso_label_a,
+                                               iso.label_b   AS iso_label_b,
+                                               ap.charge_b as charge,
+                                               {},
+                                               iso.exact_mass_diff as exact_mass_diff
+                                     FROM      {} AS ap
+                                     LEFT JOIN isotopes     AS iso
+                                     WHERE     ap.peak_id_b = iso.peak_id_a
+                                     """.format(t, col_mz_ratio, t)
+            sql_unions.append(sql_str_adducts_isotopes)
+        if ("isotopes",) in tables:
             sql_str_isotopes = """
                                      SELECT peak_id_a,
                                             peak_id_b,
@@ -651,30 +658,36 @@ def _select_unions_peak_patterns(cursor):
                                             0,
                                             label_a AS iso_label_a,
                                             label_b AS iso_label_b,
+                                            0,
+                                            1,
                                             exact_mass_diff
                                      FROM   isotopes
                                      """
 
-            if t_adduct_pairs:
+            if (t,) in tables:
                 sql_str_isotopes += """
                                          WHERE  peak_id_a NOT IN
                                                 (
                                                        SELECT peak_id_a
-                                                       FROM   adduct_pairs
+                                                       FROM   {}
                                                        UNION
                                                        SELECT peak_id_b
-                                                       FROM   adduct_pairs)
+                                                       FROM   {})
                                          AND    peak_id_b NOT IN
                                                 (
                                                        SELECT peak_id_a
-                                                       FROM   adduct_pairs
+                                                       FROM   {}
                                                        UNION
                                                        SELECT peak_id_b
-                                                       FROM   adduct_pairs)
-                                         """
+                                                       FROM   {})
+                                         """.format(t, t, t, t)
             sql_unions.append(sql_str_isotopes)
 
-        if t_adduct_pairs:
+        if (t,) in tables:
+
+            if t == "oligomers":
+                col_mz_ratio = "mz_ratio as mz_ratio"
+
             sql_str_adducts = """
                                      SELECT peak_id_a,
                                             NULL,
@@ -682,11 +695,13 @@ def _select_unions_peak_patterns(cursor):
                                             0,
                                             NULL,
                                             NULL,
+                                            charge_a,
+                                            1,
                                             0.0
-                                     FROM   adduct_pairs
-                                     """
+                                     FROM   {}
+                                     """.format(t)
 
-            if t_isotopes:
+            if ("isotopes",) in tables:
                 sql_str_adducts += """
                                          WHERE  peak_id_a NOT IN
                                                 (
@@ -705,11 +720,13 @@ def _select_unions_peak_patterns(cursor):
                                             0,
                                             NULL,
                                             NULL,
+                                            charge_b,
+                                            {},
                                             0.0
-                                     FROM   adduct_pairs
-                                     """
+                                     FROM   {}
+                                     """.format(col_mz_ratio, t)
 
-            if t_isotopes:
+            if ("isotopes",) in tables:
                 sql_str_adducts += """
                                          WHERE  peak_id_b NOT IN
                                                 (
@@ -777,23 +794,21 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
     nist_database = nist_database_to_pyteomics(path_nist_database)
 
-    def _select_mfs(source, peak_id, mz, adducts, isotope, min_mz, max_mz, exact_mass_isotope=0.0, rules=True):
+    def _select_mfs(source, peak_id, mz, adducts, isotope, min_mz, max_mz, n_oligo, exact_mass_isotope=0.0, rules=True):
 
         mf_records = []
         for adduct in adducts:
 
             if mz - lib_adducts.lib[adduct]["mass"] > 0.5:
-
                 if source == "api":
-                    params = {"lower": min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
-                              "upper": max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                    params = {"lower": (min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo,
+                              "upper": (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo,
                               "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
                 else:
-                    records = conn_mem.select_mf(min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
-                                                 max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope, rules=rules)
-
+                    records = conn_mem.select_mf((min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo,
+                                                 (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo, rules=rules)
                 for record in records:
                     record["id"] = peak_id
                     if "CHNOPS" not in record:  # MFdb API specific
@@ -804,7 +819,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                     if "atoms" in record:
                         record.update(record["atoms"])
                         del record["atoms"]
-                    record["exact_mass"] = record["exact_mass"] + lib_adducts.lib[adduct]["mass"] + exact_mass_isotope
+                    record["exact_mass"] = (record["exact_mass"] * n_oligo) + lib_adducts.lib[adduct]["mass"] + exact_mass_isotope
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
                     comp = OrderedDict([(item, record[item]) for item in record if item in nist_database.keys()])
@@ -825,16 +840,23 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     records = []
 
     for row in rows:
-
+        match = None
         if row[2]:
-            adducts = [str(row[2])]
+            if row[7] > 1: # oligomers
+                match = difflib.get_close_matches(row[2], lib_adducts.lib.keys(), n=1)
+                adducts = [match[0]]
+            else:
+                adducts = [str(row[2])]
         else:
             adducts = lib_adducts.lib.keys()
 
         index_name = peaklist["name"].tolist().index(str(row[0]))
         mz = peaklist["mz"].iloc[index_name]
-        min_mz, max_mz = calculate_mz_tolerance(peaklist["mz"].iloc[index_name], ppm)
-        records_a = _select_mfs(source, row[0], mz, adducts, row[4], min_mz, max_mz, 0.0, rules=rules)
+        min_mz, max_mz = calculate_mz_tolerance(mz, ppm)
+        records_a = _select_mfs(source, row[0], mz, adducts, row[4], min_mz, max_mz, row[7], 0.0, rules=rules)
+        if match:
+            for record in records_a:
+                record["adduct"] = row[2]
 
         if row[1]:
             names_to_skip.append(row[0])
@@ -847,12 +869,15 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
             if row[3]:  # different adducts - label_a and label_b?
                 exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
             else:
-                exact_mass_diff = float(row[6])
+                exact_mass_diff = float(row[8])
 
-            records_b = _select_mfs(source, row[1], mz, adducts, row[5], min_mz, max_mz, exact_mass_diff, rules=rules)
+            records_b = _select_mfs(source, row[1], mz, adducts, row[5], min_mz, max_mz, row[7], exact_mass_diff, rules=rules)
             for record_a in records_a:
                 for record_b in records_b:
                     if record_a["molecular_formula"] == record_b["molecular_formula"]:
+                        if match:
+                            record_a["adduct"] = row[2]  # original adduct e.g. [2M+H]+ instead of [M+H]+
+                            record_b["adduct"] = row[2]
                         records.append(record_a)
                         records.append(record_b)
         else:
@@ -878,7 +903,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         if name in names_to_skip and filter:
             continue
 
-        records = _select_mfs(source, name, mz, lib_adducts.lib.keys(), None, min_mz, max_mz, 0.0)
+        records = _select_mfs(source, name, mz, lib_adducts.lib.keys(), None, min_mz, max_mz, 1.0, 0.0, rules=rules)
 
         records_filt = [record for record in records if (record["id"], record["molecular_formula"]) not in mfs_subset]
         if len(records_filt) > 0:
@@ -959,7 +984,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
                    );""".format(db_name))
     conn.commit()
 
-    def _select_compounds(db_cursor, peak_id, mz, adducts, isotope, min_mz, max_mz, min_rt=None, max_rt=None, exact_mass_isotope=0.0):
+    def _select_compounds(db_cursor, peak_id, mz, adducts, isotope, min_mz, max_mz, min_rt=None, max_rt=None, n_oligo=1, exact_mass_isotope=0.0):
 
         cpd_records = []
 
@@ -978,15 +1003,19 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
                                          molecular_formula, name, exact_mass
                                          from {} where exact_mass >= {} and exact_mass <= {}
                                          """.format(db_name,
-                                                    min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
-                                                    max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope))
+                                                    (min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo,
+                                                    (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo))
                     cpd_records_subset = [OrderedDict(zip(col_names, list(record))) for record in db_cursor.fetchall()]
                 else:
-                    cpd_records_subset = db_cursor.select_compounds(min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
-                                                                    max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
-                                                                    min_rt=min_rt, max_rt=max_rt)
+                    if min_rt and max_rt:
+                        cpd_records_subset = db_cursor.select_compounds(min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                                                                        max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope,
+                                                                        min_rt=min_rt, max_rt=max_rt)
+                    else:
+                        cpd_records_subset = db_cursor.select_compounds((min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo,
+                                                                        (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) / n_oligo)
                 for record in cpd_records_subset:
-                    record["exact_mass"] = record["exact_mass"] + float(lib_adducts.lib[adduct]["mass"]) + exact_mass_isotope
+                    record["exact_mass"] = (record["exact_mass"] * n_oligo) + float(lib_adducts.lib[adduct]["mass"]) + exact_mass_isotope
                     record["adduct"] = adduct
 
                 cpd_records.extend(cpd_records_subset)
@@ -1010,16 +1039,23 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
     records = []
 
     for row in rows:
-
+        match = None
         if row[2]:
-            adducts = [str(row[2])]
+            if row[7] > 1: # oligomers
+                match = difflib.get_close_matches(row[2], lib_adducts.lib.keys(), n = 1)
+                adducts = [match[0]]
+            else:
+                adducts = [str(row[2])]
         else:
-            adducts = lib_adducts.lib.keys()
+            adducts = list(lib_adducts.lib.keys())
 
         index_name = peaklist["name"].tolist().index(str(row[0]))
         mz = peaklist["mz"].iloc[index_name]
         min_mz, max_mz = calculate_mz_tolerance(peaklist["mz"].iloc[index_name], ppm)
-        records_a = _select_compounds(cursor_cpds, row[0], mz, adducts, row[4], min_mz, max_mz, None, None, 0.0)
+        records_a = _select_compounds(cursor_cpds, row[0], mz, adducts, row[4], min_mz, max_mz, None, None, row[7], 0.0)
+        if match:
+            for record in records_a:
+                record["adduct"] = row[2]
 
         if row[1]:
             names_to_skip.append(row[0])
@@ -1031,12 +1067,14 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
             if row[3]:  # different adducts - label_a and label_b?
                 exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
             else:
-                exact_mass_diff = float(row[6])
-
-            records_b = _select_compounds(cursor_cpds, row[1], mz, adducts, row[5], min_mz, max_mz, None, None, exact_mass_diff)
+                exact_mass_diff = float(row[8])
+            records_b = _select_compounds(cursor_cpds, row[1], mz, adducts, row[5], min_mz, max_mz, None, None, row[7], exact_mass_diff)
             for record_a in records_a:
                 for record_b in records_b:
                     if record_a["compound_id"] == record_b["compound_id"]:
+                        if match:
+                            record_a["adduct"] = row[2]  # original adduct e.g. [2M+H]+ instead of [M+H]+
+                            record_b["adduct"] = row[2]
                         records.append(record_a)
                         records.append(record_b)
         else:
@@ -1066,12 +1104,12 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
 
         if min_rt and max_rt:
             records = _select_compounds(cursor_cpds, name, mz, None, None,
-                                        min_mz, max_mz, min_rt, max_rt, 0.0)
+                                        min_mz, max_mz, min_rt, max_rt, 1.0, 0.0)
         else:
             if name in names_to_skip and filter:
                 continue
             records = _select_compounds(cursor_cpds, name, mz, lib_adducts.lib.keys(), None,
-                                        min_mz, max_mz, None, None, 0.0)
+                                        min_mz, max_mz, None, None, 1.0, 0.0)
 
         records_filt = [record for record in records if (record["id"], record["compound_id"]) not in cpds_subset]
         if len(records_filt) > 0:
