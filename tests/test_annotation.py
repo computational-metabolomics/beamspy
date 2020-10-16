@@ -34,6 +34,49 @@ class AnnotationTestCase(unittest.TestCase):
     #def tearDown(self):
     #    os.remove(to_test_results("hmdb_full_v4_0_v1.sqlite"))
 
+    def test_annotate_mc_adducts(self):
+        df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_mc_o.txt"),
+                                          to_test_data("dataMatrix_lcms_theoretical_mc_o.txt"))
+
+        lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
+        db_mc = "results_annotation_mc_o.sqlite"
+
+        annotate_adducts(df, to_test_results(db_mc), self.ppm, lib_adducts)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "adduct_pairs"),
+                                 sqlite_records(to_test_data(db_mc), "adduct_pairs"))
+
+        annotate_isotopes(df, to_test_results(db_mc), self.ppm, self.lib_isotopes)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "isotopes"),
+                                 sqlite_records(to_test_data(db_mc), "isotopes"))
+        self.assertEqual(sqlite_count(to_test_results(db_mc), "isotopes"), 2)
+
+        annotate_oligomers(df, to_test_results(db_mc), self.ppm, lib_adducts)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "oligomers"),
+                                 sqlite_records(to_test_data(db_mc), "oligomers"))
+        self.assertEqual(sqlite_count(to_test_results(db_mc), "oligomers"), 4)
+
+        db_name = "hmdb_full_v4_0_v1"
+
+        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", db_name + ".sql.gz")
+        path_hmdb_sqlite = to_test_results("{}.sqlite".format(db_name))
+
+        if os.path.isfile(path_hmdb_sqlite):
+            os.remove(path_hmdb_sqlite)
+
+        with gzip.GzipFile(path_hmdb_sql_gz, mode='rb') as db_dump:
+            conn = sqlite3.connect(path_hmdb_sqlite)
+            cursor = conn.cursor()
+            cursor.executescript(db_dump.read().decode('utf-8'))
+            conn.commit()
+            conn.close()
+
+        # sqlite file provided
+        annotate_compounds(df, lib_adducts, self.ppm, to_test_results(db_mc), db_name,
+                           filter=True, db_in=path_hmdb_sqlite)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "compounds_{}".format(db_name)),
+                                 sqlite_records(to_test_data(db_mc), "compounds_{}".format(db_name)))
+        self.assertEqual(sqlite_count(to_test_results(db_mc), "compounds_{}".format(db_name)), 41)
+
     def test_annotate_adducts(self):
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "adduct_pairs"),
