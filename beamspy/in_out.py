@@ -124,7 +124,7 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
             charge_y = row["charge_y"]
         else:
             charge_x = 1
-            charge_y = 2
+            charge_y = 1
         if "ion_mode" not in row:
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
@@ -132,6 +132,14 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
     return mass_differences
+
+
+def read_neutral_losses(filename, separator="\t"):
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
+    nls = libraries.NeutralLosses()
+    for index, row in df.iterrows():
+        nls.add(row["label"], row["mass_difference"])
+    return nls
 
 
 def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz", "rt": "rt", "name": "name"}, samples_in_columns=True):

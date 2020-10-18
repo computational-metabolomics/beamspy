@@ -83,6 +83,34 @@ class Isotopes:
         return out
 
 
+class NeutralLosses:
+
+    def __init__(self):
+        self.lib = []
+
+    def add(self, label, mass_difference):
+        self.lib.append(OrderedDict([("label", label), ("mass_difference", mass_difference)]))
+        self.lib = sorted(self.lib, key=lambda k: k['mass_difference'])
+
+    def remove(self, label="*"):
+        if label == "*":
+            self.lib = []
+        else:
+            for item in self.lib:
+                if label in self.lib:
+                    self.lib.remove(item)
+            else:
+                print("Entry not in library")
+
+    def __str__(self):
+        out = "Neutral losses in library:\n"
+        out += "--------------------------------------------\n"
+        out += "label\tmass_difference\n"
+        for d in self.lib:
+            out += "{}\t{}\n".format(d["label"], d["mass_difference"])
+        return out
+
+
 class MassDifferences:
 
     def __init__(self, ion_mode=None):
