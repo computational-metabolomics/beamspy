@@ -30,7 +30,6 @@ class AnnotationTestCase(unittest.TestCase):
         self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
 
         self.ppm = 2.0
-
     """
     def test_neutral_losses(self):
 
@@ -85,8 +84,6 @@ class AnnotationTestCase(unittest.TestCase):
     #def tearDown(self):
     #    os.remove(to_test_results("hmdb_full_v4_0_v1.sqlite"))
 
-    """
-
     def test_annotate_multiple_charged_adducts(self):
         df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_mc_o.txt"),
                                           to_test_data("dataMatrix_lcms_theoretical_mc_o.txt"))
@@ -126,13 +123,6 @@ class AnnotationTestCase(unittest.TestCase):
         annotate_compounds(df, lib_adducts, self.ppm, to_test_results(db_mc), db_name,
                            filter=True, db_in=path_hmdb_sqlite)
 
-        # records_td = sqlite_records(to_test_results(db_mc), "compounds_{}".format(db_name))
-        # records_r = sqlite_records(to_test_data(db_mc), "compounds_{}".format(db_name))
-        # for i, record in enumerate(records_td):
-        #     print(i, records_td[i], records_td[i] == records_r[i])
-        #     print(i, records_r[i], records_td[i] == records_r[i])
-        #     print()
-
         self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "compounds_{}".format(db_name)),
                                  sqlite_records(to_test_data(db_mc), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(db_mc), "compounds_{}".format(db_name)), 41)
@@ -141,9 +131,8 @@ class AnnotationTestCase(unittest.TestCase):
                                     filter=True, rules=True)
         self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "molecular_formulae"),
                                  sqlite_records(to_test_data(db_mc), "molecular_formulae"))
-        self.assertEqual(sqlite_count(to_test_results(db_mc), "molecular_formulae"), 2372)
+        self.assertEqual(sqlite_count(to_test_results(db_mc), "molecular_formulae"), 4257)
 
-    """
     def test_annotate_adducts(self):
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "adduct_pairs"),
@@ -289,9 +278,9 @@ class AnnotationTestCase(unittest.TestCase):
         records = sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae")
         self.assertEqual(len(records), 3869)
         self.assertSequenceEqual(records[897],
-                                 ('M493T192', 493.063765, 493.06376, 0.010140676303965665, '[M+Na]+', '(13C)',
+                                 ('M493T192', 493.063765, 493.06376, 0.010140676303965665, '[M+Na]+', '(13C)', '',
                                   14, 23, 4, 8, 2, 1, 1, 'C14H23N4O8P2S', 1, 1, 0, 1, 5.0))
-
+    """
     def test_summary(self):
 
         def _assert(summary_test_data, summary_result):
@@ -310,14 +299,14 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(self.db_results), "summary"))
 
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (118, 27))
+        self.assertSequenceEqual(df_summary.shape, (118, 28))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_mc.txt"
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (17, 16))
+        self.assertSequenceEqual(df_summary.shape, (17, 17))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_sc.txt"
@@ -333,9 +322,9 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
                                  sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, ((51, 31)))
+        self.assertSequenceEqual(df_summary.shape, ((51, 32)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
-        """
+
 
 if __name__ == '__main__':
     unittest.main()

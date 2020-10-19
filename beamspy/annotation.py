@@ -989,6 +989,9 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
         index_name = peaklist["name"].tolist().index(str(row[0]))
         mz = peaklist["mz"].iloc[index_name]
 
+        if max_mz is not None and mz > max_mz:
+            continue
+
         records_a = _select_mfs(source, row[0], mz, ppm, adducts, row[4], row[9], row[7], 0.0, rules=rules)
         if row[9] == row[10] and row[9] is not None: # Neutral Loss
             records_nl = _select_mfs(source, row[0], mz, ppm, adducts, row[4], row[9], row[7], -row[8], rules=rules)
@@ -1038,11 +1041,14 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     mfs_subset = cursor.fetchall()
 
     for i in range(len(peaklist.iloc[:, 0])):
-        continue
+
         mz = float(peaklist["mz"].iloc[i])
         name = str(peaklist["name"].iloc[i])
 
         if name in names_to_skip and filter:
+            continue
+
+        if max_mz is not None and mz > max_mz:
             continue
 
         records = _select_mfs(source, name, mz, ppm, lib_adducts.lib.keys(), None, None, 1.0, 0.0, rules=rules)
@@ -1192,11 +1198,6 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
         return cpd_records
 
     rows = _select_unions_peak_patterns(cursor)
-
-    # for i, row in enumerate(rows):
-    #     if "M204T505" in row:
-    #         print(row)
-    #         input()
 
     names_to_skip = []
     records = []
@@ -1527,13 +1528,13 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         for tl in tables_amoi:
             if (tl,) in tables:
                 if tl == "adduct_pairs":
-                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, 1 as charge, 1 as oligomer from adduct_pairs
+                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, charge_a as charge, 1 as oligomer from adduct_pairs
                     union
-                    select peak_id_b as peak_id_amoi, label_b as label, 1 as charge, 1 as oligomer from adduct_pairs""")
+                    select peak_id_b as peak_id_amoi, label_b as label, charge_b as charge, 1 as oligomer from adduct_pairs""")
                 elif tl == "oligomers":
-                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, 1 as charge, 1 as oligomer from oligomers
+                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, charge_a as charge, 1 as oligomer from oligomers
                     union
-                    select peak_id_b as peak_id_amoi, label_b as label, 1 as charge, cast(round(mz_ratio) as integer) as oligomer from oligomers""")
+                    select peak_id_b as peak_id_amoi, label_b as label, charge_b as charge, cast(round(mz_ratio) as integer) as oligomer from oligomers""")
         columns_amoi = ", label, charge, oligomer"
         query_amoi = " union ".join(map(str, sub_queries))
 
@@ -1600,7 +1601,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         cursor.execute(query)
         conn.commit()
 
-
     cpd_tables = [tn[0] for tn in tables if "compound" in tn[0]]
 
     flag_mf = ("molecular_formulae",) in tables
@@ -1639,14 +1639,14 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         query = """CREATE TEMP TABLE mf_cd as
                    SELECT mf.id, mf.exact_mass, mf.ppm_error, cpds.rt_diff, mf.adduct, 
                    mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
-                   mf.molecular_formula, cpds.compound_name, cpds.compound_id, {}
+                   mf.molecular_formula, cpds.compound_name, cpds.compound_id, NULL as compound_count, {}
                    FROM molecular_formulae as mf
                    LEFT JOIN compounds as cpds
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
                    UNION
                    SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.rt_diff, cpds.adduct, cpds.C, 
                    cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
-                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id, {}
+                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id, NULL as compound_count, {}
                    FROM compounds as cpds
                    LEFT JOIN molecular_formulae as mf
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
@@ -1656,7 +1656,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
         cursor.execute(query)
         mf_cpc_columns = "".join(map(str, [", mf_cd.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id, "
+        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id, NULL as compound_count, "
         mf_cpc_columns += ", ".join(map(str, cpd_tables))
         if flag_amoi:
             union_mf_sub_query = "LEFT JOIN mf_cd ON (peaklist.name = mf_cd.id and peak_labels.label = mf_cd.adduct)"
@@ -1666,7 +1666,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     elif not flag_mf and flag_cpd:
         mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id, "
+        mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id, NULL as compound_count, "
         mf_cpc_columns += ", ".join(map(str, cpd_tables))
         if flag_amoi:
             unions_cpd_sub_query += " ON (peaklist.name = ct.id AND peak_labels.label = adduct)"
@@ -1707,15 +1707,15 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         pl_columns = ""
         join_peak_labels = ""
 
-    sql_str_order = "ORDER BY peaklist.rowid"
-    if ".label," in pl_columns:
-        sql_str_order += ", label is NULL, label"
-    if "isotope" in pl_columns:
-        sql_str_order += ", isotope_labels_a is NULL, isotope_labels_a"
-    if "ppm_error" in mf_cpc_columns:
-        sql_str_order += ", abs(ppm_error) is NULL, abs(ppm_error)"
-    if "compound_name" in mf_cpc_columns:
-        sql_str_order += ", compound_name is NULL, compound_name, adduct"
+    # sql_str_order = "ORDER BY peaklist.rowid"
+    # if ".label," in pl_columns:
+    #     sql_str_order += ", label is NULL, label"
+    # if "isotope" in pl_columns:
+    #     sql_str_order += ", isotope_labels_a is NULL, isotope_labels_a"
+    # if "ppm_error" in mf_cpc_columns:
+    #     sql_str_order += ", abs(ppm_error) is NULL, abs(ppm_error)"
+    # if "compound_name" in mf_cpc_columns:
+    #     sql_str_order += ", compound_name is NULL, compound_name, adduct"
 
     query = """
             CREATE TABLE summary AS SELECT
@@ -1724,34 +1724,85 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             {}
             {}
             {}
-            {}
-            """.format(pl_columns, mf_cpc_columns, join_peak_labels,
-                       union_mf_sub_query, unions_cpd_sub_query,
-                       sql_str_order)
+            """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
+    print(query)
     cursor.execute(query)
     conn.commit()
 
-
-    # build where statement to remove dummy rows from the summary table
+    # build where statement to remove dummy rows from the summary table # TODO: refactor code block
     cursor.execute('PRAGMA table_info("summary")')
     columns_summary = cursor.fetchall()
 
     where_str = ""
     for cn in columns_summary:
         if cn[1] in ["label", "isotope_labels_a", "adduct"]:
-            where_str += " AND summary.{} is NULL".format(cn[1])
+            where_str += " AND {} is NULL".format(cn[1])
+
+    query_d = """
+              SELECT name
+              FROM summary
+              GROUP BY name
+              HAVING COUNT(name) > 1
+              """
+    cursor.execute(query_d)
+    r = cursor.fetchall()
+
+    query_d = """
+              SELECT name
+              FROM summary
+              WHERE name IS NOT NULL{}
+              """.format(where_str)
+    cursor.execute(query_d)
+    rr = cursor.fetchall()
+
     query_d = """
               DELETE FROM summary
-              WHERE summary.name IN (SELECT S.name
-              FROM summary AS S
-              GROUP BY S.name
-              HAVING COUNT(S.name) > 1{})
-              """.format(where_str)
+              WHERE name IN ("{}"){}
+              """.format('","'.join(map(str,[name[0] for name in set(r) & set(rr)])), where_str)
     cursor.execute(query_d)
     conn.commit()
 
+
+    if columns_groupings and flag_cpd:
+        if "sub_group_id" in columns_groupings:
+            grt = "sub_group_id"
+        else:
+            grt = "group_id"
+
+        query = """            
+                UPDATE summary
+                SET compound_count = 
+                (SELECT scs.c FROM
+                    (SELECT {}, compound_id, COUNT(*) AS c FROM summary AS s
+                    GROUP BY {}, compound_id) AS scs
+                    WHERE scs.compound_id = summary.compound_id 
+                    AND (scs.{} = summary.{} and scs.{} IS NOT NULL AND summary.{} IS NOT NULL)
+                )
+                """.format(grt, grt, grt, grt, grt, grt)
+
+        cursor.execute(query)
+        conn.commit()
+        query = """            
+                UPDATE summary
+                SET compound_count = 1 
+                WHERE compound_id is NOT NULL AND {} IS NULL
+                """.format(grt)
+
+        cursor.execute(query)
+        conn.commit()
+    elif flag_cpd:
+        query = """  
+                UPDATE summary
+                SET compound_count = 
+                (SELECT COUNT(*) FROM summary AS s
+                    WHERE s.compound_id = summary.compound_id 
+                    AND summary.compound_id IS NOT NULL
+                    ) where summary.compound_id IS NOT NULL
+                """
+        cursor.execute(query)
+    conn.commit()
 
     columns_to_select = []
     if ("groups",) in tables:
@@ -1764,6 +1815,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         columns_to_select.append("isotope_labels_a, isotope_ids, isotope_labels_b, atoms")
 
     if single_row:
+
         if flag_cpd:
             if single_column:
                 for cpd_t in cpd_tables:
@@ -1775,12 +1827,13 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                                 adduct || '::' || 
                                 ifnull(compound_name, "None") || '::' || 
                                 ifnull(compound_id, "None")  || '::' || 
+                                ifnull(compound_count, "None") || '::' || 
                                 exact_mass || '::' || 
                                 round(ppm_error, 2) || '::' || 
                                 ifnull(round(rt_diff, 2), "None")
-                            ELSE NULL END
+                            ELSE NULL END 
                             , '||' 
-                        ) as {}
+                        ) as {} 
                         """.format(cpd_t, cpd_t))
             else:
                 columns_to_select.append("""
@@ -1788,6 +1841,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                     group_concat(adduct, '||') as adduct, 
                     group_concat(ifnull(compound_name, "None"), '||') as compound_name, 
                     group_concat(ifnull(compound_id, "None"), '||') as compound_id,
+                    group_concat(ifnull(compound_count, "None"), '||') as compound_count,
                     group_concat(exact_mass, '||') as exact_mass,
                     group_concat(round(ppm_error, 2), '||') as ppm_error,
                     group_concat(ifnull(round(rt_diff, 2), "None"), '||') as rt_diff
