@@ -700,9 +700,9 @@ def _select_unions_peak_patterns(cursor):
         if (t,) in tables and ("isotopes",) in tables:
 
             if t == "oligomers":
-                col_mz_ratio = "ap.mz_ratio as mz_ratio"
+                col_mz_ratio = "ap.mz_ratio AS mz_ratio"
             else:
-                col_mz_ratio = "1 as mz_ratio"
+                col_mz_ratio = "1 AS mz_ratio"
 
             sql_str_adducts_isotopes = """
                                      SELECT    ap.peak_id_a  AS peak_id_a,
@@ -711,9 +711,9 @@ def _select_unions_peak_patterns(cursor):
                                                ap.peak_id_b = iso.peak_id_b,
                                                iso.label_a   AS iso_label_a,
                                                iso.label_b   AS iso_label_b,
-                                               ap.charge_a as charge,
-                                               1 as mz_ratio,
-                                               iso.exact_mass_diff as exact_mass_diff,
+                                               ap.charge_a AS charge,
+                                               1 AS mz_ratio,
+                                               iso.exact_mass_diff AS exact_mass_diff,
                                                NULL          AS nl_label_a,
                                                NULL          AS nl_label_b
                                      FROM      {} AS ap
@@ -726,9 +726,9 @@ def _select_unions_peak_patterns(cursor):
                                                0,
                                                iso.label_a   AS iso_label_a,
                                                iso.label_b   AS iso_label_b,
-                                               ap.charge_b as charge,
+                                               ap.charge_b AS charge,
                                                {},
-                                               iso.exact_mass_diff as exact_mass_diff,
+                                               iso.exact_mass_diff AS exact_mass_diff,
                                                NULL          AS nl_label_a,
                                                NULL          AS nl_label_b
                                      FROM      {} AS ap
@@ -741,7 +741,7 @@ def _select_unions_peak_patterns(cursor):
         if (t,) in tables:
 
             if t == "oligomers":
-                col_mz_ratio = "mz_ratio as mz_ratio"
+                col_mz_ratio = "mz_ratio AS mz_ratio"
 
             sql_str_adducts = """
                                      SELECT peak_id_a,
@@ -1462,17 +1462,20 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     cursor.execute("DROP TABLE IF EXISTS peaklist")
     df[["name", "mz", "rt", "intensity"]].to_sql("peaklist", conn, index=False)
+    cursor.execute("CREATE INDEX idx_name on peaklist (name)")
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
 
-    tables_amoi = ["adduct_pairs", "oligomers", "isotopes"]
+    tables_pp = ["adduct_pairs", "oligomers", "isotopes", "neutral_losses"]  # TODO: make more efficient
     tables_to_union = []
     for tn in tables:
-        if tn[0] in tables_amoi:
+        if tn[0] in tables_pp:  # TODO - add addtional tables (neutral losses)
             tables_to_union.append(str(tn[0]))
 
-    if len(tables_to_union) > 0 and ("groups",) in tables:
+    flag_groups = ("groups",) in tables
+
+    if len(tables_to_union) > 0 and flag_groups:
 
         if len(tables_to_union) > 1:
             query = "select peak_id_a, peak_id_b from "
@@ -1495,7 +1498,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             for n in g.nodes():
                 to_add.append([i+1, n, g.degree(n), g.number_of_nodes(), g.number_of_edges()])
 
-        cursor.execute("""CREATE TEMPORARY TABLE sub_groups (
+        cursor.execute("""CREATE TEMP TABLE sub_groups (
                            sub_group_id INTEGER DEFAULT NULL,
                            peak_id INTEGER DEFAULT NULL,
                            degree INTEGER DEFAULT NULL,             
@@ -1503,86 +1506,91 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                            n_edges INTEGER DEFAULT NULL,
                            PRIMARY KEY (sub_group_id, peak_id));""")
 
-        cursor.executemany("""insert into sub_groups (sub_group_id, peak_id, degree, n_nodes, n_edges) 
-                           values (?,?,?,?,?)""", to_add)
+        cursor.executemany("""INSERT INTO sub_groups (sub_group_id, peak_id, degree, n_nodes, n_edges) 
+                           VALUES (?,?,?,?,?)""", to_add)
 
-        columns_groupings = """peak_id, group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges"""
+        columns_groupings = ["peak_id", "group_id", "degree_cor", "sub_group_id", "degree", "n_nodes", "n_edges"]
 
-        query_groupings = """select distinct gr.peak_id as peak_id, gr.group_id as group_id, degree_cor,
-                          sub_groups.sub_group_id as sub_group_id, sub_groups.degree as degree,
-                          sub_groups.n_nodes as n_nodes, sub_groups.n_edges as n_edges
-                          from (select group_id, peak_id_a as peak_id, degree_a as degree_cor from groups
-                          union
-                          select group_id, peak_id_b as peak_id, degree_b as degree_cor from groups) AS gr
+        query_groupings = """SELECT DISTINCT gr.peak_id AS peak_id, gr.group_id AS group_id, degree_cor,
+                          sub_groups.sub_group_id AS sub_group_id, sub_groups.degree AS degree,
+                          sub_groups.n_nodes AS n_nodes, sub_groups.n_edges AS n_edges
+                          FROM (SELECT group_id, peak_id_a AS peak_id, degree_a AS degree_cor FROM groups
+                          UNION
+                          SELECT group_id, peak_id_b AS peak_id, degree_b AS degree_cor FROM groups) AS gr
                           LEFT JOIN sub_groups
                           ON gr.peak_id = sub_groups.peak_id"""
     else:
         query_groupings = ""
-        columns_groupings = ""
+        columns_groupings = []
 
-    flag_amoi = len([tl for tl in tables_amoi if (tl,) in tables]) > 0
+    columns_adducts_oligo, columns_isotopes, columns_nls = [], [], []
+    query_adducts_oligo, query_isotopes, query_nls = "", "", ""
+
+    # flag_pp = len([tl for tl in tables_pp if (tl,) in tables]) > 0
+    flag_adducts_oligo = ("adduct_pairs",) in tables or ("oligomers",) in tables
     flag_isotopes = ("isotopes",) in tables
+    flag_neutral_losses = ("neutral_losses",) in tables
 
-    if flag_amoi:
+    if flag_adducts_oligo:
         sub_queries = []
-        for tl in tables_amoi:
+        for tl in tables_pp:
             if (tl,) in tables:
                 if tl == "adduct_pairs":
-                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, charge_a as charge, 1 as oligomer from adduct_pairs
+                    sub_queries.append("""select peak_id_a AS peak_id_pp, label_a AS label, charge_a AS charge, 1 AS oligomer from adduct_pairs
                     union
-                    select peak_id_b as peak_id_amoi, label_b as label, charge_b as charge, 1 as oligomer from adduct_pairs""")
+                    select peak_id_b AS peak_id_pp, label_b AS label, charge_b AS charge, 1 AS oligomer from adduct_pairs""")
                 elif tl == "oligomers":
-                    sub_queries.append("""select peak_id_a as peak_id_amoi, label_a as label, charge_a as charge, 1 as oligomer from oligomers
+                    sub_queries.append("""select peak_id_a AS peak_id_pp, label_a AS label, charge_a AS charge, 1 AS oligomer from oligomers
                     union
-                    select peak_id_b as peak_id_amoi, label_b as label, charge_b as charge, cast(round(mz_ratio) as integer) as oligomer from oligomers""")
-        columns_amoi = ", label, charge, oligomer"
-        query_amoi = " union ".join(map(str, sub_queries))
+                    select peak_id_b AS peak_id_pp, label_b AS label, charge_b AS charge, cast(round(mz_ratio) AS integer) AS oligomer from oligomers""")
+        columns_adducts_oligo = ["label", "charge", "oligomer"]
+        query_adducts_oligo = " union ".join(map(str, sub_queries))
 
     if flag_isotopes:
-        columns_isotopes = ", isotope_labels_a, isotope_ids, isotope_labels_b, atoms"
-        query_isotopes = """SELECT peak_id_a, group_concat(label_a) as isotope_labels_a,
-                            group_concat(peak_id_b, ",") as isotope_ids,
-                            group_concat(label_b) as isotope_labels_b, group_concat(round(atoms,1), ",") as atoms
+        columns_isotopes = ["isotope_labels_a", "isotope_ids", "isotope_labels_b", "atoms"]
+        query_isotopes = """SELECT peak_id_a as isotope_peak_id_a, group_concat(label_a) AS isotope_labels_a,
+                            group_concat(peak_id_b, ",") AS isotope_ids,
+                            group_concat(label_b) AS isotope_labels_b, group_concat(round(atoms,1), ",") AS atoms
                             from (select peak_id_a, label_a, peak_id_b, label_b, atoms, ppm_error from isotopes
                             union
-                            select peak_id_b as peak_id_a, label_b as label_a,
-                            peak_id_a as peak_id_b, label_a as label_b, atoms, ppm_error
-                            from isotopes
-                            ) group by peak_id_a"""
+                            select peak_id_b AS peak_id_a, label_b AS label_a,
+                            peak_id_a AS peak_id_b, label_a AS label_b, atoms, ppm_error
+                            from isotopes                    
+                            ) group by isotope_peak_id_a"""
+
+    if flag_neutral_losses:
+        columns_nls = ["nl_labels_a", "nl_ids"]
+        query_nls = """SELECT peak_id_a as nl_peak_id_a, group_concat(label) AS nl_labels_a,
+                            group_concat(peak_id_b, ",") AS nl_ids
+                            from (select peak_id_a, label, peak_id_b, ppm_error 
+                            from neutral_losses
+                            union
+                            select peak_id_b as peak_id_a, label, peak_id_a AS peak_id_b, ppm_error
+                            from neutral_losses                            
+                            ) group by nl_peak_id_a"""
 
     cursor.execute("DROP TABLE IF EXISTS peak_labels")
     sql_str_index = "CREATE INDEX idx_peak_id ON peak_labels (peak_id)"
-    if flag_amoi and flag_isotopes:
-        query = "CREATE TABLE peak_labels as "
-        if query_groupings != "":
-            query += "SELECT {}{}{} from """.format(columns_groupings, columns_amoi, columns_isotopes)
-            query += "({}) LEFT JOIN ({}) ON peak_id = peak_id_amoi LEFT JOIN ({}) ON peak_id = peak_id_a".format(query_groupings, query_amoi, query_isotopes)
+
+    if flag_adducts_oligo or flag_isotopes or flag_neutral_losses:
+        columns = ", ".join(map(str, columns_groupings + columns_adducts_oligo + columns_isotopes + columns_nls))
+        query = "CREATE TABLE peak_labels AS "
+        if query_groupings:
+            query += "SELECT {} FROM ({})".format(columns, query_groupings)
         else:
-            query += "SELECT peaklist.name as peak_id{}{} from ".format(columns_amoi, columns_isotopes)
-            query += "peaklist LEFT JOIN ({}) ON peaklist.name = peak_id LEFT JOIN ({}) ON peaklist.name = peak_id_a".format(query_amoi, query_isotopes)
-            query = query.replace("peak_id_amoi", "peak_id")
-        cursor.execute(query)
-        cursor.execute(sql_str_index)
-    elif flag_isotopes and not flag_amoi:
-        query = "CREATE TABLE peak_labels as "
-        if query_groupings != "":
-            query += "select {}{} from ".format(columns_groupings, columns_isotopes)
-            query += "({}) LEFT JOIN ({}) ON peak_id = peak_id_a".format(query_groupings, query_isotopes)
-        else:
-            query += query_isotopes
-        cursor.execute(query)
-        cursor.execute(sql_str_index)
-    elif not flag_isotopes and flag_amoi:
-        query = "CREATE TABLE peak_labels as "
-        if query_groupings != "":
-            query += """select {}{} from """.format(columns_groupings, columns_amoi)
-            query += """({}) LEFT JOIN ({}) ON peak_id = peak_id_amoi""".format(query_groupings, query_amoi)
-        else:
-            query += query_amoi.replace("peak_id_amoi", "peak_id")
+            query += "SELECT peaklist.name AS peak_id, {} FROM peaklist ".format(columns)
+
+        if flag_adducts_oligo:
+            query += " LEFT JOIN ({}) ON peak_id = peak_id_pp ".format(query_adducts_oligo)
+        if flag_isotopes:
+            query += " LEFT JOIN ({}) ON peak_id = isotope_peak_id_a ".format(query_isotopes)
+        if flag_neutral_losses:
+            query += " LEFT JOIN ({}) ON peak_id = nl_peak_id_a ".format(query_nls)
+
         cursor.execute(query)
         cursor.execute(sql_str_index)
 
-    if flag_amoi:
+    if flag_adducts_oligo:
 
         # Add dummy row for features to make joint statement possible where label and adduct do not match.
         cursor.execute('PRAGMA table_info("peak_labels")')
@@ -1612,15 +1620,15 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     for i in range(0, len(cpd_tables)):
         b = [0] * len(cpd_tables)
         b[i] = 1
-        cpd_t_flags.append(["{} as {}".format(flag[0], flag[1]) for flag in list(zip(b, cpd_tables))])
+        cpd_t_flags.append(["{} AS {}".format(flag[0], flag[1]) for flag in list(zip(b, cpd_tables))])
 
     if len(cpd_tables) > 1:
         unions_cpd_sub_query = "LEFT JOIN (select *, {} from {}".format(", ".join(map(str, cpd_t_flags[0])), cpd_tables[0])
         for i, cpd_t in enumerate(cpd_tables[1:], start=1):
             unions_cpd_sub_query += " union select *, {} from {}".format(", ".join(map(str, cpd_t_flags[i])), cpd_t)
-        unions_cpd_sub_query += ") as ct "
+        unions_cpd_sub_query += ") AS ct "
     elif len(cpd_tables) == 1:
-        unions_cpd_sub_query = "LEFT JOIN (select *, 1 as {} from {}) as ct".format(cpd_tables[0], cpd_tables[0])
+        unions_cpd_sub_query = "LEFT JOIN (select *, 1 AS {} from {}) AS ct".format(cpd_tables[0], cpd_tables[0])
     else:
         unions_cpd_sub_query = ""
 
@@ -1639,36 +1647,36 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         query = """CREATE TEMP TABLE mf_cd as
                    SELECT mf.id, mf.exact_mass, mf.ppm_error, cpds.rt_diff, mf.adduct, 
                    mf.C, mf.H, mf.N, mf.O, mf.P, mf.S,
-                   mf.molecular_formula, cpds.compound_name, cpds.compound_id, NULL as compound_count, {}
-                   FROM molecular_formulae as mf
-                   LEFT JOIN compounds as cpds
+                   mf.molecular_formula, cpds.compound_name, cpds.compound_id, NULL AS compound_count, {}
+                   FROM molecular_formulae AS mf
+                   LEFT JOIN compounds AS cpds
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
                    UNION
                    SELECT cpds.id, cpds.exact_mass, cpds.ppm_error, cpds.rt_diff, cpds.adduct, cpds.C, 
                    cpds.H, cpds.N, cpds.O, cpds.P, cpds.S,
-                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id, NULL as compound_count, {}
-                   FROM compounds as cpds
-                   LEFT JOIN molecular_formulae as mf
+                   cpds.molecular_formula, cpds.compound_name, cpds.compound_id, NULL AS compound_count, {}
+                   FROM compounds AS cpds
+                   LEFT JOIN molecular_formulae AS mf
                    ON mf.molecular_formula = cpds.molecular_formula AND mf.adduct = cpds.adduct
                    WHERE mf.molecular_formula IS NULL
                 """.format(", ".join(map(str, ["cpds." + ct for ct in cpd_tables])),
                            ", ".join(map(str, ["cpds." + ct for ct in cpd_tables])))
 
         cursor.execute(query)
-        mf_cpc_columns = "".join(map(str, [", mf_cd.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", mf_cd.compound_name as compound_name, mf_cd.compound_id as compound_id, NULL as compound_count, "
+        mf_cpc_columns = "".join(map(str, [", mf_cd.{} AS {}".format(c, c) for c in columns]))
+        mf_cpc_columns += ", mf_cd.compound_name AS compound_name, mf_cd.compound_id AS compound_id, NULL AS compound_count, "
         mf_cpc_columns += ", ".join(map(str, cpd_tables))
-        if flag_amoi:
+        if flag_adducts_oligo:
             union_mf_sub_query = "LEFT JOIN mf_cd ON (peaklist.name = mf_cd.id and peak_labels.label = mf_cd.adduct)"
             union_mf_sub_query += " OR (peaklist.name = mf_cd.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf_cd.id and label = mf_cd.adduct))"
         else:
             union_mf_sub_query = "LEFT JOIN mf_cd ON peaklist.name = mf_cd.id"
 
     elif not flag_mf and flag_cpd:
-        mf_cpc_columns = "".join(map(str,[", ct.{} as {}".format(c, c) for c in columns]))
-        mf_cpc_columns += ", compound_name as compound_name, compound_id as compound_id, NULL as compound_count, "
+        mf_cpc_columns = "".join(map(str,[", ct.{} AS {}".format(c, c) for c in columns]))
+        mf_cpc_columns += ", compound_name AS compound_name, compound_id AS compound_id, NULL AS compound_count, "
         mf_cpc_columns += ", ".join(map(str, cpd_tables))
-        if flag_amoi:
+        if flag_adducts_oligo:
             unions_cpd_sub_query += " ON (peaklist.name = ct.id AND peak_labels.label = adduct)"
             unions_cpd_sub_query += " OR (peaklist.name = ct.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = ct.id and label = ct.adduct))"
         else:
@@ -1676,8 +1684,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         union_mf_sub_query = ""
 
     elif flag_mf and not flag_cpd:
-        mf_cpc_columns = "".join(map(str, [", mf.{} as {}".format(c, c) for c in columns]))
-        if flag_amoi:
+        mf_cpc_columns = "".join(map(str, [", mf.{} AS {}".format(c, c) for c in columns]))
+        if flag_adducts_oligo:
             union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf"
             union_mf_sub_query += " ON (peaklist.name = mf.id AND peak_labels.label = mf.adduct)"
             union_mf_sub_query += " OR (peaklist.name = mf.id AND peak_labels.label is NULL and not exists (select 1 from peak_labels where peak_id = mf.id and label = mf.adduct))"
@@ -1737,7 +1745,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
     where_str = ""
     for cn in columns_summary:
-        if cn[1] in ["label", "isotope_labels_a", "adduct"]:
+        if cn[1] in ["label", "isotope_labels_a", "neutral_loss_labels_a", "adduct"]:
             where_str += " AND {} is NULL".format(cn[1])
 
     query_d = """
@@ -1763,7 +1771,6 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
               """.format('","'.join(map(str,[name[0] for name in set(r) & set(rr)])), where_str)
     cursor.execute(query_d)
     conn.commit()
-
 
     if columns_groupings and flag_cpd:
         if "sub_group_id" in columns_groupings:
@@ -1809,10 +1816,12 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         columns_to_select.append("group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges")
     if ("adduct_pairs",) in tables or ("oligomers",) in tables:
         columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
-        from (select distinct label, charge, oligomer from summary as s where summary.name = s.name)
-        ) as label_charge_oligomer""")
+        from (select distinct label, charge, oligomer from summary AS s where summary.name = s.name)
+        ) AS label_charge_oligomer""")
     if ("isotopes",) in tables:
         columns_to_select.append("isotope_labels_a, isotope_ids, isotope_labels_b, atoms")
+    #if ("neutral_losses",) in tables:
+    #    columns_to_select.append("neutral_loss_labels_a, neutral_loss_ids, neutral_loss_b")
 
     if single_row:
 
@@ -1833,18 +1842,18 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                                 ifnull(round(rt_diff, 2), "None")
                             ELSE NULL END 
                             , '||' 
-                        ) as {} 
+                        ) AS {} 
                         """.format(cpd_t, cpd_t))
             else:
                 columns_to_select.append("""
-                    group_concat(molecular_formula, '||') as molecular_formula,
-                    group_concat(adduct, '||') as adduct, 
-                    group_concat(ifnull(compound_name, "None"), '||') as compound_name, 
-                    group_concat(ifnull(compound_id, "None"), '||') as compound_id,
-                    group_concat(ifnull(compound_count, "None"), '||') as compound_count,
-                    group_concat(exact_mass, '||') as exact_mass,
-                    group_concat(round(ppm_error, 2), '||') as ppm_error,
-                    group_concat(ifnull(round(rt_diff, 2), "None"), '||') as rt_diff
+                    group_concat(molecular_formula, '||') AS molecular_formula,
+                    group_concat(adduct, '||') AS adduct, 
+                    group_concat(ifnull(compound_name, "None"), '||') AS compound_name, 
+                    group_concat(ifnull(compound_id, "None"), '||') AS compound_id,
+                    group_concat(ifnull(compound_count, "None"), '||') AS compound_count,
+                    group_concat(exact_mass, '||') AS exact_mass,
+                    group_concat(round(ppm_error, 2), '||') AS ppm_error,
+                    group_concat(ifnull(round(rt_diff, 2), "None"), '||') AS rt_diff
                     """)
         elif flag_mf:
             if single_column:
@@ -1855,14 +1864,14 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                         exact_mass || '::' || 
                         round(ppm_error, 2) ,
                         '||'
-                    ) as annotation
+                    ) AS annotation
                     """)
             else:
                 columns_to_select.append("""
-                    group_concat(molecular_formula, '||') as molecular_formula, 
-                    group_concat(adduct, '||') as adduct,
-                    group_concat(exact_mass, '||') as exact_mass,
-                    group_concat(round(ppm_error, 2), '||') as ppm_error
+                    group_concat(molecular_formula, '||') AS molecular_formula, 
+                    group_concat(adduct, '||') AS adduct,
+                    group_concat(exact_mass, '||') AS exact_mass,
+                    group_concat(round(ppm_error, 2), '||') AS ppm_error
                     """)
 
         query = """

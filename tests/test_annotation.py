@@ -39,17 +39,17 @@ class AnnotationTestCase(unittest.TestCase):
         db_nls = "results_annotation_nls.sqlite"
 
         graph = group_features(df_nls, to_test_results(db_nls), max_rt_diff=5.0, coeff_thres=0.7,
-                                    pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
+                               pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
 
         lib_nls = read_neutral_losses(os.path.join(self.path, "beamspy", "data", "neutral_losses.txt"))
 
-        # annotate_neutral_losses(graph, to_test_results(db_nls), self.ppm, lib_nls)
-        # self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "neutral_losses"),
-        #                          sqlite_records(to_test_data(db_nls), "neutral_losses"))
+        annotate_neutral_losses(graph, to_test_results(db_nls), self.ppm, lib_nls)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "neutral_losses"),
+                                 sqlite_records(to_test_data(db_nls), "neutral_losses"))
 
         annotate_neutral_losses(df_nls, to_test_results(db_nls), self.ppm, lib_nls)
         self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "neutral_losses"),
-                                sqlite_records(to_test_data(db_nls), "neutral_losses"))
+                                 sqlite_records(to_test_data(db_nls), "neutral_losses"))
 
         lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
 
@@ -323,6 +323,18 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
         self.assertSequenceEqual(df_summary.shape, ((51, 32)))
+        _assert(to_test_data(fn_summary), to_test_results(fn_summary))
+
+        fn_summary = "summary_mr_mc_graphs_nls.txt"
+        db_nls = "results_annotation_nls.sqlite"
+        df_nls = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_nls.txt"),
+                                         to_test_data("dataMatrix_lcms_theoretical_nls.txt"))
+        df_summary = summary(df_nls, to_test_results(db_nls), single_row=False, single_column=False,
+                             convert_rt=None, ndigits_mz=None)
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
+
+        self.assertSequenceEqual(df_summary.shape, ((18, 27)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 
