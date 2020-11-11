@@ -30,7 +30,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
 
         self.ppm = 2.0
-    """
+
     def test_neutral_losses(self):
 
         df_nls = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_nls.txt"),
@@ -289,7 +289,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(records[897],
                                  ('M493T192', 493.063765, 493.06376, 0.010140676303965665, '[M+Na]+', '(13C)', '',
                                   14, 23, 4, 8, 2, 1, 1, 'C14H23N4O8P2S', 1, 1, 0, 1, 5.0))
-    """
+
     def test_summary(self):
 
         def _assert(summary_test_data, summary_result):
