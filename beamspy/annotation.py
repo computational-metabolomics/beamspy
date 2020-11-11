@@ -127,11 +127,9 @@ def _check_tolerance(mz_x, mz_y, lib_pair, ppm, charge):
     min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x, ppm)
     min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
     if "mass_difference" in lib_pair.keys():
-        # TODO: Need to fix the order, charge is one
         min_tol_b = min_tol_b - (lib_pair["mass_difference"] / charge)
         max_tol_b = max_tol_b - (lib_pair["mass_difference"] / charge)
     elif "mass" in list(lib_pair.items())[0][1]:
-        # TODO: Need to fix the order
         charge_a = list(lib_pair.items())[0][1]["charge"]
         charge_b = list(lib_pair.items())[1][1]["charge"]
         mass_a = list(lib_pair.items())[0][1]["mass"]
@@ -1763,15 +1761,15 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         pl_columns = ""
         join_peak_labels = ""
 
-    # sql_str_order = "ORDER BY peaklist.rowid"
-    # if ".label," in pl_columns:
-    #     sql_str_order += ", label is NULL, label"
-    # if "isotope" in pl_columns:
-    #     sql_str_order += ", isotope_labels_a is NULL, isotope_labels_a"
-    # if "ppm_error" in mf_cpc_columns:
-    #     sql_str_order += ", abs(ppm_error) is NULL, abs(ppm_error)"
-    # if "compound_name" in mf_cpc_columns:
-    #     sql_str_order += ", compound_name is NULL, compound_name, adduct"
+    sql_str_order = "ORDER BY peaklist.rowid"
+    if ".label," in pl_columns:
+        sql_str_order += ", label is NULL, label"
+    if "isotope" in pl_columns:
+        sql_str_order += ", isotope_labels_a is NULL, isotope_labels_a"
+    if "ppm_error" in mf_cpc_columns:
+        sql_str_order += ", abs(ppm_error) is NULL, abs(ppm_error)"
+    if "compound_name" in mf_cpc_columns:
+        sql_str_order += ", compound_name is NULL, compound_name"
 
     query = """
             CREATE TABLE summary AS SELECT
@@ -1780,7 +1778,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             {}
             {}
             {}
-            """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
+            {}
+            """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query, sql_str_order)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
     # print(query)
