@@ -108,6 +108,12 @@ def main():
     parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
                              help="Annotate oligomers.")
 
+    parser_app.add_argument('-n', '--neutral-losses', action='store_true', required=False,
+                             help="Annotate neutral losses.")
+
+    parser_app.add_argument('-s', '--neutral-losses-library', required=False,
+                             help="List of neutral losses.")
+
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
                              help="Ion mode of the libraries.")
 
@@ -260,6 +266,15 @@ def main():
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_isotopes(p, args.ion_mode)
             annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+
+        if args.neutral_losses:
+            if args.neutral_losses_library:
+                lib = in_out.read_neutral_losses(args.neutral_losses_library, args.ion_mode)
+            else:
+                path = 'data/neutral_losses.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_isotopes(p, args.ion_mode)
+            annotation.neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.oligomers:
             if args.adducts_library:
