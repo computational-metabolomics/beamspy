@@ -83,6 +83,7 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(db_nls), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(db_nls), "molecular_formulae"), 9)
 
+    """
     def test_annotate_multiple_charged_adducts(self):
         df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_mc_o.txt"),
                                           to_test_data("dataMatrix_lcms_theoretical_mc_o.txt"))
@@ -341,11 +342,10 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary = summary(df_nls, to_test_results(db_nls), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
 
-        self.assertSequenceEqual(df_summary.shape, ((18, 27)))
+        self.assertSequenceEqual(df_summary.shape, ((27, 28)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
-    """
+
 
 if __name__ == '__main__':
     unittest.main()
