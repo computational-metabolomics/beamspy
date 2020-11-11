@@ -33,6 +33,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                                        self.lineEdit_adduct_library))
         self.pushButton_adduct_library.clicked.connect(partial(self.open_file, self.lineEdit_adduct_library))
         self.pushButton_isotopes.clicked.connect(partial(self.open_file, self.lineEdit_isotopes))
+        self.pushButton_neutral_losses.clicked.connect(partial(self.open_file, self.lineEdit_neutral_losses))
 
         self.checkBox_filename_reference.clicked.connect(self.source_compounds)
         self.pushButton_filename_reference.clicked.connect(partial(self.open_file, self.lineEdit_filename_reference))
@@ -49,6 +50,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.comboBox_source_mf.activated.connect(self.source_mf)
         self.checkBox_adduct_library.clicked.connect(self.source_peak_patterns)
         self.checkBox_isotopes.clicked.connect(self.source_peak_patterns)
+        self.checkBox_neutral_losses.clicked.connect(self.source_peak_patterns)
         self.checkBox_oligomers.clicked.connect(self.source_peak_patterns)
 
         self.checkBox_mz_digits.clicked.connect(self.create_summary)
@@ -126,6 +128,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         else:
             self.lineEdit_isotopes.setEnabled(True)
             self.pushButton_isotopes.setEnabled(True)
+        if not self.checkBox_neutral_losses.isChecked():
+            self.lineEdit_neutral_losses.setEnabled(False)
+            self.pushButton_neutral_losses.setEnabled(False)
+        else:
+            self.lineEdit_neutral_losses.setEnabled(True)
+            self.pushButton_neutral_losses.setEnabled(True)
         if not self.checkBox_oligomers.isChecked():
             self.spinBox_max_monomer_units.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
@@ -185,12 +193,16 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.checkBox_isotopes.setEnabled(False)
             self.lineEdit_isotopes.setEnabled(False)
             self.pushButton_isotopes.setEnabled(False)
+            self.checkBox_neutral_losses.setEnabled(False)
+            self.lineEdit_neutral_losses.setEnabled(False)
+            self.pushButton_neutral_losses.setEnabled(False)
             self.checkBox_oligomers.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
             self.spinBox_max_monomer_units.setEnabled(False)
         else:
             self.checkBox_adduct_library.setEnabled(True)
             self.checkBox_isotopes.setEnabled(True)
+            self.checkBox_neutral_losses.setEnabled(True)
             self.checkBox_oligomers.setEnabled(True)
             self.source_peak_patterns()
         self.source_graph_file()
@@ -356,6 +368,22 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print("")
                 print(lib)
                 annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
+                print("Done")
+
+            if self.checkBox_neutral_losses.isChecked():
+                print("Neutral losses...."),
+                if self.lineEdit_neutral_losses.text() == "Use default":
+                    path = 'data/neutral_losses.txt'
+                    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                    lib = in_out.read_netural_losses(p)
+
+                elif os.path.isfile(self.lineEdit_netural_losses.text()):
+                    lib = in_out.read_netural_losses(self.lineEdit_netural_losses.text())
+                else:
+                    raise IOError("Provide a valid filename for netural_losses or 'Use default'")
+                print("")
+                print(lib)
+                annotation.annotate_netural_losses(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_oligomers.isChecked():

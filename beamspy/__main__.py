@@ -269,11 +269,11 @@ def main():
 
         if args.neutral_losses:
             if args.neutral_losses_library:
-                lib = in_out.read_neutral_losses(args.neutral_losses_library, args.ion_mode)
+                lib = in_out.read_neutral_losses(args.neutral_losses_library)
             else:
                 path = 'data/neutral_losses.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                lib = in_out.read_isotopes(p, args.ion_mode)
+                lib = in_out.read_neutral_losses(p)
             annotation.neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.oligomers:
