@@ -968,7 +968,13 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
             else:
                 adducts = [str(row["adduct_label"])]
         else:
-            adducts = lib_adducts.lib.keys()
+            if row["iso_charge"]:
+                adducts = []
+                for a in lib_adducts.lib.keys():
+                    if lib_adducts.lib[a]["charge"] == row["iso_charge"]:
+                        adducts.append(a)
+            else:
+                adducts = lib_adducts.lib.keys()
 
         index_name = peaklist["name"].tolist().index(str(row["peak_id_a"]))
         mz = peaklist["mz"].iloc[index_name]
@@ -1218,13 +1224,19 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
         match = None
 
         if row["adduct_label"]:
-            if row["mz_ratio"] > 1: # oligomers
+            if row["mz_ratio"] > 1:  # oligomers
                 match = difflib.get_close_matches(row["adduct_label"], lib_adducts.lib.keys(), n=1)
                 adducts = [match[0]]
             else:
                 adducts = [str(row["adduct_label"])]
         else:
-            adducts = list(lib_adducts.lib.keys())
+            if row["iso_charge"]:
+                adducts = []
+                for a in lib_adducts.lib.keys():
+                    if lib_adducts.lib[a]["charge"] == row["iso_charge"]:
+                        adducts.append(a)
+            else:
+                adducts = lib_adducts.lib.keys()
 
         index_name = peaklist["name"].tolist().index(str(row["peak_id_a"]))
         mz = peaklist["mz"].iloc[index_name]
