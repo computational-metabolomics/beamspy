@@ -19,6 +19,30 @@ from beamspy.auxiliary import nist_database_to_pyteomics
 from beamspy.auxiliary import composition_to_string
 
 
+_sql_create_table_isotopes_ = """
+                   CREATE TABLE isotopes (
+                   peak_id_a TEXT DEFAULT NULL,
+                   peak_id_b TEXT DEFAULT NULL,
+                   label_a TEXT DEFAULT NULL,
+                   label_b TEXT DEFAULT NULL,
+                   atoms REAL DEFAULT NULL,
+                   exact_mass_diff REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
+                   charge INT DEFAULT 1,
+                   PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));
+                   """
+
+_sql_create_table_neutral_losses_ = """
+                   CREATE TABLE neutral_losses (
+                   peak_id_a TEXT DEFAULT NULL,
+                   peak_id_b TEXT DEFAULT NULL,
+                   label TEXT DEFAULT NULL,
+                   exact_mass_diff REAL DEFAULT NULL,
+                   ppm_error REAL DEFAULT NULL,
+                   PRIMARY KEY (peak_id_a, peak_id_b, label));
+                   """
+
+
 def calculate_mz_tolerance(mass, ppm):
     min_tol = mass - (mass * 0.000001 * ppm)
     max_tol = mass + (mass * 0.000001 * ppm)
@@ -363,7 +387,6 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
                        charge_b INTEGER DEFAULT NULL,
                        exact_mass_diff REAL DEFAULT NULL,
                        ppm_error REAL DEFAULT NULL,
-                       
                        PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
 
     lib_pairs = _prep_lib(lib.lib)
@@ -395,6 +418,10 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
                                                      assignment["charge_a"], assignment["charge_b"],
                                                      float(assignment["exact_mass_diff"]),
                                                      float(assignment["ppm_error"])))
+
+    cursor.execute("""CREATE INDEX IDX_peak_id_a ON adduct_pairs (peak_id_a);""")
+    cursor.execute("""CREATE INDEX IDX_peak_id_b ON adduct_pairs (peak_id_b);""")
+
     conn.commit()
     conn.close()
     return
@@ -407,16 +434,7 @@ def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
 
     cursor.execute("DROP TABLE IF EXISTS isotopes")
 
-    cursor.execute("""CREATE TABLE isotopes (
-                   peak_id_a TEXT DEFAULT NULL,
-                   peak_id_b TEXT DEFAULT NULL,
-                   label_a TEXT DEFAULT NULL,
-                   label_b TEXT DEFAULT NULL,
-                   atoms REAL DEFAULT NULL,
-                   exact_mass_diff REAL DEFAULT NULL,
-                   ppm_error REAL DEFAULT NULL,
-                   charge INT DEFAULT 1,
-                   PRIMARY KEY (peak_id_a, peak_id_b, label_a, label_b));""")
+    cursor.execute(_sql_create_table_isotopes_)
 
     lib_pairs = _prep_lib(lib.lib)
 
@@ -472,6 +490,10 @@ def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
                                values (?,?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
                                assignment["label_a"], assignment["label_b"], atoms,
                                float(assignment["exact_mass_diff"]), assignment["ppm_error"], charge))
+
+    cursor.execute("""CREATE INDEX IDX_isotopes_peak_id_a ON isotopes (peak_id_a);""")
+    cursor.execute("""CREATE INDEX IDX_isotopes_peak_id_b ON isotopes (peak_id_b);""")
+
     conn.commit()
     conn.close()
     return
@@ -592,6 +614,10 @@ def annotate_oligomers(source, db_out, ppm, lib, maximum=3):
                             cursor.execute("""insert into oligomers (peak_id_a, peak_id_b, mz_a, mz_b, label_a, label_b, charge_a, charge_b, mz_ratio, ppm_error)
                                            values (?,?,?,?,?,?,?,?,?,?)""", (source.iloc[i][0], source.iloc[j][0], source.iloc[i][1], source.iloc[j][1], adduct, adduct_oligo,
                                                                              lib.lib[adduct]["charge"], lib.lib[adduct]["charge"], round(ratio, 2), round(ppm_error, 2)))
+
+    cursor.execute("""CREATE INDEX IDX_oligomers_peak_id_a ON oligomers (peak_id_a);""")
+    cursor.execute("""CREATE INDEX IDX_oligomers_peak_id_b ON oligomers (peak_id_b);""")
+
     conn.commit()
     conn.close()
     return
@@ -604,13 +630,7 @@ def annotate_neutral_losses(source, db_out, ppm, lib):
 
     cursor.execute("DROP TABLE IF EXISTS neutral_losses")
 
-    cursor.execute("""CREATE TABLE neutral_losses (
-                   peak_id_a TEXT DEFAULT NULL,
-                   peak_id_b TEXT DEFAULT NULL,
-                   label TEXT DEFAULT NULL,
-                   exact_mass_diff REAL DEFAULT NULL,
-                   ppm_error REAL DEFAULT NULL,
-                   PRIMARY KEY (peak_id_a, peak_id_b, label));""")
+    cursor.execute(_sql_create_table_neutral_losses_)
 
     if isinstance(source, nx.classes.digraph.DiGraph):
         source = list(source.subgraph(c) for c in nx.weakly_connected_components(source))
@@ -651,6 +671,10 @@ def annotate_neutral_losses(source, db_out, ppm, lib):
                                        exact_mass_diff, ppm_error)
                                        values (?,?,?,?,?)""", (source.iloc[i, 0], source.iloc[j, 0],
                                        nl["label"], nl["mass_difference"], ppm_error))
+
+    cursor.execute("""CREATE INDEX IDX_nls_peak_id_a ON neutral_losses (peak_id_a);""")
+    cursor.execute("""CREATE INDEX IDX_nls_peak_id_b ON neutral_losses (peak_id_b);""")
+
     conn.commit()
     conn.close()
     return
@@ -694,180 +718,135 @@ def _select_unions_peak_patterns(cursor):
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = cursor.fetchall()
 
-    sql_unions = []
-    for t in ["adduct_pairs", "oligomers"]:
+    # Prepare (empty) sqlite tables if not exist to make union queries more consistent
+    if ("isotopes",) not in tables:
+        cursor.execute(_sql_create_table_isotopes_.replace("CREATE", "CREATE TEMP"))
+    if ("neutral_losses",) not in tables:
+        cursor.execute(_sql_create_table_neutral_losses_.replace("CREATE", "CREATE TEMP"))
 
-        if (t,) in tables and ("isotopes",) in tables:
+    records = []
+    sql_unions = []
+    excl_ids_pp = []
+    for t in ["adduct_pairs", "oligomers"]:
+        if (t,) in tables:
+            excl_ids_pp.append("""SELECT peak_id_a FROM {} UNION SELECT peak_id_b FROM {}""".format(t, t))
 
             if t == "oligomers":
                 col_mz_ratio = "ap.mz_ratio AS mz_ratio"
             else:
                 col_mz_ratio = "1 AS mz_ratio"
 
-            sql_str_adducts_isotopes = """
-                                     SELECT    ap.peak_id_a  AS peak_id_a,
-                                               iso.peak_id_b AS peak_id_b,
-                                               ap.label_a    AS adduct_label,
-                                               ap.peak_id_b = iso.peak_id_b,
-                                               iso.label_a   AS iso_label_a,
-                                               iso.label_b   AS iso_label_b,
-                                               ap.charge_a AS charge,
-                                               1 AS mz_ratio,
-                                               iso.exact_mass_diff AS exact_mass_diff,
-                                               NULL          AS nl_label_a,
-                                               NULL          AS nl_label_b
-                                     FROM      {} AS ap
-                                     LEFT JOIN isotopes     AS iso
-                                     where     ap.peak_id_a = iso.peak_id_a
-                                     UNION
-                                     SELECT    ap.peak_id_b  AS peak_id_a,
-                                               iso.peak_id_b AS peak_id_b,
-                                               ap.label_b    AS adduct_label,
-                                               0,
-                                               iso.label_a   AS iso_label_a,
-                                               iso.label_b   AS iso_label_b,
-                                               ap.charge_b AS charge,
-                                               {},
-                                               iso.exact_mass_diff AS exact_mass_diff,
-                                               NULL          AS nl_label_a,
-                                               NULL          AS nl_label_b
-                                     FROM      {} AS ap
-                                     LEFT JOIN isotopes     AS iso
-                                     WHERE     ap.peak_id_b = iso.peak_id_a
-                                     """.format(t, col_mz_ratio, t)
-            sql_unions.append(sql_str_adducts_isotopes)
+            sql_str = """
+                      SELECT ap.peak_id_a      AS peak_id_a,
+                             iso.peak_id_b     AS peak_id_b,
+                             nl_ap.peak_id_b   AS peak_id_a_nl,
+                             nl_iso.peak_id_b  AS peak_id_b_nl,
+                             ap.label_a        AS adduct_label,
+                             IFNULL(ap.peak_id_b = iso.peak_id_b, 0) AS flag,
+                             iso.label_a       AS iso_label_a,
+                             iso.label_b       AS iso_label_b,
+                             ap.charge_a       AS ap_charge,
+                             iso.charge        AS iso_charge,
+                             1                 AS mz_ratio,
+                             IFNULL(iso.exact_mass_diff, 0.0)    AS iso_exact_mass_diff,
+                             IFNULL(nl_ap.exact_mass_diff, 0.0)  AS nl_exact_mass_diff,
+                             nl_ap.label       AS nl_label
+                      FROM   {}                AS ap
+                      LEFT JOIN isotopes       AS iso
+                      ON     ap.peak_id_a = iso.peak_id_a AND ap.charge_a = iso.charge
+                      LEFT JOIN neutral_losses AS nl_ap
+                      ON     ap.peak_id_a = nl_ap.peak_id_a
+                      LEFT JOIN neutral_losses AS nl_iso
+                      ON     iso.peak_id_b = nl_iso.peak_id_a
+                      UNION
+                      SELECT ap.peak_id_b      AS peak_id_a,
+                             iso.peak_id_b     AS peak_id_b,
+                             nl_ap.peak_id_b   AS peak_id_a_nl,
+                             nl_iso.peak_id_b  AS peak_id_b_nl,
+                             ap.label_b        AS adduct_label,
+                             0                 AS flag,
+                             iso.label_a       AS iso_label_a,
+                             iso.label_b       AS iso_label_b,
+                             ap.charge_b       AS ap_charge,
+                             iso.charge        AS iso_charge,
+                             {},
+                             IFNULL(iso.exact_mass_diff, 0)    AS iso_exact_mass_diff,
+                             IFNULL(nl_ap.exact_mass_diff, 0)  AS nl_exact_mass_diff,
+                             nl_ap.label       AS nl_label
+                      FROM   {}                AS ap
+                      LEFT JOIN isotopes       AS iso
+                      ON     ap.peak_id_b = iso.peak_id_a AND ap.charge_b = iso.charge
+                      LEFT JOIN neutral_losses AS nl_ap
+                      ON     ap.peak_id_b = nl_ap.peak_id_a
+                      LEFT JOIN neutral_losses AS nl_iso
+                      ON     iso.peak_id_b = nl_iso.peak_id_a
+                      """.format(t, col_mz_ratio, t)
+            sql_unions.append(sql_str)
 
+    cursor.execute(" UNION ".join(map(str, sql_unions)))
+    records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
 
-        if (t,) in tables:
+    if len(excl_ids_pp) > 0:
+        excl_ids_adducts_oligomers = " union ".join(map(str, excl_ids_pp))
+        sql_excl = """AND iso.peak_id_a NOT IN ({})
+                      AND iso.peak_id_b NOT IN ({})""".format(excl_ids_adducts_oligomers, excl_ids_adducts_oligomers)
+    else:
+        sql_excl = ""
 
-            if t == "oligomers":
-                col_mz_ratio = "mz_ratio AS mz_ratio"
-
-            sql_str_adducts = """
-                                     SELECT peak_id_a,
-                                            NULL,
-                                            label_a,
-                                            0,
-                                            NULL,
-                                            NULL,
-                                            charge_a,
-                                            1,
-                                            0.0,
-                                            NULL,
-                                            NULL
-                                     FROM   {}
-                                     """.format(t)
-
-            if ("isotopes",) in tables:
-                sql_str_adducts += """WHERE peak_id_a NOT IN (
-                                      SELECT peak_id_a
-                                      FROM isotopes
-                                      UNION
-                                      SELECT peak_id_b
-                                      FROM isotopes)
-                                   """
-
-            sql_str_adducts += """UNION
-                                  SELECT peak_id_b,
-                                         NULL,
-                                         label_b,
-                                         0,
-                                         NULL,
-                                         NULL,
-                                         charge_b,
-                                         {},
-                                         0.0,
-                                         NULL,
-                                         NULL
-                                  FROM {} """.format(col_mz_ratio, t)
-
-            if ("isotopes",) in tables:
-                sql_str_adducts += """WHERE peak_id_b NOT IN (
-                                          SELECT peak_id_a
-                                          FROM isotopes
-                                      UNION
-                                          SELECT peak_id_b
-                                          FROM isotopes)"""
-            sql_unions.append(sql_str_adducts)
-
-    if ("neutral_losses",) in tables:
-        sql_str_neutral_losses = """SELECT peak_id_a,
-                                     peak_id_b,
-                                     NULL,
-                                     0,
-                                     NULL,
-                                     NULL,                                    
-                                     0,
-                                     1,
-                                     exact_mass_diff,
-                                     label AS nl_label_a,
-                                     label AS nl_label_b
-                              FROM neutral_losses"""
-        where_str = []
-        for t in ["adduct_pairs", "oligomers"]:
-            if (t,) in tables:
-                sql_str_where = """peak_id_a NOT IN (
-                                       SELECT peak_id_a
-                                       FROM {}
-                                   UNION
-                                       SELECT peak_id_b
-                                       FROM {})
-                                   AND
-                                   peak_id_b NOT IN (
-                                       SELECT peak_id_a
-                                       FROM {}
-                                   UNION
-                                       SELECT peak_id_b
-                                       FROM {})
-                                """.format(t, t, t, t)
-                where_str.append(sql_str_where)
-        if where_str:
-            sql_str_neutral_losses += " WHERE "
-            sql_str_neutral_losses += " AND ".join(map(str, where_str))
-        sql_unions.append(sql_str_neutral_losses)
-
-    if ("isotopes",) in tables:
-        sql_str_isotopes = """SELECT peak_id_a,
-                                     peak_id_b,
-                                     NULL,
-                                     0,
-                                     label_a AS iso_label_a,
-                                     label_b AS iso_label_b,
-                                     0,
-                                     1,
-                                     exact_mass_diff,
-                                     NULL,
-                                     NULL
-                              FROM isotopes"""
-        where_str = []
-        for t in ["adduct_pairs", "oligomers"]:
-            if (t,) in tables:
-                sql_str_where = """peak_id_a NOT IN (
-                                       SELECT peak_id_a
-                                       FROM {}
-                                   UNION
-                                       SELECT peak_id_b
-                                       FROM {})
-                                   AND
-                                   peak_id_b NOT IN (
-                                       SELECT peak_id_a
-                                       FROM {}
-                                   UNION
-                                       SELECT peak_id_b
-                                       FROM {})
-                                """.format(t, t, t, t)
-                where_str.append(sql_str_where)
-        if where_str:
-            sql_str_isotopes += " WHERE "
-            sql_str_isotopes += " AND ".join(map(str, where_str))
-        sql_unions.append(sql_str_isotopes)
-
-    sql_str = " UNION ALL ".join(map(str, sql_unions))
+    sql_str = """
+              SELECT iso.peak_id_a     AS peak_id_a,
+                     iso.peak_id_b     AS peak_id_b,
+                     nl_a.peak_id_b    AS peak_id_a_nl,
+                     nl_b.peak_id_b    AS peak_id_b_nl,
+                     NULL              AS adduct_label,
+                     0                 AS flag,
+                     iso.label_a       AS iso_label_a,
+                     iso.label_b       AS iso_label_b,
+                     NULL              AS ap_charge,
+                     iso.charge        AS iso_charge,
+                     1                 AS mz_ratio,
+                     IFNULL(iso.exact_mass_diff, 0.0)   AS iso_exact_mass_diff,
+                     IFNULL(nl_a.exact_mass_diff, 0.0)  AS nl_exact_mass_diff,
+                     nl_a.label        AS nl_label
+              FROM   isotopes          AS iso
+              LEFT JOIN neutral_losses AS nl_a
+              ON     iso.peak_id_a = nl_a.peak_id_a
+              LEFT JOIN neutral_losses AS nl_b
+              ON     iso.peak_id_b = nl_b.peak_id_a
+              WHERE  (nl_a.label = nl_b.label OR IFNULL(nl_a.label, nl_b.label) is NULL)
+              {}
+              """.format(sql_excl)
 
     cursor.execute(sql_str)
-    rows = cursor.fetchall()
+    records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
 
-    return rows
+    excl_ids_pp.append("""SELECT peak_id_a FROM isotopes UNION SELECT peak_id_b FROM isotopes""")
+    excl_ids = " UNION ".join(map(str, excl_ids_pp))
+    sql_excl = """WHERE peak_id_a NOT IN ({})
+                  AND peak_id_b NOT IN ({})""".format(excl_ids, excl_ids)
+
+    sql_str = """
+              SELECT                    peak_id_a,
+                     NULL            AS peak_id_b,
+                     peak_id_b       AS peak_id_a_nl,
+                     NULL            AS peak_id_b_nl,      
+                     NULL            AS adduct_label,
+                     0               AS flag,
+                     NULL            AS iso_label_a,
+                     NULL            AS iso_label_b,
+                     1               AS ap_charge,
+                     1               AS iso_charge,
+                     1               AS mz_ratio,
+                     0.0             AS iso_exact_mass_diff,
+                     exact_mass_diff AS nl_exact_mass_diff,
+                     label           AS nl_label
+              FROM   neutral_losses
+              {}""".format(sql_excl)
+
+    cursor.execute(sql_str)
+    records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
+
+    return records
 
 
 def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://mfdb.bham.ac.uk", filter=True, rules=True, max_mz=None):
@@ -919,7 +898,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
     path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
     nist_database = nist_database_to_pyteomics(path_nist_database)
 
-    def _select_mfs(source, peak_id, mz, ppm, adducts, isotope, neutral_loss, n_oligo, exact_mass_isotope=0.0, rules=True):
+    def _select_mfs(source, peak_id, mz, ppm, adducts, isotope, neutral_loss, n_oligo, exact_mass_diff=0.0, rules=True):
 
         min_mz, max_mz = calculate_mz_tolerance(mz, ppm)
 
@@ -928,17 +907,17 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
 
             if mz - lib_adducts.lib[adduct]["mass"] > 0.5:
                 if source == "api":
-                    params = {"lower": (min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) *
+                    params = {"lower": (min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_diff) *
                                         lib_adducts.lib[adduct]["charge"] / n_oligo,
-                              "upper": (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) *
+                              "upper": (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_diff) *
                                         lib_adducts.lib[adduct]["charge"] / n_oligo,
                               "rules": int(rules)}
                     response = requests.get(url, params=params)
                     records = response.json()["records"]
                 else:
-                    records = conn_mem.select_mf((min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) *
+                    records = conn_mem.select_mf((min_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_diff) *
                                                   lib_adducts.lib[adduct]["charge"] / n_oligo,
-                                                 (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_isotope) *
+                                                 (max_mz - lib_adducts.lib[adduct]["mass"] - exact_mass_diff) *
                                                  lib_adducts.lib[adduct]["charge"] / n_oligo, rules=rules)
                 for record in records:
                     record["id"] = peak_id
@@ -951,7 +930,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                         record.update(record["atoms"])
                         del record["atoms"]
                     record["exact_mass"] = (record["exact_mass"] / lib_adducts.lib[adduct]["charge"] * n_oligo) + \
-                                           (float(lib_adducts.lib[adduct]["mass"]) + exact_mass_isotope)
+                                           (float(lib_adducts.lib[adduct]["mass"]) + exact_mass_diff)
                     record["adduct"] = adduct
                     record["mz"] = mz
                     record["ppm_error"] = calculate_ppm_error(mz, record["exact_mass"])
@@ -973,69 +952,101 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
 
     rows = _select_unions_peak_patterns(cursor)
     names_to_skip = []
-    records = []
 
     for row in rows:
+
+        if row["peak_id_a"] in names_to_skip and row["peak_id_b"] in names_to_skip and not row["adduct_label"]:
+            continue
+
+        records = []
         match = None
-        if row[2]:
-            if row[7] > 1: # oligomers
-                match = difflib.get_close_matches(row[2], lib_adducts.lib.keys(), n=1)
+
+        if row["adduct_label"]:
+            if row["mz_ratio"] > 1: # oligomers
+                match = difflib.get_close_matches(row["adduct_label"], lib_adducts.lib.keys(), n=1)
                 adducts = [match[0]]
             else:
-                adducts = [str(row[2])]
+                adducts = [str(row["adduct_label"])]
         else:
             adducts = lib_adducts.lib.keys()
 
-        index_name = peaklist["name"].tolist().index(str(row[0]))
+        index_name = peaklist["name"].tolist().index(str(row["peak_id_a"]))
         mz = peaklist["mz"].iloc[index_name]
 
         if max_mz is not None and mz > max_mz:
             continue
 
-        records_a = _select_mfs(source, row[0], mz, ppm, adducts, row[4], row[9], row[7], 0.0, rules=rules)
-        if row[9] == row[10] and row[9] is not None: # Neutral Loss
-            records_nl = _select_mfs(source, row[0], mz, ppm, adducts, row[4], row[9], row[7], -row[8], rules=rules)
+        # (source, peak_id, mz, ppm, adducts, isotope, neutral_loss, n_oligo, exact_mass_diff=0.0, rules=True):
+        records_a = _select_mfs(source, row["peak_id_a"], mz, ppm, adducts, row["iso_label_a"], row["nl_label"], row["mz_ratio"], 0.0, rules=rules)
+        if row["nl_label"] is not None: # Neutral Loss
+            records_nl = _select_mfs(source, row["peak_id_a"], mz, ppm, adducts, row["iso_label_a"], row["nl_label"], row["mz_ratio"], -row["nl_exact_mass_diff"], rules=rules)
             records_a.extend(records_nl) # Neutral Loss
 
-        if match:
-            for record in records_a:
-                record["adduct"] = row[2]
+            index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
+            mz = peaklist["mz"].iloc[index_name]
+            records_a_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], 0.0, rules=rules) # Neutral Loss
+            records_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], row["nl_exact_mass_diff"], rules=rules)# Neutral Loss
+            records_a_nl.extend(records_nl) # Neutral Loss
 
-        if row[1]:
+            for record_a in reversed(records_a):  # list changes during iteration
+                for record_a_nl in records_a_nl:
+                    if record_a["molecular_formula"] == record_a_nl["molecular_formula"]:
+                        records_a.append(record_a_nl)
 
-            index_name = peaklist["name"].tolist().index(str(row[1]))
+            names_to_skip.append(row["peak_id_a_nl"])
+
+        if row["peak_id_b"]:
+
+            index_name = peaklist["name"].tolist().index(str(row["peak_id_b"]))
             mz = peaklist["mz"].iloc[index_name]
 
-            if row[3]:  # different adducts - label_a and label_b?
+            if row["flag"]:  # different adducts - label_a and label_b?
                 exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
             else:
-                exact_mass_diff = float(row[8])
-
-            records_b = _select_mfs(source, row[1], mz, ppm, adducts, row[5], row[10], row[7], exact_mass_diff, rules=rules)
-            if row[9] == row[10] and row[9] is not None:  # Neutral Loss
-                records_nl = _select_mfs(source, row[1], mz, ppm, adducts, row[5], row[10], row[7], 0.0, rules=rules)
+                exact_mass_diff = float(row["iso_exact_mass_diff"])
+                
+            records_b = _select_mfs(source, row["peak_id_b"], mz, ppm, adducts, row["iso_label_b"], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)
+            if row["nl_label"] is not None:  # Neutral Loss
+                records_nl = _select_mfs(source, row["peak_id_b"], mz, ppm, adducts, row["iso_label_b"], row["nl_label"], row["mz_ratio"], -(row["nl_exact_mass_diff"] - exact_mass_diff), rules=rules)
                 records_b.extend(records_nl)  # Neutral Loss
+
+                index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
+                mz = peaklist["mz"].iloc[index_name]
+                records_b_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)  # Neutral Loss
+                records_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"], rules=rules)  # Neutral Loss
+                records_b_nl.extend(records_nl)  # Neutral Loss
+
+                for record_b in reversed(records_b):
+                    for record_b_nl in records_b_nl:
+                        if record_b["molecular_formula"] == record_b_nl["molecular_formula"]:
+                            records_b.append(record_b_nl)
+
+                names_to_skip.append(row["peak_id_b_nl"])
 
             for record_a in records_a:
                 for record_b in records_b:
                     if record_a["molecular_formula"] == record_b["molecular_formula"]:
-                        if match:
-                            record_a["adduct"] = row[2]  # original adduct e.g. [2M+H]+ instead of [M+H]+
-                            record_b["adduct"] = row[2]
+                        if record_a not in records:
+                            records.append(record_a)
+                        if record_b not in records:
+                            records.append(record_b)
 
-                        records.append(record_a)
-                        records.append(record_b)
-            names_to_skip.append(row[0])
-            names_to_skip.append(row[1])
+            names_to_skip.append(row["peak_id_a"])
+            names_to_skip.append(row["peak_id_b"])
         else:
-            names_to_skip.append(row[0])
+            names_to_skip.append(row["peak_id_a"])
             records.extend(records_a)
 
-    if len(records) > 0:
-        sql_str = """INSERT INTO molecular_formulae ({}) VALUES (:{})
-                  """.format(",".join(map(str, records[0].keys())), ", :".join(map(str, records[0].keys())))
-        cursor.executemany(sql_str, records)
-        conn.commit()
+        if len(records) > 0:
+
+            if match:
+                for record in records:
+                    record["adduct"] = row["adduct_label"]
+
+            sql_str = """INSERT INTO molecular_formulae ({}) VALUES (:{})
+                      """.format(",".join(map(str, records[0].keys())), ", :".join(map(str, records[0].keys())))
+            cursor.executemany(sql_str, records)
+            conn.commit()
 
     cursor.execute("select id, molecular_formula from molecular_formulae")
     mfs_subset = cursor.fetchall()
@@ -1147,8 +1158,6 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
                 if min_mz - lib_adducts.lib[adduct]["mass"] < 0.5:
                     continue
 
-                # TODO: min, max, mz to make more accurate
-
                 if isinstance(db_cursor, sqlite3.Cursor):
                     col_names = ["compound_id", "C", "H", "N", "O", "P", "S", "CHNOPS",
                                  "molecular_formula", "compound_name", "exact_mass"]
@@ -1200,69 +1209,96 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
     rows = _select_unions_peak_patterns(cursor)
 
     names_to_skip = []
-    records = []
-
     for row in rows:
+
+        if row["peak_id_a"] in names_to_skip and row["peak_id_b"] in names_to_skip and not row["adduct_label"]:
+            continue
+
+        records = []
         match = None
-        if row[2]:
-            if row[7] > 1: # oligomers
-                match = difflib.get_close_matches(row[2], lib_adducts.lib.keys(), n = 1)
+
+        if row["adduct_label"]:
+            if row["mz_ratio"] > 1: # oligomers
+                match = difflib.get_close_matches(row["adduct_label"], lib_adducts.lib.keys(), n=1)
                 adducts = [match[0]]
             else:
-                adducts = [str(row[2])]
+                adducts = [str(row["adduct_label"])]
         else:
             adducts = list(lib_adducts.lib.keys())
 
-        index_name = peaklist["name"].tolist().index(str(row[0]))
+        index_name = peaklist["name"].tolist().index(str(row["peak_id_a"]))
         mz = peaklist["mz"].iloc[index_name]
 
-        records_a = _select_compounds(cursor_cpds, row[0], mz, ppm, adducts, row[4], row[9], None, None, row[7], 0.0)
-        if row[9] == row[10] and row[9] is not None: # Neutral Loss
-            records_nl = _select_compounds(cursor_cpds, row[0], mz, ppm, adducts, row[4], row[9], None, None, row[7], -row[8]) # Neutral Loss
+        records_a = _select_compounds(cursor_cpds, row["peak_id_a"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], 0.0)
+        if row["nl_label"] is not None and row["peak_id_a_nl"] is not None: # Neutral Loss
+            records_nl = _select_compounds(cursor_cpds, row["peak_id_a"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], -row["nl_exact_mass_diff"]) # Neutral Loss
             records_a.extend(records_nl) # Neutral Loss
 
-        if match:
-            for record in records_a:
-                record["adduct"] = row[2]
+            index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
+            mz = peaklist["mz"].iloc[index_name]
+            records_a_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], 0.0) # Neutral Loss
+            records_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], row["nl_exact_mass_diff"]) # Neutral Loss
+            records_a_nl.extend(records_nl) # Neutral Loss
 
-        if row[1]:
+            for record_a in reversed(records_a):  # list changes during iteration
+                for record_a_nl in records_a_nl:
+                    if record_a["compound_id"] == record_a_nl["compound_id"]:
+                        records_a.append(record_a_nl)
 
-            index_name = peaklist["name"].tolist().index(str(row[1]))
+            names_to_skip.append(row["peak_id_a_nl"])
+
+        if row["peak_id_b"]:
+
+            index_name = peaklist["name"].tolist().index(str(row["peak_id_b"]))
             mz = peaklist["mz"].iloc[index_name]
 
-            if row[3]:  # different adducts - label_a and label_b?
+            if row["flag"]:  # different adducts - label_a and label_b?
                 exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
             else:
-                exact_mass_diff = float(row[8])
+                exact_mass_diff = float(row["iso_exact_mass_diff"])
 
-            records_b = _select_compounds(cursor_cpds, row[1], mz, ppm, adducts, row[5], row[10], None, None, row[7], exact_mass_diff)
-            if row[9] == row[10] and row[9] is not None: # Neutral Loss
-                records_nl = _select_compounds(cursor_cpds, row[1], mz, ppm, adducts, row[5], row[10], None, None, row[7], 0.0) # Neutral Loss
+            records_b = _select_compounds(cursor_cpds, row["peak_id_b"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)
+            if row["nl_label"] is not None and row["peak_id_b_nl"] is not None:  # Neutral Loss
+                records_nl = _select_compounds(cursor_cpds, row["peak_id_b"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], -(row["nl_exact_mass_diff"] - exact_mass_diff))  # Neutral Loss
                 records_b.extend(records_nl) # Neutral Loss
+
+                index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
+                mz = peaklist["mz"].iloc[index_name]
+                records_b_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)  # Neutral Loss
+                records_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"])  # Neutral Loss
+                records_b_nl.extend(records_nl)  # Neutral Loss
+
+                for record_b in reversed(records_b):  # list changes during iteration
+                    for record_b_nl in records_b_nl:
+                        if record_b["compound_id"] == record_b_nl["compound_id"]:
+                            records_b.append(record_b_nl)
+
+                names_to_skip.append(row["peak_id_b_nl"])
 
             for record_a in records_a:
                 for record_b in records_b:
                     if record_a["compound_id"] == record_b["compound_id"]:
-                        if match:
-                            record_a["adduct"] = row[2]  # original adduct e.g. [2M+H]+ instead of [M+H]+
-                            record_b["adduct"] = row[2]
-                        records.append(record_a)
-                        records.append(record_b)
-            names_to_skip.append(row[0])
-            names_to_skip.append(row[1])
+                        if record_a not in records:
+                            records.append(record_a)
+                        if record_b not in records:
+                            records.append(record_b)
+
+            names_to_skip.append(row["peak_id_a"])
+            names_to_skip.append(row["peak_id_b"])
         else:
-            names_to_skip.append(row[0])
+            names_to_skip.append(row["peak_id_a"])
             records.extend(records_a)
 
-    if len(records) > 0:
-        # for i, record in enumerate(records):
-        #     if records.count(record) > 1:
-        #         print(record)
+        if len(records) > 0:
 
-        sql_str = """INSERT OR IGNORE INTO compounds_{} ({}) VALUES (:{})
-                  """.format(db_name, ",".join(map(str, records[0].keys())), ", :".join(map(str, records[0].keys())))
-        cursor.executemany(sql_str, records)
-        conn.commit()
+            if match:
+                for record in records:
+                    record["adduct"] = row["adduct_label"]
+
+            sql_str = """INSERT OR IGNORE INTO compounds_{} ({}) VALUES (:{})
+                      """.format(db_name, ",".join(map(str, records[0].keys())), ", :".join(map(str, records[0].keys())))
+            cursor.executemany(sql_str, records)
+            conn.commit()
 
     cursor.execute("select id, compound_id from compounds_{}".format(db_name))
     cpds_subset = cursor.fetchall()
@@ -1559,8 +1595,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                             ) group by isotope_peak_id_a"""
 
     if flag_neutral_losses:
-        columns_nls = ["nl_labels_a", "nl_ids"]
-        query_nls = """SELECT peak_id_a as nl_peak_id_a, group_concat(label) AS nl_labels_a,
+        columns_nls = ["nl_labels", "nl_ids"]
+        query_nls = """SELECT peak_id_a as nl_peak_id_a, group_concat(label) AS nl_labels,
                             group_concat(peak_id_b, ",") AS nl_ids
                             from (select peak_id_a, label, peak_id_b, ppm_error 
                             from neutral_losses
@@ -1735,7 +1771,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             """.format(pl_columns, mf_cpc_columns, join_peak_labels, union_mf_sub_query, unions_cpd_sub_query)
 
     cursor.execute("DROP TABLE IF EXISTS summary")
-    print(query)
+    # print(query)
     cursor.execute(query)
     conn.commit()
 
@@ -1811,19 +1847,19 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         cursor.execute(query)
     conn.commit()
 
-    columns_to_select = []
-    if ("groups",) in tables:
-        columns_to_select.append("group_id, degree_cor, sub_group_id, degree, n_nodes, n_edges")
-    if ("adduct_pairs",) in tables or ("oligomers",) in tables:
-        columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
-        from (select distinct label, charge, oligomer from summary AS s where summary.name = s.name)
-        ) AS label_charge_oligomer""")
-    if ("isotopes",) in tables:
-        columns_to_select.append("isotope_labels_a, isotope_ids, isotope_labels_b, atoms")
-    #if ("neutral_losses",) in tables:
-    #    columns_to_select.append("neutral_loss_labels_a, neutral_loss_ids, neutral_loss_b")
-
     if single_row:
+
+        columns_to_select = []
+        if ("groups",) in tables:
+            columns_to_select.extend(["group_id", "degree_cor", "sub_group_id", "degree", "n_nodes", "n_edges"])
+        if ("adduct_pairs",) in tables or ("oligomers",) in tables:
+            columns_to_select.append("""(select group_concat(label || '::' || charge || '::' || oligomer, '||')
+            from (select distinct label, charge, oligomer from summary AS s where summary.name = s.name)
+            ) AS label_charge_oligomer""")
+        if ("isotopes",) in tables:
+            columns_to_select.extend(["isotope_labels_a", "isotope_ids", "isotope_labels_b", "atoms"])
+        if ("neutral_losses",) in tables:
+            columns_to_select.extend(["nl_labels", "nl_ids"])
 
         if flag_cpd:
             if single_column:
