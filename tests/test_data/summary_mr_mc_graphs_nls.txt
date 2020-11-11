@@ -1,4 +1,4 @@
-name	mz	rt	intensity	group_id	degree_cor	sub_group_id	degree	n_nodes	n_edges	nl_labels_a	nl_ids	exact_mass	ppm_error	rt_diff	adduct	C	H	N	O	P	S	molecular_formula	compound_name	compound_id	compound_count	compounds_hmdb_full_v4_0_v1
+name	mz	rt	intensity	group_id	degree_cor	sub_group_id	degree	n_nodes	n_edges	nl_labels	nl_ids	exact_mass	ppm_error	rt_diff	adduct	C	H	N	O	P	S	molecular_formula	compound_name	compound_id	compound_count	compounds_hmdb_full_v4_0_v1
 M139T80	139.000181	80	3870.3	1	1	1	1	2	1	H2O	M157T80	139.000082	0.7122297957050444		[M+H]+	10	4	0	0	0	1	C10H4S				
 M139T80	139.000181	80	3870.3	1	1	1	1	2	1	H2O	M157T80	139.000179	0.014388470643267915		[M+Na]+	4	6	0	5	0	0	C4H6O5				
 M139T80	139.000181	80	3870.3	1	1	1	1	2	1	H2O	M157T80	139.000179	0.014388470643267915		[M+Na]+ 	4	6	0	5	0	0	C4H6O5	D-Malic acid	HMDB0031518	2.0	1
