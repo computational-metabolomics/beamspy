@@ -811,9 +811,10 @@ def _select_unions_peak_patterns(cursor):
               ON     iso.peak_id_a = nl_a.peak_id_a
               LEFT JOIN neutral_losses AS nl_b
               ON     iso.peak_id_b = nl_b.peak_id_a
-              WHERE  (nl_a.label = nl_b.label OR IFNULL(nl_a.label, nl_b.label) is NULL)
-              {}
-              """.format(sql_excl)
+              WHERE  (nl_a.label = nl_b.label 
+                     OR IFNULL(nl_a.label, nl_b.label) is NOT NULL
+                     OR IFNULL(nl_a.label, nl_b.label) is NULL)
+              {}""".format(sql_excl)
 
     cursor.execute(sql_str)
     records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
@@ -986,18 +987,20 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
             records_nl = _select_mfs(source, row["peak_id_a"], mz, ppm, adducts, row["iso_label_a"], row["nl_label"], row["mz_ratio"], -row["nl_exact_mass_diff"], rules=rules)
             records_a.extend(records_nl) # Neutral Loss
 
-            index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
-            mz = peaklist["mz"].iloc[index_name]
-            records_a_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], 0.0, rules=rules) # Neutral Loss
-            records_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], row["nl_exact_mass_diff"], rules=rules)# Neutral Loss
-            records_a_nl.extend(records_nl) # Neutral Loss
+            if row["peak_id_a_nl"] is not None:
 
-            for record_a in reversed(records_a):  # list changes during iteration
-                for record_a_nl in records_a_nl:
-                    if record_a["molecular_formula"] == record_a_nl["molecular_formula"]:
-                        records_a.append(record_a_nl)
+                index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
+                mz = peaklist["mz"].iloc[index_name]
+                records_a_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], 0.0, rules=rules) # Neutral Loss
+                records_nl = _select_mfs(source, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], row["mz_ratio"], row["nl_exact_mass_diff"], rules=rules)# Neutral Loss
+                records_a_nl.extend(records_nl) # Neutral Loss
 
-            names_to_skip.append(row["peak_id_a_nl"])
+                for record_a in reversed(records_a):  # list changes during iteration
+                    for record_a_nl in records_a_nl:
+                        if record_a["molecular_formula"] == record_a_nl["molecular_formula"]:
+                            records_a.append(record_a_nl)
+
+                names_to_skip.append(row["peak_id_a_nl"])
 
         if row["peak_id_b"]:
 
@@ -1010,22 +1013,26 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http:
                 exact_mass_diff = float(row["iso_exact_mass_diff"])
                 
             records_b = _select_mfs(source, row["peak_id_b"], mz, ppm, adducts, row["iso_label_b"], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)
+
             if row["nl_label"] is not None:  # Neutral Loss
+
                 records_nl = _select_mfs(source, row["peak_id_b"], mz, ppm, adducts, row["iso_label_b"], row["nl_label"], row["mz_ratio"], -(row["nl_exact_mass_diff"] - exact_mass_diff), rules=rules)
                 records_b.extend(records_nl)  # Neutral Loss
 
-                index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
-                mz = peaklist["mz"].iloc[index_name]
-                records_b_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)  # Neutral Loss
-                records_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"], rules=rules)  # Neutral Loss
-                records_b_nl.extend(records_nl)  # Neutral Loss
+                if row["peak_id_b_nl"] is not None:
 
-                for record_b in reversed(records_b):
-                    for record_b_nl in records_b_nl:
-                        if record_b["molecular_formula"] == record_b_nl["molecular_formula"]:
-                            records_b.append(record_b_nl)
+                    index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
+                    mz = peaklist["mz"].iloc[index_name]
+                    records_b_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)  # Neutral Loss
+                    records_nl = _select_mfs(source, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"], rules=rules)  # Neutral Loss
+                    records_b_nl.extend(records_nl)  # Neutral Loss
 
-                names_to_skip.append(row["peak_id_b_nl"])
+                    for record_b in reversed(records_b):
+                        for record_b_nl in records_b_nl:
+                            if record_b["molecular_formula"] == record_b_nl["molecular_formula"]:
+                                records_b.append(record_b_nl)
+
+                    names_to_skip.append(row["peak_id_b_nl"])
 
             for record_a in records_a:
                 for record_b in records_b:
@@ -1231,7 +1238,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
             if row["iso_charge"]:
                 adducts = []
                 for a in lib_adducts.lib.keys():
-                    if lib_adducts.lib[a]["charge"] == row["iso_charge"]:
+                    if int(lib_adducts.lib[a]["charge"]) == int(row["iso_charge"]):
                         adducts.append(a)
             else:
                 adducts = lib_adducts.lib.keys()
@@ -1240,22 +1247,24 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
         mz = peaklist["mz"].iloc[index_name]
 
         records_a = _select_compounds(cursor_cpds, row["peak_id_a"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], 0.0)
-        if row["nl_label"] is not None and row["peak_id_a_nl"] is not None: # Neutral Loss
+        if row["nl_label"] is not None: # Neutral Loss
             records_nl = _select_compounds(cursor_cpds, row["peak_id_a"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], -row["nl_exact_mass_diff"]) # Neutral Loss
             records_a.extend(records_nl) # Neutral Loss
 
-            index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
-            mz = peaklist["mz"].iloc[index_name]
-            records_a_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], 0.0) # Neutral Loss
-            records_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], row["nl_exact_mass_diff"]) # Neutral Loss
-            records_a_nl.extend(records_nl) # Neutral Loss
+            if row["peak_id_a_nl"] is not None:
 
-            for record_a in reversed(records_a):  # list changes during iteration
-                for record_a_nl in records_a_nl:
-                    if record_a["compound_id"] == record_a_nl["compound_id"]:
-                        records_a.append(record_a_nl)
+                index_name = peaklist["name"].tolist().index(str(row["peak_id_a_nl"]))
+                mz = peaklist["mz"].iloc[index_name]
+                records_a_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], 0.0) # Neutral Loss
+                records_nl = _select_compounds(cursor_cpds, row["peak_id_a_nl"], mz, ppm, adducts, row['iso_label_a'], row["nl_label"], None, None, row["mz_ratio"], row["nl_exact_mass_diff"]) # Neutral Loss
+                records_a_nl.extend(records_nl) # Neutral Loss
 
-            names_to_skip.append(row["peak_id_a_nl"])
+                for record_a in reversed(records_a):  # list changes during iteration
+                    for record_a_nl in records_a_nl:
+                        if record_a["compound_id"] == record_a_nl["compound_id"]:
+                            records_a.append(record_a_nl)
+
+                names_to_skip.append(row["peak_id_a_nl"])
 
         if row["peak_id_b"]:
 
@@ -1268,20 +1277,23 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
                 exact_mass_diff = float(row["iso_exact_mass_diff"])
 
             records_b = _select_compounds(cursor_cpds, row["peak_id_b"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)
-            if row["nl_label"] is not None and row["peak_id_b_nl"] is not None:  # Neutral Loss
+            if row["nl_label"] is not None:  # Neutral Loss
+
                 records_nl = _select_compounds(cursor_cpds, row["peak_id_b"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], -(row["nl_exact_mass_diff"] - exact_mass_diff))  # Neutral Loss
                 records_b.extend(records_nl) # Neutral Loss
 
-                index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
-                mz = peaklist["mz"].iloc[index_name]
-                records_b_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)  # Neutral Loss
-                records_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"])  # Neutral Loss
-                records_b_nl.extend(records_nl)  # Neutral Loss
+                if row["peak_id_b_nl"] is not None:
 
-                for record_b in reversed(records_b):  # list changes during iteration
-                    for record_b_nl in records_b_nl:
-                        if record_b["compound_id"] == record_b_nl["compound_id"]:
-                            records_b.append(record_b_nl)
+                    index_name = peaklist["name"].tolist().index(str(row["peak_id_b_nl"]))
+                    mz = peaklist["mz"].iloc[index_name]
+                    records_b_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)  # Neutral Loss
+                    records_nl = _select_compounds(cursor_cpds, row["peak_id_b_nl"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff + row["nl_exact_mass_diff"])  # Neutral Loss
+                    records_b_nl.extend(records_nl)  # Neutral Loss
+
+                    for record_b in reversed(records_b):  # list changes during iteration
+                        for record_b_nl in records_b_nl:
+                            if record_b["compound_id"] == record_b_nl["compound_id"]:
+                                records_b.append(record_b_nl)
 
                 names_to_skip.append(row["peak_id_b_nl"])
 
@@ -1593,14 +1605,15 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         query_adducts_oligo = " union ".join(map(str, sub_queries))
 
     if flag_isotopes:
-        columns_isotopes = ["isotope_labels_a", "isotope_ids", "isotope_labels_b", "atoms"]
+        columns_isotopes = ["isotope_labels_a", "isotope_ids", "isotope_labels_b", "isotope_charges", "atoms"]
         query_isotopes = """SELECT peak_id_a as isotope_peak_id_a, group_concat(label_a) AS isotope_labels_a,
                             group_concat(peak_id_b, ",") AS isotope_ids,
-                            group_concat(label_b) AS isotope_labels_b, group_concat(round(atoms,1), ",") AS atoms
-                            from (select peak_id_a, label_a, peak_id_b, label_b, atoms, ppm_error from isotopes
+                            group_concat(label_b) AS isotope_labels_b, group_concat(charge) AS isotope_charges,
+                            group_concat(round(atoms,1), ",") AS atoms
+                            from (select peak_id_a, label_a, peak_id_b, label_b, charge, atoms, ppm_error from isotopes
                             union
                             select peak_id_b AS peak_id_a, label_b AS label_a,
-                            peak_id_a AS peak_id_b, label_a AS label_b, atoms, ppm_error
+                            peak_id_a AS peak_id_b, label_a AS label_b, charge, atoms, ppm_error
                             from isotopes                    
                             ) group by isotope_peak_id_a"""
 
@@ -1772,7 +1785,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         sql_str_order += ", compound_name is NULL, compound_name"
 
     query = """
-            CREATE TABLE summary AS SELECT
+            CREATE TABLE summary AS SELECT distinct
             peaklist.name, peaklist.mz, peaklist.rt, peaklist.intensity{}{}
             FROM peaklist
             {}
@@ -1815,7 +1828,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
     query_d = """
               DELETE FROM summary
               WHERE name IN ("{}"){}
-              """.format('","'.join(map(str,[name[0] for name in set(r) & set(rr)])), where_str)
+              """.format('","'.join(map(str, [name[0] for name in set(r) & set(rr)])), where_str)
     cursor.execute(query_d)
     conn.commit()
 
@@ -1829,7 +1842,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
                 UPDATE summary
                 SET compound_count = 
                 (SELECT scs.c FROM
-                    (SELECT {}, compound_id, COUNT(*) AS c FROM summary AS s
+                    (SELECT {}, compound_id, COUNT(DISTINCT name) AS c FROM summary AS s
                     GROUP BY {}, compound_id) AS scs
                     WHERE scs.compound_id = summary.compound_id 
                     AND (scs.{} = summary.{} and scs.{} IS NOT NULL AND summary.{} IS NOT NULL)
@@ -1850,7 +1863,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         query = """  
                 UPDATE summary
                 SET compound_count = 
-                (SELECT COUNT(*) FROM summary AS s
+                (SELECT COUNT(DISTINCT name) FROM summary AS s
                     WHERE s.compound_id = summary.compound_id 
                     AND summary.compound_id IS NOT NULL
                     ) where summary.compound_id IS NOT NULL
@@ -1868,7 +1881,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             from (select distinct label, charge, oligomer from summary AS s where summary.name = s.name)
             ) AS label_charge_oligomer""")
         if ("isotopes",) in tables:
-            columns_to_select.extend(["isotope_labels_a", "isotope_ids", "isotope_labels_b", "atoms"])
+            columns_to_select.extend(["isotope_labels_a", "isotope_ids", "isotope_labels_b", "isotope_charges", "atoms"])
         if ("neutral_losses",) in tables:
             columns_to_select.extend(["nl_labels", "nl_ids"])
 
