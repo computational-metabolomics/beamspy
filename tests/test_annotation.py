@@ -304,25 +304,28 @@ class AnnotationTestCase(unittest.TestCase):
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=False, single_column=False,
                              convert_rt=None, ndigits_mz=None)
 
+        # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "summary"), key = lambda x: x[0])
+        # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "summary"), key = lambda x: x[0])
+
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "summary"),
                                  sqlite_records(to_test_data(self.db_results), "summary"))
 
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (118, 28))
+        self.assertSequenceEqual(df_summary.shape, (118, 29))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_mc.txt"
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=False,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (17, 17))
+        self.assertSequenceEqual(df_summary.shape, (17, 18))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_sc.txt"
         df_summary = summary(self.df, to_test_results(self.db_results), single_row=True, single_column=True,
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (17, 12))
+        self.assertSequenceEqual(df_summary.shape, (17, 13))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs.txt"
@@ -331,7 +334,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
                                  sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, ((51, 32)))
+        self.assertSequenceEqual(df_summary.shape, ((51, 33)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_graphs_nls.txt"
@@ -342,7 +345,7 @@ class AnnotationTestCase(unittest.TestCase):
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
 
-        self.assertSequenceEqual(df_summary.shape, ((27, 28)))
+        self.assertSequenceEqual(df_summary.shape, ((27, 29)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 
