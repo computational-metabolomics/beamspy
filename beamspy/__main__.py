@@ -337,7 +337,7 @@ def main():
         from PySide2 import QtWidgets
         from beamspy.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
-        app.setStyle("Fusion")
+        # app.setStyle("Fusion")
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())

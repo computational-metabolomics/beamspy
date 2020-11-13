@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>795</width>
-    <height>830</height>
+    <width>941</width>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,1631 +20,1258 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupBox_general">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>8</y>
-      <width>761</width>
-      <height>131</height>
-     </rect>
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>5</number>
     </property>
-    <property name="title">
-     <string/>
+    <property name="topMargin">
+     <number>5</number>
     </property>
-    <widget class="QLineEdit" name="lineEdit_intensity_matrix">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>60</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_peaklist">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>30</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_peaklist">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>28</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>81</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_peaklist">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>12</x>
-       <y>30</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Peaklist:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_intensity_matrix">
-     <property name="geometry">
-      <rect>
-       <x>12</x>
-       <y>60</y>
-       <width>111</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Intensity matrix:</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_ion_mode">
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>58</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
+    <property name="rightMargin">
+     <number>5</number>
+    </property>
+    <property name="bottomMargin">
+     <number>5</number>
+    </property>
+    <property name="spacing">
+     <number>5</number>
+    </property>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pushButton_start">
       <property name="text">
-       <string>Positive</string>
+       <string>Start</string>
       </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Negative</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_ion_mode">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>60</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Ion mode:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_data_files">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>291</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Data Files &amp; General Settings</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_default_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>88</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Use default</string>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_default_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>86</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_sql_database">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>12</x>
-       <y>92</y>
-       <width>121</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Database:</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_sql_database">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>92</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_sql_database">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>90</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>81</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Save as...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_graph">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>498</x>
-       <y>30</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_graph">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>668</x>
-       <y>28</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>81</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Save as...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_graph">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>30</y>
-       <width>111</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Graph:</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_peak_matrix">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>56</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>81</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_default_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>90</y>
-       <width>141</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Adduct library:</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_group_features">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>150</y>
-      <width>761</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QLabel" name="label_max_rt">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>33</y>
-       <width>191</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Maximum RT difference (sec):</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_group_features">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>-1</y>
-       <width>231</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Group Features</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_max_rt">
-     <property name="geometry">
-      <rect>
-       <x>190</x>
-       <y>30</y>
-       <width>81</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>9999999.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_grouping_method">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>31</y>
-       <width>151</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>Pearson correlation</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Spearman-rank correlation</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_p_value">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>57</y>
-       <width>151</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="decimals">
-      <number>10</number>
-     </property>
-     <property name="maximum">
-      <double>1.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.010000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.010000000000000</double>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_tool_p_value">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>303</x>
-       <y>60</y>
-       <width>121</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>P-value threshold:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_grouping_method">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>303</x>
-       <y>33</y>
-       <width>121</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Grouping method:</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_coefficent">
-     <property name="geometry">
-      <rect>
-       <x>190</x>
-       <y>57</y>
-       <width>81</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>1.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.100000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.700000000000000</double>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_tool_coefficient">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>181</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Coefficent threshold:</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_block">
-     <property name="geometry">
-      <rect>
-       <x>666</x>
-       <y>57</y>
-       <width>81</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="decimals">
-      <number>0</number>
-     </property>
-     <property name="maximum">
-      <double>100000000.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>1000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5000.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_ncpus">
-     <property name="geometry">
-      <rect>
-       <x>666</x>
-       <y>30</y>
-       <width>81</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="decimals">
-      <number>0</number>
-     </property>
-     <property name="maximum">
-      <double>10000.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>1.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>1.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_grouping_ncpus">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>596</x>
-       <y>33</y>
-       <width>61</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>cpus:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_grouping_block">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>596</x>
-       <y>59</y>
-       <width>61</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Block size:</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_annotate_peak_patterns">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>250</y>
-      <width>761</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QLineEdit" name="lineEdit_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>58</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Use default</string>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>56</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_annotate_peak_patterns">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>-1</y>
-       <width>271</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Annotate Peak Patterns</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_adduct_library">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>33</y>
-       <width>181</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Adducts</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_isotopes">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>33</y>
-       <width>171</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Isotopes</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_neutral_losses">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>56</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_neutral_losses">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>58</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Use default</string>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_isotopes">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>58</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Use default</string>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_isotopes">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>56</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_neutral_losses">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>33</y>
-       <width>171</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Neutral losses</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_oligomers">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>580</x>
-       <y>33</y>
-       <width>171</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Oligomers</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QSpinBox" name="spinBox_max_monomer_units">
-     <property name="geometry">
-      <rect>
-       <x>670</x>
-       <y>58</y>
-       <width>51</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="minimum">
-      <number>2</number>
-     </property>
-     <property name="maximum">
-      <number>1000000</number>
-     </property>
-     <property name="value">
-      <number>2</number>
-     </property>
-     <property name="displayIntegerBase">
-      <number>10</number>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_max_monomer_units">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>580</x>
-       <y>60</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Monomer Units:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_pp_ppm_tolerance">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>141</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Mass tolerance (ppm):</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_pp_ppm_error">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>88</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QPushButton" name="pushButton_start">
-    <property name="geometry">
-     <rect>
-      <x>640</x>
-      <y>764</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Start</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_cancel">
-    <property name="geometry">
-     <rect>
-      <x>711</x>
-      <y>764</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Cancel</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_annotate_molecular_formulae">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>383</y>
-      <width>761</width>
-      <height>101</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QLabel" name="label_filename_mf">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>65</y>
-       <width>181</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Reference file:</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_filename_mf">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>62</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_annotate_molecular_formulae">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>-1</y>
-       <width>281</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Annotate Molecular Formulae</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_source_mf">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>30</y>
-       <width>251</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>http://mfdb.bham.ac.uk</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Tab-delimited text file</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_source_mf">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>33</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Source:</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_filename_mf">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>60</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_max_mz">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>30</y>
-       <width>121</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Maximum m/z:</string>
-     </property>
-    </widget>
-    <widget class="QSpinBox" name="spinBox_max_mz">
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>27</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <number>1000000</number>
-     </property>
-     <property name="value">
-      <number>500</number>
-     </property>
-     <property name="displayIntegerBase">
-      <number>10</number>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_heuristic_rules">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>630</x>
-       <y>30</y>
-       <width>171</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Heuristic rules</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_cpds_ppm_tolerance_2">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>65</y>
-       <width>141</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Mass tolerance (ppm):</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_cpds_ppm_error">
-     <property name="geometry">
-      <rect>
-       <x>520</x>
-       <y>64</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_annotate_compounds">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>492</y>
-      <width>761</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QCheckBox" name="checkBox_annotate_compounds">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>-2</y>
-       <width>351</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Annotate Compounds / Metabolites</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_filename_reference">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>70</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_filename_reference">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>650</x>
-       <y>69</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_filename_reference">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>50</y>
-       <width>251</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Reference file</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QListWidget" name="listWidget_databases">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>451</width>
-       <height>91</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_databases">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Databases</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_mf_ppm_tolerance">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>110</y>
-       <width>141</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Mass tolerance (ppm):</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_mf_ppm_error">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>108</y>
-       <width>111</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_create_summary">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>657</y>
-      <width>761</width>
-      <height>101</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QLineEdit" name="lineEdit_summary_filename">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>31</y>
-       <width>161</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_summary_filename">
-     <property name="geometry">
-      <rect>
-       <x>280</x>
-       <y>30</y>
-       <width>71</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>63</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Save as...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_summary_filename">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>12</x>
-       <y>33</y>
-       <width>111</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Summary:</string>
-     </property>
-    </widget>
-    <widget class="QSpinBox" name="spinBox_mz_digits">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>61</y>
-       <width>41</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <number>1000000</number>
-     </property>
-     <property name="value">
-      <number>5</number>
-     </property>
-     <property name="displayIntegerBase">
-      <number>10</number>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_mz_digits">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>440</x>
-       <y>62</y>
-       <width>121</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Number of digits m/z:</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_create_summary">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>-1</y>
-       <width>261</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>.SF NS Text</family>
-       <pointsize>13</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Create summary</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_annotations_format">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>30</y>
-       <width>281</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>Multiple rows for each feature</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Single row for each feature and separate columns</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Single row for each feature and merged columns</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_annotations_format">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>372</x>
-       <y>33</y>
-       <width>111</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Annotations:</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QComboBox" name="comboBox_convert_rt">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>300</x>
-      <y>720</y>
-      <width>121</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Minutes</string>
-     </property>
+     </widget>
     </item>
-    <item>
-     <property name="text">
-      <string>Seconds</string>
-     </property>
+    <item row="0" column="0" colspan="4">
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>928</width>
+         <height>780</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <property name="horizontalSpacing">
+         <number>1</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>5</number>
+        </property>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_group_features">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="3" column="4">
+            <widget class="QLabel" name="label_grouping_ncpus">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>cpus:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QLabel" name="label_grouping_method">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Grouping method:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_coefficent">
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.700000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QCheckBox" name="checkBox_group_features">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Group Features</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="2">
+            <widget class="QLabel" name="label_tool_p_value">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>P-value threshold:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_max_rt">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Maximum RT difference (sec):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_max_rt">
+             <property name="maximum">
+              <double>9999999.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_p_value">
+             <property name="decimals">
+              <number>10</number>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_tool_coefficient">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Coefficent threshold:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QComboBox" name="comboBox_grouping_method">
+             <item>
+              <property name="text">
+               <string>Pearson correlation</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Spearman-rank correlation</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="9" column="5">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_block">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <double>100000000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5000.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="4">
+            <widget class="QLabel" name="label_grouping_block">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Block size:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_ncpus">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <double>10000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QGroupBox" name="groupBox_annotate_peak_patterns">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="pushButton_isotopes">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="4">
+            <widget class="QLineEdit" name="lineEdit_neutral_losses">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Use default</string>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QCheckBox" name="checkBox_annotate_peak_patterns">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Annotate Peak Patterns</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLineEdit" name="lineEdit_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Use default</string>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4" colspan="2">
+            <widget class="QCheckBox" name="checkBox_neutral_losses">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Neutral losses</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="5">
+            <widget class="QPushButton" name="pushButton_neutral_losses">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QCheckBox" name="checkBox_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Adducts</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLineEdit" name="lineEdit_isotopes">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Use default</string>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2" colspan="2">
+            <widget class="QCheckBox" name="checkBox_isotopes">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Isotopes</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="pushButton_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6" colspan="2">
+            <widget class="QCheckBox" name="checkBox_oligomers">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Oligomers</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="6">
+            <widget class="QLabel" name="label_max_monomer_units">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Monomer Units:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="7">
+            <widget class="QSpinBox" name="spinBox_max_monomer_units">
+             <property name="minimum">
+              <number>2</number>
+             </property>
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+             <property name="value">
+              <number>2</number>
+             </property>
+             <property name="displayIntegerBase">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <widget class="QLabel" name="label_pp_ppm_tolerance">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Mass tolerance (ppm):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_pp_ppm_error">
+             <property name="maximum">
+              <double>100000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QGroupBox" name="groupBox_annotate_molecular_formulae">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_max_mz">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Maximum m/z:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_source_mf">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Source:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="comboBox_source_mf">
+             <item>
+              <property name="text">
+               <string>http://mfdb.bham.ac.uk</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tab-delimited text file</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="lineEdit_filename_mf">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="6">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_cpds_ppm_error">
+             <property name="maximum">
+              <double>100000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_filename_mf">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Reference file:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QCheckBox" name="checkBox_annotate_molecular_formulae">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Annotate Molecular Formulae</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="7">
+            <widget class="QCheckBox" name="checkBox_heuristic_rules">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Heuristic rules</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QPushButton" name="pushButton_filename_mf">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QLabel" name="label_cpds_ppm_tolerance_3">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Mass tolerance (ppm):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="6">
+            <widget class="QSpinBox" name="spinBox_max_mz">
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+             <property name="value">
+              <number>500</number>
+             </property>
+             <property name="displayIntegerBase">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QGroupBox" name="groupBox_annotate_compounds">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_annotate_compounds">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Annotate Compounds / Metabolites</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_databases">
+             <property name="text">
+              <string>Databases</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QCheckBox" name="checkBox_filename_reference">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Reference file</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="lineEdit_filename_reference">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="label_mf_ppm_tolerance">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Mass tolerance (ppm):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QPushButton" name="pushButton_filename_reference">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_mf_ppm_error">
+             <property name="maximum">
+              <double>100000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" rowspan="4">
+            <widget class="QListWidget" name="listWidget_databases">
+             <property name="minimumSize">
+              <size>
+               <width>551</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>95</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QGroupBox" name="groupBox_create_summary">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>5</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="1" column="5">
+            <widget class="QLabel" name="label_annotations_format">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Annotations:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QComboBox" name="comboBox_separator">
+             <item>
+              <property name="text">
+               <string>tab</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>comma</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_separator">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Separator:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="6">
+            <widget class="QCheckBox" name="checkBox_mz_digits">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Number of digits m/z:</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="7">
+            <widget class="QSpinBox" name="spinBox_mz_digits">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+             <property name="value">
+              <number>5</number>
+             </property>
+             <property name="displayIntegerBase">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QComboBox" name="comboBox_convert_rt">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <item>
+              <property name="text">
+               <string>Minutes</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Seconds</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QLineEdit" name="lineEdit_summary_filename">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_summary_filename">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Summary:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QPushButton" name="pushButton_summary_filename">
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Save as...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6" colspan="2">
+            <widget class="QComboBox" name="comboBox_annotations_format">
+             <item>
+              <property name="text">
+               <string>Multiple rows for each feature</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Single row for each feature and separate columns</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Single row for each feature and merged columns</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QCheckBox" name="checkBox_create_summary">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Create summary</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QCheckBox" name="checkBox_convert_rt">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Convert RT:</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_general">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>5</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="1" column="3">
+            <widget class="QLabel" name="label_graph">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Graph:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_peaklist">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Peaklist:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_intensity_matrix">
+             <property name="text">
+              <string>Intensity matrix:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="lineEdit_sql_database">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="5">
+            <widget class="QLineEdit" name="lineEdit_default_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Use default</string>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="lineEdit_intensity_matrix">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QPushButton" name="pushButton_peak_matrix">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>81</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QLabel" name="label_data_files">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Data Files &amp; General Settings</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QLabel" name="label_ion_mode">
+             <property name="text">
+              <string>Ion mode:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton_peaklist">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>81</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_peaklist">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_sql_database">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Database:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QPushButton" name="pushButton_sql_database">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>81</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Save as...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3" colspan="2">
+            <widget class="QLabel" name="label_default_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Adduct library:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="5">
+            <widget class="QLineEdit" name="lineEdit_graph">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6">
+            <widget class="QPushButton" name="pushButton_graph">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>81</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Save as...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QComboBox" name="comboBox_ion_mode">
+             <item>
+              <property name="text">
+               <string>Positive</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Negative</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="4" column="6">
+            <widget class="QPushButton" name="pushButton_default_adduct_library">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
-   </widget>
-   <widget class="QLabel" name="label_separator">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>32</x>
-      <y>720</y>
-      <width>101</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Separator:</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_separator">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>718</y>
-      <width>71</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>tab</string>
-     </property>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="pushButton_cancel">
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
     </item>
-    <item>
-     <property name="text">
-      <string>comma</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_convert_rt">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>720</y>
-      <width>91</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Convert RT:</string>
-    </property>
-    <property name="checked">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <zorder>groupBox_annotate_peak_patterns</zorder>
-   <zorder>groupBox_general</zorder>
-   <zorder>groupBox_group_features</zorder>
-   <zorder>pushButton_start</zorder>
-   <zorder>pushButton_cancel</zorder>
-   <zorder>groupBox_annotate_molecular_formulae</zorder>
-   <zorder>groupBox_annotate_compounds</zorder>
-   <zorder>groupBox_create_summary</zorder>
-   <zorder>comboBox_convert_rt</zorder>
-   <zorder>label_separator</zorder>
-   <zorder>comboBox_separator</zorder>
-   <zorder>checkBox_convert_rt</zorder>
+   </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>795</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuAdd_example_data">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="actionExampleData"/>
-    <addaction name="actionAbout"/>
-   </widget>
-   <addaction name="menuAdd_example_data"/>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExampleData">
    <property name="text">
     <string>Add example data</string>
