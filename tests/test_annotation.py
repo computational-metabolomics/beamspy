@@ -83,7 +83,6 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(db_nls), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(db_nls), "molecular_formulae"), 15)
 
-    """
     def test_annotate_multiple_charged_adducts(self):
         df = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_mc_o.txt"),
                                           to_test_data("dataMatrix_lcms_theoretical_mc_o.txt"))
@@ -290,7 +289,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(records[897],
                                  ('M493T192', 493.063765, 493.06376, 0.010140676303965665, '[M+Na]+', '(13C)', '',
                                   14, 23, 4, 8, 2, 1, 1, 'C14H23N4O8P2S', 1, 1, 0, 1, 5.0))
-    """
+
     def test_summary(self):
 
         def _assert(summary_test_data, summary_result):
