@@ -169,16 +169,16 @@ class InOutTestCase(unittest.TestCase):
                             OrderedDict([('Cl', {'abundance': 100.0}), ('(37Cl)', {'abundance': 24.23}), ('mass_difference', 1.997050)])]
         self.assertEqual(records_neg.lib, records_neg_comp)
 
-    def test_read_mass_differences(self):
-        differences_lib = os.path.join(self.path, "beamspy", "data", "adducts_differences.txt")
-        records = read_mass_differences(differences_lib, ion_mode="pos")
-        self.assertEqual(records.lib, [OrderedDict([('[M+H]+', {'charge': 1.0}),
-                                                    ('[M+Na]+', {'charge': 1.0}),
-                                                    ('mass_difference', 21.981945)])])
-        records = read_mass_differences(differences_lib, ion_mode="neg")
-        self.assertEqual(records.lib, [])
-        records = read_mass_differences(differences_lib, ion_mode="both")
-        self.assertEqual(records.lib, [])
+    # def test_read_mass_differences(self):
+    #     differences_lib = os.path.join(self.path, "beamspy", "data", "adducts_differences.txt")
+    #     records = read_mass_differences(differences_lib, ion_mode="pos")
+    #     self.assertEqual(records.lib, [OrderedDict([('[M+H]+', {'charge': 1.0}),
+    #                                                 ('[M+Na]+', {'charge': 1.0}),
+    #                                                 ('mass_difference', 21.981945)])])
+    #     records = read_mass_differences(differences_lib, ion_mode="neg")
+    #     self.assertEqual(records.lib, [])
+    #     records = read_mass_differences(differences_lib, ion_mode="both")
+    #     self.assertEqual(records.lib, [])
 
 
 if __name__ == '__main__':

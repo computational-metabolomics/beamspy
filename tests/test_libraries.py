@@ -27,12 +27,12 @@ class LibrariesTestCase(unittest.TestCase):
         lib_adducts.remove("*")
         self.assertEqual(lib_adducts.lib, OrderedDict())
 
-    def test_mass_differences(self):
-        lib_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "adducts_differences.txt"), "pos")
-        self.assertTrue("in library" in lib_differences.__str__())
-
-        lib_differences.remove("*", "*")
-        self.assertEqual(lib_differences.lib, [])
+    # def test_mass_differences(self):
+    #     lib_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "adducts_differences.txt"), "pos")
+    #     self.assertTrue("in library" in lib_differences.__str__())
+    #
+    #     lib_differences.remove("*", "*")
+    #     self.assertEqual(lib_differences.lib, [])
 
     def test_nist_database_to_pyteomics(self):
         nist_database = nist_database_to_pyteomics(os.path.join(self.path, "beamspy", "data", "nist_database.txt"))
