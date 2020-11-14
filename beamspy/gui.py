@@ -10,7 +10,7 @@ from beamspy import annotation
 from beamspy import plots
 from PySide2 import QtCore, QtGui, QtWidgets
 from beamspy.qt import form
-
+from beamspy import __version__
 from collections import OrderedDict
 from multiprocessing import cpu_count
 

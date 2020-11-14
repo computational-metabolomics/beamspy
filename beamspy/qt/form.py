@@ -516,7 +516,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "BEAMSpy - Birmingham mEtabolite Annotation for Mass Spectrometry (Python package)", None, -1))
+        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "BEAMSpy (v1.1.0b) - Birmingham mEtabolite Annotation for Mass Spectrometry (Python package)", None, -1))
         self.pushButton_start.setText(QtWidgets.QApplication.translate("MainWindow", "Start", None, -1))
         self.label_grouping_ncpus.setText(QtWidgets.QApplication.translate("MainWindow", "cpus:", None, -1))
         self.label_grouping_method.setText(QtWidgets.QApplication.translate("MainWindow", "Grouping method:", None, -1))
