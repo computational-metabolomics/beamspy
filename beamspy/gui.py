@@ -107,6 +107,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
+            self.label_mf_ppm_tolerance.setEnabled(False)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(False)
         else:
             self.label_filename_mf.setEnabled(False)
             self.lineEdit_filename_mf.setEnabled(False)
@@ -114,6 +116,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(True)
             self.spinBox_max_mz.setEnabled(True)
             self.checkBox_heuristic_rules.setEnabled(True)
+            self.label_mf_ppm_tolerance.setEnabled(True)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(True)
 
     def source_peak_patterns(self):
         if not self.checkBox_adduct_library.isChecked():
@@ -145,11 +149,11 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         if self.checkBox_filename_reference.isChecked():
             self.listWidget_databases.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
-            self.label_databases.setEnabled(False)
+            # self.label_databases.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(True)
             self.lineEdit_filename_reference.setEnabled(True)
         else:
-            self.label_databases.setEnabled(True)
+            # self.label_databases.setEnabled(True)
             self.listWidget_databases.setEnabled(True)
             # self.label_categories.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
@@ -199,11 +203,15 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.checkBox_oligomers.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
             self.spinBox_max_monomer_units.setEnabled(False)
+            self.doubleSpinBox_pp_ppm_error.setEnabled(False)
+            self.label_pp_ppm_tolerance.setEnabled(False)
         else:
             self.checkBox_adduct_library.setEnabled(True)
             self.checkBox_isotopes.setEnabled(True)
             self.checkBox_neutral_losses.setEnabled(True)
             self.checkBox_oligomers.setEnabled(True)
+            self.doubleSpinBox_pp_ppm_error.setEnabled(True)
+            self.label_pp_ppm_tolerance.setEnabled(True)
             self.source_peak_patterns()
         self.source_graph_file()
 
@@ -217,6 +225,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
+            self.label_mf_ppm_tolerance.setEnabled(False)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(False)
         else:
             self.comboBox_source_mf.setEnabled(True)
             self.label_source_mf.setEnabled(True)
@@ -227,11 +237,15 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         if not self.checkBox_annotate_compounds.isChecked():
             self.listWidget_databases.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
-            self.label_databases.setEnabled(False)
+            # self.label_databases.setEnabled(False)
             self.checkBox_filename_reference.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
             self.lineEdit_filename_reference.setEnabled(False)
+            self.label_cpds_ppm_tolerance.setEnabled(False)
+            self.doubleSpinBox_cpds_ppm_error.setEnabled(False)
         else:
+            self.label_cpds_ppm_tolerance.setEnabled(True)
+            self.doubleSpinBox_cpds_ppm_error.setEnabled(True)
             self.checkBox_filename_reference.setEnabled(True)
             self.source_compounds()
 
@@ -245,7 +259,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.comboBox_annotations_format.setEnabled(False)
             self.pushButton_summary_filename.setEnabled(False)
             self.comboBox_separator.setEnabled(False)
-            self.comboBox_convert_rt.setEnabled(False)
+            self.comboBox_convert_rt.setDisabled(True)
             self.spinBox_mz_digits.setEnabled(False)
         else:
             self.label_summary_filename.setEnabled(True)
@@ -258,9 +272,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.comboBox_separator.setEnabled(True)
 
             if self.checkBox_convert_rt.isChecked():
-                self.comboBox_convert_rt.setEnabled(True)
+                self.comboBox_convert_rt.setDisabled(False)
             else:
-                self.comboBox_convert_rt.setEnabled(False)
+                self.comboBox_convert_rt.setDisabled(True)
             if self.checkBox_mz_digits.isChecked():
                 self.spinBox_mz_digits.setEnabled(True)
             else:

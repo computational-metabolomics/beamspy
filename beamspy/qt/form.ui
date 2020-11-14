@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>941</width>
-    <height>820</height>
+    <width>990</width>
+    <height>785</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,8 +53,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>928</width>
-         <height>780</height>
+         <width>977</width>
+         <height>745</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -62,13 +62,13 @@
          <number>10</number>
         </property>
         <property name="topMargin">
-         <number>10</number>
+         <number>5</number>
         </property>
         <property name="rightMargin">
          <number>10</number>
         </property>
         <property name="bottomMargin">
-         <number>10</number>
+         <number>5</number>
         </property>
         <property name="horizontalSpacing">
          <number>1</number>
@@ -520,7 +520,7 @@
            <item row="2" column="4">
             <widget class="QLabel" name="label_max_mz">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Maximum m/z:</string>
@@ -530,7 +530,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_source_mf">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Source:</string>
@@ -539,6 +539,9 @@
            </item>
            <item row="2" column="1">
             <widget class="QComboBox" name="comboBox_source_mf">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <item>
               <property name="text">
                <string>http://mfdb.bham.ac.uk</string>
@@ -565,7 +568,10 @@
             </widget>
            </item>
            <item row="4" column="6">
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_cpds_ppm_error">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_mf_ppm_error">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="maximum">
               <double>100000.000000000000000</double>
              </property>
@@ -600,15 +606,18 @@
              <property name="text">
               <string>Annotate Molecular Formulae</string>
              </property>
-             <property name="checked">
+             <property name="checkable">
               <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
            <item row="2" column="7">
             <widget class="QCheckBox" name="checkBox_heuristic_rules">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Heuristic rules</string>
@@ -638,9 +647,9 @@
             </widget>
            </item>
            <item row="4" column="4">
-            <widget class="QLabel" name="label_cpds_ppm_tolerance_3">
+            <widget class="QLabel" name="label_mf_ppm_tolerance">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Mass tolerance (ppm):</string>
@@ -649,6 +658,9 @@
            </item>
            <item row="2" column="6">
             <widget class="QSpinBox" name="spinBox_max_mz">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="maximum">
               <number>1000000</number>
              </property>
@@ -668,7 +680,7 @@
           <property name="title">
            <string/>
           </property>
-          <layout class="QGridLayout" name="gridLayout_2">
+          <layout class="QGridLayout" name="gridLayout_7">
            <property name="leftMargin">
             <number>10</number>
            </property>
@@ -684,6 +696,35 @@
            <property name="spacing">
             <number>10</number>
            </property>
+           <item row="1" column="0" rowspan="3">
+            <widget class="QListWidget" name="listWidget_databases">
+             <property name="minimumSize">
+              <size>
+               <width>551</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>95</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEdit_filename_reference">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QCheckBox" name="checkBox_annotate_compounds">
              <property name="enabled">
@@ -705,14 +746,17 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_databases">
-             <property name="text">
-              <string>Databases</string>
+           <item row="3" column="2">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_cpds_ppm_error">
+             <property name="maximum">
+              <double>100000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="1" column="1">
             <widget class="QCheckBox" name="checkBox_filename_reference">
              <property name="enabled">
               <bool>true</bool>
@@ -725,30 +769,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="lineEdit_filename_reference">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLabel" name="label_mf_ppm_tolerance">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Mass tolerance (ppm):</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
+           <item row="2" column="2">
             <widget class="QPushButton" name="pushButton_filename_reference">
              <property name="enabled">
               <bool>false</bool>
@@ -764,219 +785,13 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="2">
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_mf_ppm_error">
-             <property name="maximum">
-              <double>100000.000000000000000</double>
-             </property>
-             <property name="value">
-              <double>5.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" rowspan="4">
-            <widget class="QListWidget" name="listWidget_databases">
-             <property name="minimumSize">
-              <size>
-               <width>551</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>95</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QGroupBox" name="groupBox_create_summary">
-          <property name="title">
-           <string/>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_8">
-           <property name="leftMargin">
-            <number>10</number>
-           </property>
-           <property name="topMargin">
-            <number>5</number>
-           </property>
-           <property name="rightMargin">
-            <number>5</number>
-           </property>
-           <property name="bottomMargin">
-            <number>5</number>
-           </property>
-           <property name="spacing">
-            <number>10</number>
-           </property>
-           <item row="1" column="5">
-            <widget class="QLabel" name="label_annotations_format">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Annotations:</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="1">
-            <widget class="QComboBox" name="comboBox_separator">
-             <item>
-              <property name="text">
-               <string>tab</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>comma</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_separator">
+            <widget class="QLabel" name="label_cpds_ppm_tolerance">
              <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="text">
-              <string>Separator:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="6">
-            <widget class="QCheckBox" name="checkBox_mz_digits">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Number of digits m/z:</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="7">
-            <widget class="QSpinBox" name="spinBox_mz_digits">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="maximum">
-              <number>1000000</number>
-             </property>
-             <property name="value">
-              <number>5</number>
-             </property>
-             <property name="displayIntegerBase">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="5">
-            <widget class="QComboBox" name="comboBox_convert_rt">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <item>
-              <property name="text">
-               <string>Minutes</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Seconds</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QLineEdit" name="lineEdit_summary_filename">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_summary_filename">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Summary:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QPushButton" name="pushButton_summary_filename">
-             <property name="minimumSize">
-              <size>
-               <width>63</width>
-               <height>23</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Save as...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="6" colspan="2">
-            <widget class="QComboBox" name="comboBox_annotations_format">
-             <item>
-              <property name="text">
-               <string>Multiple rows for each feature</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Single row for each feature and separate columns</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Single row for each feature and merged columns</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="3">
-            <widget class="QCheckBox" name="checkBox_create_summary">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="font">
-              <font>
-               <family>.SF NS Text</family>
-               <pointsize>13</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Create summary</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="3">
-            <widget class="QCheckBox" name="checkBox_convert_rt">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Convert RT:</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
+              <string>Mass tolerance (ppm):</string>
              </property>
             </widget>
            </item>
@@ -1253,6 +1068,181 @@
              </property>
              <property name="text">
               <string>Browse...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QGroupBox" name="groupBox_create_summary">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_summary_filename">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QCheckBox" name="checkBox_create_summary">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <family>.SF NS Text</family>
+               <pointsize>13</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Create summary</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_summary_filename">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Summary:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_annotations_format">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Annotations:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QSpinBox" name="spinBox_mz_digits">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+             <property name="value">
+              <number>5</number>
+             </property>
+             <property name="displayIntegerBase">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QComboBox" name="comboBox_annotations_format">
+             <item>
+              <property name="text">
+               <string>Multiple rows for each feature</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Single row for each feature and separate columns</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Single row for each feature and merged columns</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton_summary_filename">
+             <property name="minimumSize">
+              <size>
+               <width>63</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Save as...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="7">
+            <widget class="QComboBox" name="comboBox_convert_rt">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <item>
+              <property name="text">
+               <string>Minutes</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Seconds</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="3" column="6">
+            <widget class="QCheckBox" name="checkBox_convert_rt">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Convert RT:</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLabel" name="label_separator">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Separator:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="5">
+            <widget class="QComboBox" name="comboBox_separator">
+             <item>
+              <property name="text">
+               <string>tab</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>comma</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="3" column="2" colspan="2">
+            <widget class="QCheckBox" name="checkBox_mz_digits">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Number of digits m/z:</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
