@@ -1,6 +1,0 @@
-label_x	label_y	mass_difference	charge_x	charge_y	ion_mode
-[(C12)]2+	[(C13)]2+	0.501678	2	2	both
-[(C12)]3+	[(C13)]3+	0.334452	3	3	both
-[(C12)]4+	[(C13)]4+	0.250839	4	4	both
-[(C12)]5+	[(C13)]5+	0.200671	5	5	both
-[(C12)]6+	[(C13)]6+	0.167226	6	6	both
