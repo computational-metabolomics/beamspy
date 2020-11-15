@@ -107,8 +107,6 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
-            self.label_mf_ppm_tolerance.setEnabled(False)
-            self.doubleSpinBox_mf_ppm_error.setEnabled(False)
         else:
             self.label_filename_mf.setEnabled(False)
             self.lineEdit_filename_mf.setEnabled(False)
@@ -116,8 +114,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(True)
             self.spinBox_max_mz.setEnabled(True)
             self.checkBox_heuristic_rules.setEnabled(True)
-            self.label_mf_ppm_tolerance.setEnabled(True)
-            self.doubleSpinBox_mf_ppm_error.setEnabled(True)
+
 
     def source_peak_patterns(self):
         if not self.checkBox_adduct_library.isChecked():
@@ -230,6 +227,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         else:
             self.comboBox_source_mf.setEnabled(True)
             self.label_source_mf.setEnabled(True)
+            self.label_mf_ppm_tolerance.setEnabled(True)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(True)
             self.source_mf()
         return
 
@@ -389,15 +388,15 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 if self.lineEdit_neutral_losses.text() == "Use default":
                     path = 'data/neutral_losses.txt'
                     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                    lib = in_out.read_netural_losses(p)
+                    lib = in_out.read_neutral_losses(p)
 
-                elif os.path.isfile(self.lineEdit_netural_losses.text()):
-                    lib = in_out.read_netural_losses(self.lineEdit_netural_losses.text())
+                elif os.path.isfile(self.lineEdit_neutral_losses.text()):
+                    lib = in_out.read_neutral_losses(self.lineEdit_neutral_losses.text())
                 else:
-                    raise IOError("Provide a valid filename for netural_losses or 'Use default'")
+                    raise IOError("Provide a valid filename for neutral losses or 'Use default'")
                 print("")
                 print(lib)
-                annotation.annotate_netural_losses(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
+                annotation.annotate_neutral_losses(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_oligomers.isChecked():
@@ -438,7 +437,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 rules = None
                 max_mz = None
             else:
-                db_in = "http://mfdb.bham.ac.uk"
+                db_in = "https://mfdb.bham.ac.uk"
                 rules = self.checkBox_heuristic_rules.isChecked()
                 max_mz = self.spinBox_max_mz.value()
 
@@ -449,6 +448,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                    ppm=self.doubleSpinBox_mf_ppm_error.value(),
                                                    db_out=self.lineEdit_sql_database.text(),
                                                    db_in=db_in,
+                                                   filter=True,
                                                    rules=rules,
                                                    max_mz=max_mz)
             print("Done")
@@ -473,13 +473,13 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print("")
                 print(lib)
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                              db_out=self.lineEdit_sql_database.text(), db_name=None, db_in=self.lineEdit_filename_reference.text())
+                                              db_out=self.lineEdit_sql_database.text(), db_name=None, filter=True, db_in=self.lineEdit_filename_reference.text())
             else:
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()])
+                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()], filter=True)
             print("Done")
-            print
+            print("")
 
         if self.checkBox_create_summary.isChecked():
             print("Creating summary...."),

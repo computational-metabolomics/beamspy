@@ -541,7 +541,7 @@ class Ui_MainWindow(object):
         self.label_pp_ppm_tolerance.setText(QtWidgets.QApplication.translate("MainWindow", "Mass tolerance (ppm):", None, -1))
         self.label_max_mz.setText(QtWidgets.QApplication.translate("MainWindow", "Maximum m/z:", None, -1))
         self.label_source_mf.setText(QtWidgets.QApplication.translate("MainWindow", "Source:", None, -1))
-        self.comboBox_source_mf.setItemText(0, QtWidgets.QApplication.translate("MainWindow", "http://mfdb.bham.ac.uk", None, -1))
+        self.comboBox_source_mf.setItemText(0, QtWidgets.QApplication.translate("MainWindow", "https://mfdb.bham.ac.uk", None, -1))
         self.comboBox_source_mf.setItemText(1, QtWidgets.QApplication.translate("MainWindow", "Tab-delimited text file", None, -1))
         self.label_filename_mf.setText(QtWidgets.QApplication.translate("MainWindow", "Reference file:", None, -1))
         self.checkBox_annotate_molecular_formulae.setText(QtWidgets.QApplication.translate("MainWindow", "Annotate Molecular Formulae", None, -1))
