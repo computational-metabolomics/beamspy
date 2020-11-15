@@ -854,7 +854,7 @@ def _select_unions_peak_patterns(cursor):
     return records
 
 
-def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="http://mfdb.bham.ac.uk", filter=True, rules=True, max_mz=None):
+def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https://mfdb.bham.ac.uk", filter=True, rules=True, max_mz=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -1786,7 +1786,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         union_mf_sub_query = ""
 
     elif flag_mf and not flag_cpd:
-        mf_cpc_columns = "".join(map(str, [", mf.{} AS {}".format(c, c) for c in columns]))
+        mf_cpc_columns = "".join(map(str, [", mf.{} AS {}".format(c, c) for c in columns if c is not "rt_diff"]))
         if flag_adducts_oligo:
             union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf"
             union_mf_sub_query += " ON (peaklist.name = mf.id AND peak_labels.label = mf.adduct)"
