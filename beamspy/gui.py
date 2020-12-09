@@ -13,6 +13,7 @@ from beamspy.qt import form
 from beamspy import __version__
 from collections import OrderedDict
 from multiprocessing import cpu_count
+from os.path import expanduser
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
@@ -21,6 +22,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.setupUi(self)
 
         self.pushButton_cancel.clicked.connect(QtCore.QCoreApplication.instance().quit)
+
+        self.path_wd = expanduser("~")
+
+        self.pushButton_wd.clicked.connect(partial(self.open_directory, self.lineEdit_wd))
 
         self.pushButton_peaklist.clicked.connect(partial(self.open_file, self.lineEdit_peaklist))
         self.pushButton_peak_matrix.clicked.connect(partial(self.open_file, self.lineEdit_intensity_matrix))
@@ -63,10 +68,18 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
         self.pushButton_start.clicked.connect(self.run)  # When the button is pressed
 
+    def open_directory(self, field):
+        d = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder', self.path_wd)
+        if d:
+            if str(d) == "":
+                QtWidgets.QMessageBox.critical(None, "Select a folder", "No folder selected", QtWidgets.QMessageBox.Ok)
+            else:
+                field.setText(d)
+                self.path_wd = d
+        return
 
     def open_file(self, field, field_extra=None):
-
-        d = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', "")
+        d = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', self.path_wd)
         if d:
             if str(d[0]) == "":
                 QtWidgets.QMessageBox.critical(None, "Select File", "No file selected", QtWidgets.QMessageBox.Ok)
@@ -77,7 +90,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         return
 
     def save_file(self, field, filename):
-        d = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename)
+        d = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', os.path.join(self.path_wd, filename))
         if d:
             if str(d[0]) == "":
                 QtWidgets.QMessageBox.critical(None, "Save File", "Provide a valid filename", QtWidgets.QMessageBox.Ok)
@@ -107,6 +120,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
+            self.checkBox_mf_pp_rules.setEnabled(True)
         else:
             self.label_filename_mf.setEnabled(False)
             self.lineEdit_filename_mf.setEnabled(False)
@@ -114,6 +128,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(True)
             self.spinBox_max_mz.setEnabled(True)
             self.checkBox_heuristic_rules.setEnabled(True)
+            self.checkBox_mf_pp_rules.setEnabled(True)
 
 
     def source_peak_patterns(self):
@@ -149,6 +164,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             # self.label_databases.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(True)
             self.lineEdit_filename_reference.setEnabled(True)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
         else:
             # self.label_databases.setEnabled(True)
             self.listWidget_databases.setEnabled(True)
@@ -156,6 +172,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             # self.listWidget_categories.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
             self.lineEdit_filename_reference.setEnabled(False)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
 
     def group_features(self):
         if not self.checkBox_group_features.isChecked():
@@ -224,11 +241,13 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.checkBox_heuristic_rules.setEnabled(False)
             self.label_mf_ppm_tolerance.setEnabled(False)
             self.doubleSpinBox_mf_ppm_error.setEnabled(False)
+            self.checkBox_mf_pp_rules.setEnabled(False)
         else:
             self.comboBox_source_mf.setEnabled(True)
             self.label_source_mf.setEnabled(True)
             self.label_mf_ppm_tolerance.setEnabled(True)
             self.doubleSpinBox_mf_ppm_error.setEnabled(True)
+            self.checkBox_mf_pp_rules.setEnabled(True)
             self.source_mf()
         return
 
@@ -242,10 +261,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.lineEdit_filename_reference.setEnabled(False)
             self.label_cpds_ppm_tolerance.setEnabled(False)
             self.doubleSpinBox_cpds_ppm_error.setEnabled(False)
+            self.checkBox_cpds_pp_rules.setEnabled(False)
         else:
             self.label_cpds_ppm_tolerance.setEnabled(True)
             self.doubleSpinBox_cpds_ppm_error.setEnabled(True)
             self.checkBox_filename_reference.setEnabled(True)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
             self.source_compounds()
 
     def create_summary(self):
@@ -441,6 +462,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 rules = self.checkBox_heuristic_rules.isChecked()
                 max_mz = self.spinBox_max_mz.value()
 
+            use_peak_patterns = self.checkBox_mf_pp_rules.isChecked()
+
             print("")
             print(lib)
             annotation.annotate_molecular_formulae(df,
@@ -448,7 +471,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                    ppm=self.doubleSpinBox_mf_ppm_error.value(),
                                                    db_out=self.lineEdit_sql_database.text(),
                                                    db_in=db_in,
-                                                   filter=True,
+                                                   filter=use_peak_patterns,
                                                    rules=rules,
                                                    max_mz=max_mz)
             print("Done")
@@ -462,10 +485,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
             elif os.path.isfile(self.lineEdit_default_adduct_library.text()):
-                try:
-                    lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                except:
-                    lib = in_out.read_mass_differences(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
+                lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
             else:
                 raise IOError("Provide a valid filename for adducts")
 
@@ -473,11 +493,14 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print("")
                 print(lib)
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                              db_out=self.lineEdit_sql_database.text(), db_name=None, filter=True, db_in=self.lineEdit_filename_reference.text())
+                                              db_out=self.lineEdit_sql_database.text(), db_name=None,
+                                              filter=self.checkBox_cpds_pp_rules.ischecked(),
+                                              db_in=self.lineEdit_filename_reference.text())
             else:
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()], filter=True)
+                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()],
+                                                  filter=self.checkBox_cpds_pp_rules.ischecked())
             print("Done")
             print("")
 
