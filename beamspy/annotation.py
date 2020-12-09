@@ -755,7 +755,6 @@ def _select_unions_peak_patterns(cursor):
                       ON     ap.peak_id_a = iso.peak_id_a AND ap.charge_a = iso.charge
                       LEFT JOIN neutral_losses AS nl_ap
                       ON     (ap.peak_id_a = nl_ap.peak_id_a OR ap.peak_id_a = nl_ap.peak_id_b)
-                              AND ap.peak_id_a
                       LEFT JOIN neutral_losses AS nl_iso
                       ON     (iso.peak_id_b = nl_iso.peak_id_a OR iso.peak_id_b = nl_iso.peak_id_b)
                       UNION
@@ -797,43 +796,71 @@ def _select_unions_peak_patterns(cursor):
     else:
         sql_excl = ""
 
+              # WHERE  (nl_ap.label = nl_iso.label
+              #        OR IFNULL(nl_ap.label, nl_iso.label) is NOT NULL
+              #        OR IFNULL(nl_ap.label, nl_iso.label) is NULL)
+
     sql_str = """
-              SELECT iso.peak_id_a     AS peak_id_a,
-                     iso.peak_id_b     AS peak_id_b,
-                     nl_a.peak_id_b    AS peak_id_a_nl,
-                     nl_b.peak_id_b    AS peak_id_b_nl,
-                     NULL              AS adduct_label,
-                     0                 AS flag,
-                     iso.label_a       AS iso_label_a,
-                     iso.label_b       AS iso_label_b,
-                     NULL              AS ap_charge,
-                     iso.charge        AS iso_charge,
-                     1                 AS mz_ratio,
-                     IFNULL(iso.exact_mass_diff, 0.0)   AS iso_exact_mass_diff,
-                     IFNULL(nl_a.exact_mass_diff, 0.0)  AS nl_exact_mass_diff,
-                     nl_a.label        AS nl_label
-              FROM   isotopes          AS iso
-              LEFT JOIN neutral_losses AS nl_a
-              ON     iso.peak_id_a = nl_a.peak_id_a
-              LEFT JOIN neutral_losses AS nl_b
-              ON     iso.peak_id_b = nl_b.peak_id_a
-              WHERE  (nl_a.label = nl_b.label 
-                     OR IFNULL(nl_a.label, nl_b.label) is NOT NULL
-                     OR IFNULL(nl_a.label, nl_b.label) is NULL)
+                      SELECT iso.peak_id_a     AS peak_id_a,
+                             iso.peak_id_b     AS peak_id_b,
+                             nl_ap.peak_id_a   AS peak_id_a_nl,
+                             nl_ap.peak_id_b   AS peak_id_aa_nl,
+                             nl_iso.peak_id_a  AS peak_id_b_nl,
+                             nl_iso.peak_id_b  AS peak_id_bb_nl,
+                             NULL              AS adduct_label,
+                             0                 AS flag,
+                             iso.label_a       AS iso_label_a,
+                             iso.label_b       AS iso_label_b,
+                             NULL              AS ap_charge,
+                             iso.charge        AS iso_charge,
+                             1                 AS mz_ratio,
+                             IFNULL(iso.exact_mass_diff, 0.0)    AS iso_exact_mass_diff,
+                             IFNULL(nl_ap.exact_mass_diff, 0.0)  AS nl_exact_mass_diff,
+                             nl_ap.label       AS nl_label
+                      FROM   isotopes          AS iso
+                      LEFT JOIN neutral_losses AS nl_ap
+                      ON     (iso.peak_id_a = nl_ap.peak_id_a OR iso.peak_id_a = nl_ap.peak_id_b)
+                      LEFT JOIN neutral_losses AS nl_iso
+                      ON     (iso.peak_id_b = nl_iso.peak_id_a OR iso.peak_id_b = nl_iso.peak_id_b)
+
               {}""".format(sql_excl)
 
     cursor.execute(sql_str)
     records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
 
+    # for record in records:
+    #     print(record)
+    #     for k, v in record.items():
+    #         print(k,v)
+    #     print("===============")
+    #     input()
+
     excl_ids_pp.append("""SELECT peak_id_a FROM isotopes UNION SELECT peak_id_b FROM isotopes""")
     excl_ids = " UNION ".join(map(str, excl_ids_pp))
     sql_excl = """WHERE peak_id_a NOT IN ({})
-                  AND peak_id_b NOT IN ({})""".format(excl_ids, excl_ids)
+                  AND peak_id_a_nl NOT IN ({})""".format(excl_ids, excl_ids)
 
     sql_str = """
               SELECT                    peak_id_a,
                      NULL            AS peak_id_b,
                      peak_id_b       AS peak_id_a_nl,
+                     NULL            AS peak_id_b_nl,
+                     NULL            AS adduct_label,
+                     0               AS flag,
+                     NULL            AS iso_label_a,
+                     NULL            AS iso_label_b,
+                     1               AS ap_charge,
+                     1               AS iso_charge,
+                     1               AS mz_ratio,
+                     0.0             AS iso_exact_mass_diff,
+                     exact_mass_diff AS nl_exact_mass_diff,
+                     label           AS nl_label
+              FROM   neutral_losses
+              {}
+              UNION
+              SELECT peak_id_b       AS peak_id_a,
+                     NULL            AS peak_id_b,
+                     peak_id_a       AS peak_id_a_nl,
                      NULL            AS peak_id_b_nl,      
                      NULL            AS adduct_label,
                      0               AS flag,
@@ -846,8 +873,7 @@ def _select_unions_peak_patterns(cursor):
                      exact_mass_diff AS nl_exact_mass_diff,
                      label           AS nl_label
               FROM   neutral_losses
-              {}""".format(sql_excl)
-
+              {}""".format(sql_excl, sql_excl)
     cursor.execute(sql_str)
     records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
 
@@ -1023,11 +1049,11 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https
             index_name = peaklist["name"].tolist().index(str(row["peak_id_b"]))
             mz = peaklist["mz"].iloc[index_name]
 
-            if row["flag"]:  # different adducts - label_a and label_b?
-                exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
-            else:
-                exact_mass_diff = float(row["iso_exact_mass_diff"])
-                
+            # if row["flag"]:  # different adducts - label_a and label_b?
+            #     exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
+            # else:
+            exact_mass_diff = float(row["iso_exact_mass_diff"])
+
             records_b = _select_mfs(source, row["peak_id_b"], mz, ppm, adducts, row["iso_label_b"], row["nl_label"], row["mz_ratio"], exact_mass_diff, rules=rules)
 
             if row["nl_label"] is not None:  # Neutral Loss
@@ -1306,10 +1332,10 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
             index_name = peaklist["name"].tolist().index(str(row["peak_id_b"]))
             mz = peaklist["mz"].iloc[index_name]
 
-            if row["flag"]:  # different adducts - label_a and label_b?
-                exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
-            else:
-                exact_mass_diff = float(row["iso_exact_mass_diff"])
+            #if row["flag"]:  # different adducts - label_a and label_b?
+            #    exact_mass_diff = 0.0  # adduct == isotope e.g. K / (41K) and [M+K]+ / [M+(41K)]+
+            #else:
+            exact_mass_diff = float(row["iso_exact_mass_diff"])
 
             records_b = _select_compounds(cursor_cpds, row["peak_id_b"], mz, ppm, adducts, row['iso_label_b'], row["nl_label"], None, None, row["mz_ratio"], exact_mass_diff)
             if row["nl_label"] is not None:  # Neutral Loss
