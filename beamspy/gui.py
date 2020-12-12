@@ -494,13 +494,13 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print(lib)
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
                                               db_out=self.lineEdit_sql_database.text(), db_name=None,
-                                              filter=self.checkBox_cpds_pp_rules.ischecked(),
+                                              filter=self.checkBox_cpds_pp_rules.isChecked(),
                                               db_in=self.lineEdit_filename_reference.text())
             else:
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
                                                   db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()],
-                                                  filter=self.checkBox_cpds_pp_rules.ischecked())
+                                                  filter=self.checkBox_cpds_pp_rules.isChecked())
             print("Done")
             print("")
 
