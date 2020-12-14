@@ -1,2 +1,2 @@
 [run]
-omit = tests/*,setup.py,dimspy/__main__.py
+omit = tests/*,setup.py,beamspy/__main__.py,beamspy/qt/form.py,beamspy/gui.py
