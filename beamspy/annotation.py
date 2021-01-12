@@ -127,8 +127,8 @@ def _check_tolerance(mz_x, mz_y, lib_pair, ppm, charge):
     min_tol_a, max_tol_a = calculate_mz_tolerance(mz_x, ppm)
     min_tol_b, max_tol_b = calculate_mz_tolerance(mz_y, ppm)
     if "mass_difference" in lib_pair.keys():
-        min_tol_b = min_tol_b - (lib_pair["mass_difference"] / charge)
-        max_tol_b = max_tol_b - (lib_pair["mass_difference"] / charge)
+        min_tol_b = min_tol_b - (lib_pair["mass_difference"])
+        max_tol_b = max_tol_b - (lib_pair["mass_difference"])
     elif "mass" in list(lib_pair.items())[0][1]:
         charge_a = list(lib_pair.items())[0][1]["charge"]
         charge_b = list(lib_pair.items())[1][1]["charge"]
@@ -186,12 +186,11 @@ def _annotate_pairs_from_graph(G, ppm, lib_pairs, charge):
                     charge_b = 1
 
                 if "mass_difference" in lib_pair:
-                    if not charge:
-                        charge = 1.0
+                    charge = lib_pair["charge"]
                     ppm_error = calculate_ppm_error(
                         mz_x,
-                        mz_y - (lib_pair["mass_difference"] / charge))
-                    exact_mass_diff = lib_pair["mass_difference"] / charge
+                        mz_y - (lib_pair["mass_difference"]))
+                    exact_mass_diff = lib_pair["mass_difference"]
                 else:
                     ppm_error = calculate_ppm_error(
                         (mz_x - list(lib_pair.items())[0][1]["mass"]) * charge_a,
@@ -228,12 +227,12 @@ def _annotate_pairs_from_peaklist(peaklist, ppm, lib_pairs, charge):
                         charge_b = 1
 
                     if "mass_difference" in lib_pair:
-                        if not charge:
-                            charge = 1.0
                         ppm_error = calculate_ppm_error(
                             peaklist.iloc[i, 1],
-                            peaklist.iloc[j, 1] - lib_pair["mass_difference"] / charge)
-                        exact_mass_diff = lib_pair["mass_difference"] / charge
+                            peaklist.iloc[j, 1] - lib_pair["mass_difference"])
+                        exact_mass_diff = lib_pair["mass_difference"]
+                        charge_a = lib_pair["charge"]
+                        charge_b = lib_pair["charge"]
                     else:
                         ppm_error = calculate_ppm_error(
                             (peaklist.iloc[i, 1] - list(lib_pair.items())[0][1]["mass"]) * charge_a,
@@ -425,7 +424,7 @@ def annotate_adducts(source, db_out, ppm, lib, add=False):
     return
 
 
-def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
+def annotate_isotopes(source, db_out, ppm, lib):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -450,31 +449,10 @@ def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
 
             peaklist = graph.nodes(data=True)
 
-            for charge in range(1, max_charge + 1):
-                for assignment in _annotate_pairs_from_graph(G=graph, lib_pairs=lib_pairs, ppm=ppm, charge=charge):
+            for assignment in _annotate_pairs_from_graph(G=graph, lib_pairs=lib_pairs, ppm=ppm, charge=None):
 
-                    y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
-                    x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
-
-                    if x == 0.0 or y == 0.0:
-                        atoms = None
-                    elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
-                        atoms = x/y
-                    else:
-                        atoms = y/x
-
-                    cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, 
-                                   atoms, exact_mass_diff, ppm_error, charge)
-                                   values (?,?,?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
-                                   assignment["label_a"], assignment["label_b"], float(atoms),
-                                   float(assignment["exact_mass_diff"]), float(assignment["ppm_error"]), charge))
-
-    elif isinstance(source, pd.core.frame.DataFrame):
-        for charge in range(1, max_charge + 1):
-            for assignment in _annotate_pairs_from_peaklist(peaklist=source, lib_pairs=lib_pairs, ppm=ppm, charge=charge):
-
-                y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
-                x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
+                y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
+                x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
 
                 if x == 0.0 or y == 0.0:
                     atoms = None
@@ -485,9 +463,28 @@ def annotate_isotopes(source, db_out, ppm, lib, max_charge=2):
 
                 cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, 
                                atoms, exact_mass_diff, ppm_error, charge)
-                               values (?,?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
-                               assignment["label_a"], assignment["label_b"], atoms,
-                               float(assignment["exact_mass_diff"]), assignment["ppm_error"], charge))
+                               values (?,?,?,?,?,?,?,?)""", (str(assignment["peak_id_a"]), str(assignment["peak_id_b"]),
+                               assignment["label_a"], assignment["label_b"], float(atoms),
+                               float(assignment["exact_mass_diff"]), float(assignment["ppm_error"]), assignment["charge_a"]))
+
+    elif isinstance(source, pd.core.frame.DataFrame):
+        for assignment in _annotate_pairs_from_peaklist(peaklist=source, lib_pairs=lib_pairs, ppm=ppm, charge=None):
+
+            y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
+            x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
+
+            if x == 0.0 or y == 0.0:
+                atoms = None
+            elif abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                atoms = x/y
+            else:
+                atoms = y/x
+
+            cursor.execute("""insert into isotopes (peak_id_a, peak_id_b, label_a, label_b, 
+                           atoms, exact_mass_diff, ppm_error, charge)
+                           values (?,?,?,?,?,?,?,?)""", (assignment["peak_id_a"], assignment["peak_id_b"],
+                           assignment["label_a"], assignment["label_b"], atoms,
+                           float(assignment["exact_mass_diff"]), assignment["ppm_error"], assignment["charge_a"]))
 
     cursor.execute("""CREATE INDEX IDX_isotopes_peak_id_a ON isotopes (peak_id_a);""")
     cursor.execute("""CREATE INDEX IDX_isotopes_peak_id_b ON isotopes (peak_id_b);""")

@@ -37,11 +37,14 @@ def read_isotopes(filename, ion_mode, separator="\t"):
     isotopes.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
     return isotopes
 
 
