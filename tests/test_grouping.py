@@ -22,7 +22,7 @@ class GroupFeaturesTestCase(unittest.TestCase):
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
         for i in range(len(records)):
             self.assertEqual(records[i][0:6], records_comp[i][0:6])
-            np.testing.assert_allclose(records[i][6:], records_comp[i][6:], rtol=1e-8)
+            np.testing.assert_almost_equal(records[i][6:], records_comp[i][6:])
 
         fn_sql = "results_pearson_all.sqlite"
         db_out = to_test_results(fn_sql)

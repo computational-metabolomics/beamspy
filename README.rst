@@ -1,6 +1,6 @@
 BEAMSpy - Birmingham mEtabolite Annotation for Mass Spectrometry (Python package)
 ==================================================================================
-|Version| |Py versions| |Git| |Bioconda| |Build Status (Travis)| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| |mybinder|
+|Version| |Py versions| |Git| |Bioconda| |Build Status| |Build Status (AppVeyor)| |License| |RTD doc| |codecov| |mybinder|
 
 BEAMSpy (Birmingham mEtabolite Annotation for Mass Spectrometry) is a Python package that includes several automated and
 seamless computational modules that are applied to putatively annotate metabolites detected in untargeted ultra (high)
@@ -74,8 +74,8 @@ License
 
 Released under the GNU General Public License v3.0 (see `LICENSE <https://github.com/computational-metabolomics/beamspy/blob/master/LICENSE>`_)
 
-.. |Build Status (Travis)| image:: https://img.shields.io/travis/computational-metabolomics/beamspy.svg?branch=dev&style=flat&maxAge=3600&label=Travis-CI
-   :target: https://travis-ci.com/computational-metabolomics/beamspy
+.. |Build Status| image:: https://github.com/computational-metabolomics/beamspy/workflows/beamspy/badge.svg
+   :target: https://github.com/computational-metabolomics/beamspy/actions
 
 .. |Build Status (AppVeyor)| image:: https://img.shields.io/appveyor/ci/RJMW/beamspy.svg?style=flat&maxAge=3600&label=AppVeyor
    :target: https://ci.appveyor.com/project/RJMW/beamspy

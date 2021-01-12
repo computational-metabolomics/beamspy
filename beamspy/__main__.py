@@ -105,14 +105,14 @@ def main():
     parser_app.add_argument('-f', '--isotopes-library', required=False,
                              help="List of isotopes.")
 
-    parser_app.add_argument('-r', '--multiple-charged-ions', action='store_true', required=False,
-                             help="Annotate multiple-charged ions.")
-
-    parser_app.add_argument('-s', '--multiple-charged-ions-library', required=False,
-                             help="List of multiple charged ions.")
-
     parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
                              help="Annotate oligomers.")
+
+    parser_app.add_argument('-n', '--neutral-losses', action='store_true', required=False,
+                             help="Annotate neutral losses.")
+
+    parser_app.add_argument('-s', '--neutral-losses-library', required=False,
+                             help="List of neutral losses.")
 
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
                              help="Ion mode of the libraries.")
@@ -267,25 +267,14 @@ def main():
                 lib = in_out.read_isotopes(p, args.ion_mode)
             annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
-        if args.multiple_charged_ions:
-            if len(args.multiple_charged_ions_library) > 0 and args.multiple_charged_ions_library is not None:
-                for i, m in enumerate(args.multiple_charged_ions_library):
-                    try:
-                        lib = in_out.read_multiple_charged_ions(m, args.ion_mode)
-                    except:
-                        lib = in_out.read_mass_differences(m, args.ion_mode)
-
-                    if i > 0:
-                        add = True
-                    else:
-                        add = False
-
-                    annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+        if args.neutral_losses:
+            if args.neutral_losses_library:
+                lib = in_out.read_neutral_losses(args.neutral_losses_library)
             else:
-                path = 'data/multiple_charged_ions.txt'
+                path = 'data/neutral_losses.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                lib = in_out.read_multiple_charged_ions(p, args.ion_mode)
-                annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+                lib = in_out.read_neutral_losses(p)
+            annotation.neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.oligomers:
             if args.adducts_library:
@@ -348,7 +337,7 @@ def main():
         from PySide2 import QtWidgets
         from beamspy.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
-        app.setStyle("Fusion")
+        # app.setStyle("Fusion")
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())
