@@ -10,9 +10,10 @@ from beamspy import annotation
 from beamspy import plots
 from PySide2 import QtCore, QtGui, QtWidgets
 from beamspy.qt import form
-
+from beamspy import __version__
 from collections import OrderedDict
 from multiprocessing import cpu_count
+from os.path import expanduser
 
 
 class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
@@ -21,6 +22,10 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.setupUi(self)
 
         self.pushButton_cancel.clicked.connect(QtCore.QCoreApplication.instance().quit)
+
+        self.path_wd = expanduser("~")
+
+        self.pushButton_wd.clicked.connect(partial(self.open_directory, self.lineEdit_wd))
 
         self.pushButton_peaklist.clicked.connect(partial(self.open_file, self.lineEdit_peaklist))
         self.pushButton_peak_matrix.clicked.connect(partial(self.open_file, self.lineEdit_intensity_matrix))
@@ -33,7 +38,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                                        self.lineEdit_adduct_library))
         self.pushButton_adduct_library.clicked.connect(partial(self.open_file, self.lineEdit_adduct_library))
         self.pushButton_isotopes.clicked.connect(partial(self.open_file, self.lineEdit_isotopes))
-        self.pushButton_multiple_charged.clicked.connect(partial(self.open_file, self.lineEdit_multiple_charged))
+        self.pushButton_neutral_losses.clicked.connect(partial(self.open_file, self.lineEdit_neutral_losses))
 
         self.checkBox_filename_reference.clicked.connect(self.source_compounds)
         self.pushButton_filename_reference.clicked.connect(partial(self.open_file, self.lineEdit_filename_reference))
@@ -50,7 +55,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         self.comboBox_source_mf.activated.connect(self.source_mf)
         self.checkBox_adduct_library.clicked.connect(self.source_peak_patterns)
         self.checkBox_isotopes.clicked.connect(self.source_peak_patterns)
-        self.checkBox_multiple_charged.clicked.connect(self.source_peak_patterns)
+        self.checkBox_neutral_losses.clicked.connect(self.source_peak_patterns)
         self.checkBox_oligomers.clicked.connect(self.source_peak_patterns)
 
         self.checkBox_mz_digits.clicked.connect(self.create_summary)
@@ -63,10 +68,18 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
 
         self.pushButton_start.clicked.connect(self.run)  # When the button is pressed
 
+    def open_directory(self, field):
+        d = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder', self.path_wd)
+        if d:
+            if str(d) == "":
+                QtWidgets.QMessageBox.critical(None, "Select a folder", "No folder selected", QtWidgets.QMessageBox.Ok)
+            else:
+                field.setText(d)
+                self.path_wd = d
+        return
 
     def open_file(self, field, field_extra=None):
-
-        d = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', "")
+        d = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', self.path_wd)
         if d:
             if str(d[0]) == "":
                 QtWidgets.QMessageBox.critical(None, "Select File", "No file selected", QtWidgets.QMessageBox.Ok)
@@ -77,7 +90,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         return
 
     def save_file(self, field, filename):
-        d = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename)
+        d = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', os.path.join(self.path_wd, filename))
         if d:
             if str(d[0]) == "":
                 QtWidgets.QMessageBox.critical(None, "Save File", "Provide a valid filename", QtWidgets.QMessageBox.Ok)
@@ -107,6 +120,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
+            self.checkBox_mf_pp_rules.setEnabled(True)
         else:
             self.label_filename_mf.setEnabled(False)
             self.lineEdit_filename_mf.setEnabled(False)
@@ -114,6 +128,8 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(True)
             self.spinBox_max_mz.setEnabled(True)
             self.checkBox_heuristic_rules.setEnabled(True)
+            self.checkBox_mf_pp_rules.setEnabled(True)
+
 
     def source_peak_patterns(self):
         if not self.checkBox_adduct_library.isChecked():
@@ -128,12 +144,12 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         else:
             self.lineEdit_isotopes.setEnabled(True)
             self.pushButton_isotopes.setEnabled(True)
-        if not self.checkBox_multiple_charged.isChecked():
-            self.pushButton_multiple_charged.setEnabled(False)
-            self.lineEdit_multiple_charged.setEnabled(False)
+        if not self.checkBox_neutral_losses.isChecked():
+            self.lineEdit_neutral_losses.setEnabled(False)
+            self.pushButton_neutral_losses.setEnabled(False)
         else:
-            self.pushButton_multiple_charged.setEnabled(True)
-            self.lineEdit_multiple_charged.setEnabled(True)
+            self.lineEdit_neutral_losses.setEnabled(True)
+            self.pushButton_neutral_losses.setEnabled(True)
         if not self.checkBox_oligomers.isChecked():
             self.spinBox_max_monomer_units.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
@@ -145,16 +161,18 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         if self.checkBox_filename_reference.isChecked():
             self.listWidget_databases.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
-            self.label_databases.setEnabled(False)
+            # self.label_databases.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(True)
             self.lineEdit_filename_reference.setEnabled(True)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
         else:
-            self.label_databases.setEnabled(True)
+            # self.label_databases.setEnabled(True)
             self.listWidget_databases.setEnabled(True)
             # self.label_categories.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
             self.lineEdit_filename_reference.setEnabled(False)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
 
     def group_features(self):
         if not self.checkBox_group_features.isChecked():
@@ -191,19 +209,23 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.pushButton_adduct_library.setEnabled(False)
             self.checkBox_adduct_library.setEnabled(False)
             self.checkBox_isotopes.setEnabled(False)
-            self.pushButton_multiple_charged.setEnabled(False)
-            self.lineEdit_multiple_charged.setEnabled(False)
             self.lineEdit_isotopes.setEnabled(False)
             self.pushButton_isotopes.setEnabled(False)
-            self.checkBox_multiple_charged.setEnabled(False)
+            self.checkBox_neutral_losses.setEnabled(False)
+            self.lineEdit_neutral_losses.setEnabled(False)
+            self.pushButton_neutral_losses.setEnabled(False)
             self.checkBox_oligomers.setEnabled(False)
             self.label_max_monomer_units.setEnabled(False)
             self.spinBox_max_monomer_units.setEnabled(False)
+            self.doubleSpinBox_pp_ppm_error.setEnabled(False)
+            self.label_pp_ppm_tolerance.setEnabled(False)
         else:
             self.checkBox_adduct_library.setEnabled(True)
             self.checkBox_isotopes.setEnabled(True)
-            self.checkBox_multiple_charged.setEnabled(True)
+            self.checkBox_neutral_losses.setEnabled(True)
             self.checkBox_oligomers.setEnabled(True)
+            self.doubleSpinBox_pp_ppm_error.setEnabled(True)
+            self.label_pp_ppm_tolerance.setEnabled(True)
             self.source_peak_patterns()
         self.source_graph_file()
 
@@ -217,9 +239,15 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_max_mz.setEnabled(False)
             self.spinBox_max_mz.setEnabled(False)
             self.checkBox_heuristic_rules.setEnabled(False)
+            self.label_mf_ppm_tolerance.setEnabled(False)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(False)
+            self.checkBox_mf_pp_rules.setEnabled(False)
         else:
             self.comboBox_source_mf.setEnabled(True)
             self.label_source_mf.setEnabled(True)
+            self.label_mf_ppm_tolerance.setEnabled(True)
+            self.doubleSpinBox_mf_ppm_error.setEnabled(True)
+            self.checkBox_mf_pp_rules.setEnabled(True)
             self.source_mf()
         return
 
@@ -227,12 +255,18 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
         if not self.checkBox_annotate_compounds.isChecked():
             self.listWidget_databases.setEnabled(False)
             # self.listWidget_categories.setEnabled(False)
-            self.label_databases.setEnabled(False)
+            # self.label_databases.setEnabled(False)
             self.checkBox_filename_reference.setEnabled(False)
             self.pushButton_filename_reference.setEnabled(False)
             self.lineEdit_filename_reference.setEnabled(False)
+            self.label_cpds_ppm_tolerance.setEnabled(False)
+            self.doubleSpinBox_cpds_ppm_error.setEnabled(False)
+            self.checkBox_cpds_pp_rules.setEnabled(False)
         else:
+            self.label_cpds_ppm_tolerance.setEnabled(True)
+            self.doubleSpinBox_cpds_ppm_error.setEnabled(True)
             self.checkBox_filename_reference.setEnabled(True)
+            self.checkBox_cpds_pp_rules.setEnabled(True)
             self.source_compounds()
 
     def create_summary(self):
@@ -245,7 +279,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.comboBox_annotations_format.setEnabled(False)
             self.pushButton_summary_filename.setEnabled(False)
             self.comboBox_separator.setEnabled(False)
-            self.comboBox_convert_rt.setEnabled(False)
+            self.comboBox_convert_rt.setDisabled(True)
             self.spinBox_mz_digits.setEnabled(False)
         else:
             self.label_summary_filename.setEnabled(True)
@@ -258,9 +292,9 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.comboBox_separator.setEnabled(True)
 
             if self.checkBox_convert_rt.isChecked():
-                self.comboBox_convert_rt.setEnabled(True)
+                self.comboBox_convert_rt.setDisabled(False)
             else:
-                self.comboBox_convert_rt.setEnabled(False)
+                self.comboBox_convert_rt.setDisabled(True)
             if self.checkBox_mz_digits.isChecked():
                 self.spinBox_mz_digits.setEnabled(True)
             else:
@@ -370,17 +404,20 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 annotation.annotate_isotopes(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
-            if self.checkBox_multiple_charged.isChecked():
-                print("Multiple charged ions...."),
-                if self.lineEdit_multiple_charged.text() == "Use default":
-                    path = 'data/multiple_charged_ions.txt'
+            if self.checkBox_neutral_losses.isChecked():
+                print("Neutral losses...."),
+                if self.lineEdit_neutral_losses.text() == "Use default":
+                    path = 'data/neutral_losses.txt'
                     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                    lib = in_out.read_multiple_charged_ions(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                elif os.path.isfile(self.lineEdit_multiple_charged.text()):
-                    lib = in_out.read_multiple_charged_ions(self.lineEdit_multiple_charged.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
+                    lib = in_out.read_neutral_losses(p)
+
+                elif os.path.isfile(self.lineEdit_neutral_losses.text()):
+                    lib = in_out.read_neutral_losses(self.lineEdit_neutral_losses.text())
                 else:
-                    raise IOError("Provide a valid filename for multiple charged ions or 'Use default'")
-                annotation.annotate_multiple_charged_ions(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
+                    raise IOError("Provide a valid filename for neutral losses or 'Use default'")
+                print("")
+                print(lib)
+                annotation.annotate_neutral_losses(inp, db_out=self.lineEdit_sql_database.text(), ppm=self.doubleSpinBox_pp_ppm_error.value(), lib=lib)
                 print("Done")
 
             if self.checkBox_oligomers.isChecked():
@@ -421,9 +458,11 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 rules = None
                 max_mz = None
             else:
-                db_in = "http://mfdb.bham.ac.uk"
+                db_in = "https://mfdb.bham.ac.uk"
                 rules = self.checkBox_heuristic_rules.isChecked()
                 max_mz = self.spinBox_max_mz.value()
+
+            use_peak_patterns = self.checkBox_mf_pp_rules.isChecked()
 
             print("")
             print(lib)
@@ -432,6 +471,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                                    ppm=self.doubleSpinBox_mf_ppm_error.value(),
                                                    db_out=self.lineEdit_sql_database.text(),
                                                    db_in=db_in,
+                                                   filter=use_peak_patterns,
                                                    rules=rules,
                                                    max_mz=max_mz)
             print("Done")
@@ -445,10 +485,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, lib_ion_mode[self.comboBox_ion_mode.currentText()])
             elif os.path.isfile(self.lineEdit_default_adduct_library.text()):
-                try:
-                    lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
-                except:
-                    lib = in_out.read_mass_differences(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
+                lib = in_out.read_adducts(self.lineEdit_default_adduct_library.text(), lib_ion_mode[self.comboBox_ion_mode.currentText()])
             else:
                 raise IOError("Provide a valid filename for adducts")
 
@@ -456,13 +493,16 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                 print("")
                 print(lib)
                 annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                              db_out=self.lineEdit_sql_database.text(), db_name=None, db_in=self.lineEdit_filename_reference.text())
+                                              db_out=self.lineEdit_sql_database.text(), db_name=None,
+                                              filter=self.checkBox_cpds_pp_rules.isChecked(),
+                                              db_in=self.lineEdit_filename_reference.text())
             else:
                 for db_name in self.listWidget_databases.selectedItems():
                     annotation.annotate_compounds(df, lib_adducts=lib, ppm=self.doubleSpinBox_cpds_ppm_error.value(),
-                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()])
+                                                  db_out=self.lineEdit_sql_database.text(), db_name=self.db_names[db_name.text()],
+                                                  filter=self.checkBox_cpds_pp_rules.isChecked())
             print("Done")
-            print
+            print("")
 
         if self.checkBox_create_summary.isChecked():
             print("Creating summary...."),

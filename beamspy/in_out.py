@@ -23,11 +23,11 @@ def read_adducts(filename, ion_mode, separator="\t"):
     adducts.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
     return adducts
 
 
@@ -37,11 +37,14 @@ def read_isotopes(filename, ion_mode, separator="\t"):
     isotopes.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
     return isotopes
 
 
@@ -106,27 +109,13 @@ def read_compounds(filename, separator="\t", calculate=True, lib_adducts=[], fil
             if "adduct" in df.columns:
                 record["adduct"] = row.adduct
                 if lib_adducts and calculate:
-                    record["exact_mass"] += lib_adducts.lib[row.adduct]
+                    record["exact_mass"] += lib_adducts.lib[row.adduct]["mass"]
 
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
 
     return records
-
-
-def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator, float_precision="round_trip")
-    multiple_charges = libraries.MultipleChargedIons()
-    multiple_charges.remove("*")
-    for index, row in df.iterrows():
-        if "ion_mode" not in row:
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-    return multiple_charges
 
 
 def read_mass_differences(filename, ion_mode, separator="\t"):
@@ -138,7 +127,7 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
             charge_y = row["charge_y"]
         else:
             charge_x = 1
-            charge_y = 2
+            charge_y = 1
         if "ion_mode" not in row:
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
@@ -146,6 +135,14 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
     return mass_differences
+
+
+def read_neutral_losses(filename, separator="\t"):
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
+    nls = libraries.NeutralLosses()
+    for index, row in df.iterrows():
+        nls.add(row["label"], row["mass_difference"])
+    return nls
 
 
 def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz", "rt": "rt", "name": "name"}, samples_in_columns=True):
