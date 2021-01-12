@@ -1812,7 +1812,7 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
         union_mf_sub_query = ""
 
     elif flag_mf and not flag_cpd:
-        mf_cpc_columns = "".join(map(str, [", mf.{} AS {}".format(c, c) for c in columns if c is not "rt_diff"]))
+        mf_cpc_columns = "".join(map(str, [", mf.{} AS {}".format(c, c) for c in columns if c != "rt_diff"]))
         if flag_adducts_oligo:
             union_mf_sub_query = "LEFT JOIN molecular_formulae AS mf"
             union_mf_sub_query += " ON (peaklist.name = mf.id AND peak_labels.label = mf.adduct)"
