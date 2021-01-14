@@ -451,8 +451,13 @@ def annotate_isotopes(source, db_out, ppm, lib):
 
             for assignment in _annotate_pairs_from_graph(G=graph, lib_pairs=lib_pairs, ppm=ppm, charge=None):
 
-                y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
-                x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
+                if abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                    # Lithium
+                    y = abundances[assignment["label_a"]]['abundance'] * peaklist[assignment["peak_id_b"]]["intensity"]
+                    x = 100.0 * peaklist[assignment["peak_id_a"]]["intensity"]
+                else:
+                    y = 100.0 * peaklist[assignment["peak_id_b"]]["intensity"]
+                    x = abundances[assignment["label_b"]]['abundance'] * peaklist[assignment["peak_id_a"]]["intensity"]
 
                 if x == 0.0 or y == 0.0:
                     atoms = None
@@ -470,8 +475,13 @@ def annotate_isotopes(source, db_out, ppm, lib):
     elif isinstance(source, pd.core.frame.DataFrame):
         for assignment in _annotate_pairs_from_peaklist(peaklist=source, lib_pairs=lib_pairs, ppm=ppm, charge=None):
 
-            y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
-            x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
+            if abundances[assignment["label_a"]]["abundance"] < abundances[assignment["label_b"]]["abundance"]:
+                # Lithium
+                y = abundances[assignment["label_a"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
+                x = 100.0 * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
+            else:
+                y = 100.0 * source.loc[source['name'] == assignment["peak_id_b"]]["intensity"].iloc[0]
+                x = abundances[assignment["label_b"]]["abundance"] * source.loc[source['name'] == assignment["peak_id_a"]]["intensity"].iloc[0]
 
             if x == 0.0 or y == 0.0:
                 atoms = None

@@ -159,16 +159,16 @@ class InOutTestCase(unittest.TestCase):
     def test_read_isotopes(self):
         isotopes_lib = os.path.join(self.path, "beamspy", "data", "isotopes.txt")
         records_pos = read_isotopes(isotopes_lib, "pos")
-        records_pos_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 0.5016775), ('charge', 2)]),
-                            OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355), ('charge', 1)]),
-                            OrderedDict([('S', {'abundance': 100.0}), ('(34S)', {'abundance': 4.21}), ('mass_difference', 1.995796), ('charge', 1)]),
-                            OrderedDict([('K', {'abundance': 100.0}), ('(41K)', {'abundance': 6.73}), ('mass_difference', 1.998119), ('charge', 1)])]
+        records_pos_comp = [OrderedDict([('C', {'abundance': 98.93}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 0.5016775), ('charge', 2)]),
+                            OrderedDict([('C', {'abundance': 98.93}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355), ('charge', 1)]),
+                            OrderedDict([('S', {'abundance': 94.99}), ('(34S)', {'abundance': 4.25}), ('mass_difference', 1.995796), ('charge', 1)]),
+                            OrderedDict([('K', {'abundance': 93.25}), ('(41K)', {'abundance': 6.73}), ('mass_difference', 1.998119), ('charge', 1)])]
         self.assertEqual(records_pos.lib, records_pos_comp)
         records_neg = read_isotopes(isotopes_lib, "neg")
-        records_neg_comp = [OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 0.5016775), ('charge', 2)]),
-                            OrderedDict([('C', {'abundance': 100.0}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355), ('charge', 1)]),
-                            OrderedDict([('S', {'abundance': 100.0}), ('(34S)', {'abundance': 4.21}), ('mass_difference', 1.995796), ('charge', 1)]),
-                            OrderedDict([('Cl', {'abundance': 100.0}), ('(37Cl)', {'abundance': 24.23}), ('mass_difference', 1.997050), ('charge', 1)])]
+        records_neg_comp = [OrderedDict([('C', {'abundance': 98.93}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 0.5016775), ('charge', 2)]),
+                            OrderedDict([('C', {'abundance': 98.93}), ('(13C)', {'abundance': 1.07}), ('mass_difference', 1.003355), ('charge', 1)]),
+                            OrderedDict([('S', {'abundance': 94.99}), ('(34S)', {'abundance': 4.25}), ('mass_difference', 1.995796), ('charge', 1)]),
+                            OrderedDict([('Cl', {'abundance': 75.76}), ('(37Cl)', {'abundance': 24.24}), ('mass_difference', 1.997050), ('charge', 1)])]
         self.assertEqual(records_neg.lib, records_neg_comp)
 
     # def test_read_mass_differences(self):
