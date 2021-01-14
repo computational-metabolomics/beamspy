@@ -31,6 +31,48 @@ class AnnotationTestCase(unittest.TestCase):
 
         self.ppm = 2.0
 
+        self.db_name = "hmdb_full_v4_0_20200909_v1"
+
+    def test_dbs(self):
+
+        path_dbs = os.path.join(self.path, "beamspy", "data", "databases")
+        df_dbs = pd.read_csv(os.path.join(path_dbs, "databases.txt"), sep="\t")
+        d = {}
+        for index, row in df_dbs.iterrows():
+
+            with gzip.GzipFile(os.path.join(path_dbs, row["database_name"] + ".sql.gz"), mode='rb') as db_dump:
+
+                conn = sqlite3.connect(":memory:")
+                cursor = conn.cursor()
+                cursor.executescript(db_dump.read().decode('utf-8'))
+                conn.commit()
+
+                cursor.execute("SELECT COUNT(*) FROM {}".format(row["database_name"]))
+                d[row["database_name"]] = int(cursor.fetchone()[0])
+
+        self.assertEqual(d["biocyc_chlamycyc_20180702_v1"], 1125)
+        self.assertEqual(d["chebi_complete_rel195_v1"], 124527)
+        self.assertEqual(d["chebi_complete_3star_rel195_v1"], 49820)
+        self.assertEqual(d["hmdb_urine_v4_0_20200910_v1"], 4364)
+        self.assertEqual(d["hmdb_serum_v4_0_20200910_v1"], 25411)
+        self.assertEqual(d["hmdb_csf_v4_0_20200910_v1"], 445)
+        self.assertEqual(d["hmdb_saliva_v4_0_20200910_v1"], 1245)
+        self.assertEqual(d["hmdb_feces_v4_0_20200910_v1"], 6810)
+        self.assertEqual(d["hmdb_sweat_v4_0_20200910_v1"], 91)
+        self.assertEqual(d["hmdb_full_v4_0_20200909_v1"], 114222)
+        self.assertEqual(d["kegg_dpx_20210111_v1"], 2641)
+        self.assertEqual(d["kegg_hsa_20210111_v1"], 3047)
+        self.assertEqual(d["kegg_full_20210111_v1"], 18749)
+        self.assertEqual(d["lipidmaps_fattyacyls_20201001_v1"], 9823)
+        self.assertEqual(d["lipidmaps_glycerolipids_20201001_v1"], 7642)
+        self.assertEqual(d["lipidmaps_slycerophospholipids_20201001_v1"], 9915)
+        self.assertEqual(d["lipidmaps_solyketides_20201001_v1"], 6951)
+        self.assertEqual(d["lipidmaps_srenollipids_20201001_v1"], 1420)
+        self.assertEqual(d["lipidmaps_sacccharolipids_20201001_v1"], 1326)
+        self.assertEqual(d["lipidmaps_sphingolipids_20201001_v1"], 4402)
+        self.assertEqual(d["lipidmaps_sterollipids_20201001_v1"], 2949)
+        self.assertEqual(d["lipidmaps_full_20201001_v1"], 44428)
+
     def test_neutral_losses(self):
 
         df_nls = combine_peaklist_matrix(to_test_data("peaklist_lcms_pos_theoretical_nls.txt"),
@@ -46,10 +88,8 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "neutral_losses"),
                                  sqlite_records(to_test_data(db_nls), "neutral_losses"))
 
-        db_name = "hmdb_full_v4_0_v1"
-
-        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", db_name + ".sql.gz")
-        path_hmdb_sqlite = to_test_results("{}.sqlite".format(db_name))
+        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", self.db_name + ".sql.gz")
+        path_hmdb_sqlite = to_test_results("{}.sqlite".format(self.db_name))
 
         if os.path.isfile(path_hmdb_sqlite):
             os.remove(path_hmdb_sqlite)
@@ -61,16 +101,16 @@ class AnnotationTestCase(unittest.TestCase):
             conn.commit()
             conn.close()
 
-        annotate_compounds(df_nls, self.lib_adducts, self.ppm, to_test_results(db_nls), db_name,
+        annotate_compounds(df_nls, self.lib_adducts, self.ppm, to_test_results(db_nls), self.db_name,
                            filter=True, db_in=path_hmdb_sqlite)
 
-        #l_01 = sorted(sqlite_records(to_test_data(db_nls), "compounds_{}".format(db_name)), key=lambda x: (x[0], x[-1]))
-        #l_02 = sorted(sqlite_records(to_test_results(db_nls), "compounds_{}".format(db_name)), key=lambda x: (x[0], x[-1]))
+        #l_01 = sorted(sqlite_records(to_test_data(db_nls), "compounds_{}".format(self.db_name)), key=lambda x: (x[0], x[-1]))
+        #l_02 = sorted(sqlite_records(to_test_results(db_nls), "compounds_{}".format(self.db_name)), key=lambda x: (x[0], x[-1]))
         #self.assertSequenceEqual(l_01, l_02)
 
-        self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "compounds_{}".format(db_name)),
-                                 sqlite_records(to_test_data(db_nls), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(db_nls), "compounds_{}".format(db_name)), 30)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_nls), "compounds_{}".format(self.db_name)),
+                                 sqlite_records(to_test_data(db_nls), "compounds_{}".format(self.db_name)))
+        self.assertEqual(sqlite_count(to_test_results(db_nls), "compounds_{}".format(self.db_name)), 26)
 
         annotate_molecular_formulae(df_nls, self.lib_adducts, self.ppm, to_test_results(db_nls),
                                     filter=True, rules=True)
@@ -104,10 +144,8 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(db_mc), "oligomers"))
         self.assertEqual(sqlite_count(to_test_results(db_mc), "oligomers"), 4)
 
-        db_name = "hmdb_full_v4_0_v1"
-
-        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", db_name + ".sql.gz")
-        path_hmdb_sqlite = to_test_results("{}.sqlite".format(db_name))
+        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", self.db_name + ".sql.gz")
+        path_hmdb_sqlite = to_test_results("{}.sqlite".format(self.db_name))
 
         if os.path.isfile(path_hmdb_sqlite):
             os.remove(path_hmdb_sqlite)
@@ -119,16 +157,16 @@ class AnnotationTestCase(unittest.TestCase):
             conn.commit()
             conn.close()
 
-        annotate_compounds(df, lib_adducts, self.ppm, to_test_results(db_mc), db_name,
+        annotate_compounds(df, lib_adducts, self.ppm, to_test_results(db_mc), self.db_name,
                            filter=True, db_in=path_hmdb_sqlite)
 
-        # l_01 = sorted(sqlite_records(to_test_data(db_mc), "compounds_{}".format(db_name)), key = lambda x: x[0])
-        # l_02 = sorted(sqlite_records(to_test_results(db_mc), "compounds_{}".format(db_name)), key = lambda x: x[0])
+        # l_01 = sorted(sqlite_records(to_test_data(db_mc), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
+        # l_02 = sorted(sqlite_records(to_test_results(db_mc), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # self.assertSequenceEqual(l_01, l_02)
 
-        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "compounds_{}".format(db_name)),
-                                 sqlite_records(to_test_data(db_mc), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(db_mc), "compounds_{}".format(db_name)), 41)
+        self.assertSequenceEqual(sqlite_records(to_test_results(db_mc), "compounds_{}".format(self.db_name)),
+                                 sqlite_records(to_test_data(db_mc), "compounds_{}".format(self.db_name)))
+        self.assertEqual(sqlite_count(to_test_results(db_mc), "compounds_{}".format(self.db_name)), 40)
 
         annotate_molecular_formulae(df, lib_adducts, self.ppm, to_test_results(db_mc),
                                     filter=True, rules=True)
@@ -174,10 +212,8 @@ class AnnotationTestCase(unittest.TestCase):
 
     def test_annotate_compounds(self):
 
-        db_name = "hmdb_full_v4_0_v1"
-
-        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", db_name + ".sql.gz")
-        path_hmdb_sqlite = to_test_results("{}.sqlite".format(db_name))
+        path_hmdb_sql_gz = os.path.join(os.getcwd(), "beamspy", "data", "databases", self.db_name + ".sql.gz")
+        path_hmdb_sqlite = to_test_results("{}.sqlite".format(self.db_name))
 
         annotate_adducts(self.df, to_test_results(self.db_results), self.ppm, self.lib_adducts)
         annotate_isotopes(self.df, to_test_results(self.db_results), self.ppm, self.lib_isotopes)
@@ -198,49 +234,49 @@ class AnnotationTestCase(unittest.TestCase):
             conn.close()
 
         # sqlite file provided
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), self.db_name,
                            filter=True, db_in=path_hmdb_sqlite)
 
-        # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)), key = lambda x: x[0])
-        # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), key = lambda x: x[0])
+        # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
+        # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # self.assertSequenceEqual(l_01, l_02)
 
-        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
-                                sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 51)
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)),
+                                sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), 50)
 
         # internal sqlite databases
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), self.db_name,
                            filter=True, db_in="")
 
-        # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)), key = lambda x: x[0])
-        # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)), key = lambda x: x[0])
+        # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
+        # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # self.assertSequenceEqual(l_01, l_02)
 
-        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
-                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 51)
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)),
+                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), 50)
 
         # internal sqlite databases, including grouping
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results_graph), db_name,
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results_graph), self.db_name,
                            filter=True, db_in="")
 
-        # l_01 = sorted(sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(db_name)), key = lambda x: x[0])
-        # l_02 = sorted(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)), key = lambda x: x[0])
+        # l_01 = sorted(sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
+        # l_02 = sorted(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # self.assertSequenceEqual(l_01, l_02)
 
-        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)),
-                                 sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(db_name)))
-        self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "compounds_{}".format(db_name)), 51)
+        self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(self.db_name)),
+                                 sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(self.db_name)))
+        self.assertEqual(sqlite_count(to_test_results(self.db_results_graph), "compounds_{}".format(self.db_name)), 50)
 
         # internal sqlite databases (excl. patterns)
         db_results_excl_patterns = self.db_results.replace(".sqlite", "_excl_pattern.sqlite")
         annotate_adducts(self.df, to_test_results(db_results_excl_patterns), self.ppm, self.lib_adducts)
         annotate_isotopes(self.df, to_test_results(db_results_excl_patterns), self.ppm, self.lib_isotopes)
 
-        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(db_results_excl_patterns), db_name,
+        annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(db_results_excl_patterns), self.db_name,
                            filter=False, db_in="")
-        self.assertEqual(sqlite_count(to_test_results(db_results_excl_patterns), "compounds_{}".format(db_name)), 58)
+        self.assertEqual(sqlite_count(to_test_results(db_results_excl_patterns), "compounds_{}".format(self.db_name)), 56)
 
         # text file provided
         path_db_txt = os.path.join(os.getcwd(), "beamspy", "data", "db_compounds.txt")
@@ -311,7 +347,7 @@ class AnnotationTestCase(unittest.TestCase):
                                  sqlite_records(to_test_data(self.db_results), "summary"))
 
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, (118, 29))
+        self.assertSequenceEqual(df_summary.shape, (117, 29))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_sr_mc.txt"
@@ -334,7 +370,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results_graph), "summary"),
                                  sqlite_records(to_test_data(self.db_results_graph), "summary"))
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
-        self.assertSequenceEqual(df_summary.shape, ((51, 33)))
+        self.assertSequenceEqual(df_summary.shape, ((50, 33)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
         fn_summary = "summary_mr_mc_nls.txt"
@@ -345,7 +381,7 @@ class AnnotationTestCase(unittest.TestCase):
                              convert_rt=None, ndigits_mz=None)
         df_summary.to_csv(to_test_results(fn_summary), sep="\t", index=False)
 
-        self.assertSequenceEqual(df_summary.shape, ((35, 29)))
+        self.assertSequenceEqual(df_summary.shape, ((31, 29)))
         _assert(to_test_data(fn_summary), to_test_results(fn_summary))
 
 
