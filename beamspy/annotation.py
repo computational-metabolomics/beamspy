@@ -835,13 +835,6 @@ def _select_unions_peak_patterns(cursor):
     cursor.execute(sql_str)
     records.extend([dict(zip([c[0] for c in cursor.description], record)) for record in cursor.fetchall()])
 
-    # for record in records:
-    #     print(record)
-    #     for k, v in record.items():
-    #         print(k,v)
-    #     print("===============")
-    #     input()
-
     excl_ids_pp.append("""SELECT peak_id_a FROM isotopes UNION SELECT peak_id_b FROM isotopes""")
     excl_ids = " UNION ".join(map(str, excl_ids_pp))
     sql_excl = """WHERE peak_id_a NOT IN ({})
@@ -1965,32 +1958,44 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
             if single_column:
                 for cpd_t in cpd_tables:
 
+                    cursor.execute("SELECT COUNT(*) FROM {} WHERE rt_diff is not NULL".format(cpd_t))
+                    if int(cursor.fetchone()[0]) > 0:
+                        rt_col = """|| '::' || ifnull(round(rt_diff, 2), "None")"""
+                    else:
+                        rt_col = ""
+
                     columns_to_select.append("""
                         group_concat(
                             CASE WHEN {} = 1 THEN 
                                 molecular_formula || '::' || 
                                 adduct || '::' || 
-                                ifnull(compound_name, "None") || '::' || 
-                                ifnull(compound_id, "None")  || '::' || 
-                                ifnull(compound_count, "None") || '::' || 
+                                compound_name || '::' || 
+                                compound_id  || '::' || 
+                                compound_count || '::' || 
                                 exact_mass || '::' || 
-                                round(ppm_error, 2) || '::' || 
-                                ifnull(round(rt_diff, 2), "None")
+                                round(ppm_error, 2)
+                                {}
                             ELSE NULL END 
                             , '||' 
                         ) AS {} 
-                        """.format(cpd_t, cpd_t))
+                        """.format(cpd_t, rt_col, cpd_t))
             else:
+                cursor.execute("SELECT COUNT(*) FROM summary WHERE rt_diff is not NULL")
+                if int(cursor.fetchone()[0]) > 0:
+                    rt_col = """, group_concat(ifnull(round(rt_diff, 2), "None"), '||') AS rt_diff"""
+                else:
+                    rt_col = ""
+
                 columns_to_select.append("""
                     group_concat(molecular_formula, '||') AS molecular_formula,
                     group_concat(adduct, '||') AS adduct, 
-                    group_concat(ifnull(compound_name, "None"), '||') AS compound_name, 
-                    group_concat(ifnull(compound_id, "None"), '||') AS compound_id,
-                    group_concat(ifnull(compound_count, "None"), '||') AS compound_count,
+                    group_concat(compound_name, '||') AS compound_name, 
+                    group_concat(compound_id, '||') AS compound_id,
+                    group_concat(compound_count, '||') AS compound_count,
                     group_concat(exact_mass, '||') AS exact_mass,
-                    group_concat(round(ppm_error, 2), '||') AS ppm_error,
-                    group_concat(ifnull(round(rt_diff, 2), "None"), '||') AS rt_diff
-                    """)
+                    group_concat(round(ppm_error, 2), '||') AS ppm_error
+                    {}
+                    """.format(rt_col))
         elif flag_mf:
             if single_column:
                 columns_to_select.append("""
