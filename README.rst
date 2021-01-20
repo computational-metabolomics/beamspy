@@ -13,13 +13,9 @@ untargeted metabolomics studies. The user can use the standard reference files i
 their own reference files.
 
 
-- :ref:`Quick installation <quick_installation>`
 - |documentation|
 - |bug reports|
-- |License|
 
-
-.. _quick_installation:
 
 Quick installation
 -------------------
@@ -114,11 +110,11 @@ Released under the GNU General Public License v3.0 (see `LICENSE <https://github
 
 .. |conda_install| raw:: html
 
-   <a href="https://conda.io/docs/user-guide/install" target="_blank">here</a>
+   <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/" target="_blank">here</a>
 
 .. |miniconda| raw:: html
 
-   <a href="http://conda.pydata.org/miniconda.html" target="_blank">Miniconda</a>
+   <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">Miniconda</a>
 
 .. _pip: https://pip.pypa.io/
-.. _Conda: http://conda.pydata.org/docs/
+.. _Conda: https://conda.io/en/latest/
