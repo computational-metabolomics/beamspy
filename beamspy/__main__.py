@@ -149,6 +149,12 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
+    parser_amf.add_argument('-e', '--skip-patterns', action="store_false",
+                            help="Skip applying/using peak patterns (e.g. adduct and isotope patterns) to filter annotations.")
+
+    parser_amf.add_argument('-r', '--skip-rules', action="store_false",
+                            help="Skip heuritic rules to filter annotations.")
+
     parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=500.0,
                             help="Maximum m/z value to assign molecular formula(e).")
 
@@ -180,6 +186,9 @@ def main():
 
     parser_am.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                            help="Mass tolerance in parts per million.")
+
+    parser_am.add_argument('-e', '--skip-patterns', action="store_false",
+                            help="Skip applying/using peak patterns (e.g. adduct and isotope patterns) to filter annotations.")
 
     parser_am.add_argument('-r', '--rt', default=None, type=float, required=True,
                            help="Retention time tolerance in seconds.")
@@ -299,9 +308,8 @@ def main():
             path = 'data/adducts.txt'
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
-
         annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf,
-                                               max_mz=args.max_mz)
+                                               patterns=args.skip_patterns, rules=args.skip_rules, max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
         
@@ -316,8 +324,7 @@ def main():
             path = 'data/adducts.txt'
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
-            
-        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in=args.db_compounds, rt_tol=args.rt)
+        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, patterns=args.skip_patterns, db_in=args.db_compounds, rt_tol=args.rt)
 
     if args.step == "summary-results":
         

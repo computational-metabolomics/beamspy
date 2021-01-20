@@ -102,7 +102,7 @@ class AnnotationTestCase(unittest.TestCase):
             conn.close()
 
         annotate_compounds(df_nls, self.lib_adducts, self.ppm, to_test_results(db_nls), self.db_name,
-                           filter=True, db_in=path_hmdb_sqlite)
+                           patterns=True, db_in=path_hmdb_sqlite)
 
         #l_01 = sorted(sqlite_records(to_test_data(db_nls), "compounds_{}".format(self.db_name)), key=lambda x: (x[0], x[-1]))
         #l_02 = sorted(sqlite_records(to_test_results(db_nls), "compounds_{}".format(self.db_name)), key=lambda x: (x[0], x[-1]))
@@ -113,7 +113,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_count(to_test_results(db_nls), "compounds_{}".format(self.db_name)), 26)
 
         annotate_molecular_formulae(df_nls, self.lib_adducts, self.ppm, to_test_results(db_nls),
-                                    filter=True, rules=True)
+                                    patterns=True, rules=True)
 
         # l_01 = sorted(sqlite_records(to_test_data(db_nls), "molecular_formulae"), key=lambda x: (x[0], x[-1]))
         # l_02 = sorted(sqlite_records(to_test_results(db_nls), "molecular_formulae"), key=lambda x: (x[0], x[-1]))
@@ -158,7 +158,7 @@ class AnnotationTestCase(unittest.TestCase):
             conn.close()
 
         annotate_compounds(df, lib_adducts, self.ppm, to_test_results(db_mc), self.db_name,
-                           filter=True, db_in=path_hmdb_sqlite)
+                           patterns=True, db_in=path_hmdb_sqlite)
 
         # l_01 = sorted(sqlite_records(to_test_data(db_mc), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # l_02 = sorted(sqlite_records(to_test_results(db_mc), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
@@ -169,7 +169,7 @@ class AnnotationTestCase(unittest.TestCase):
         self.assertEqual(sqlite_count(to_test_results(db_mc), "compounds_{}".format(self.db_name)), 40)
 
         annotate_molecular_formulae(df, lib_adducts, self.ppm, to_test_results(db_mc),
-                                    filter=True, rules=True)
+                                    patterns=True, rules=True)
 
         # l_01 = sorted(sqlite_records(to_test_data(db_mc), "molecular_formulae"), key = lambda x: x[0])
         # l_02 = sorted(sqlite_records(to_test_results(db_mc), "molecular_formulae"), key = lambda x: x[0])
@@ -235,7 +235,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         # sqlite file provided
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), self.db_name,
-                           filter=True, db_in=path_hmdb_sqlite)
+                           patterns=True, db_in=path_hmdb_sqlite)
 
         # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
@@ -247,7 +247,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         # internal sqlite databases
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), self.db_name,
-                           filter=True, db_in="")
+                           patterns=True, db_in="")
 
         # l_01 = sorted(sqlite_records(to_test_data(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # l_02 = sorted(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
@@ -259,7 +259,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         # internal sqlite databases, including grouping
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results_graph), self.db_name,
-                           filter=True, db_in="")
+                           patterns=True, db_in="")
 
         # l_01 = sorted(sqlite_records(to_test_data(self.db_results_graph), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
         # l_02 = sorted(sqlite_records(to_test_results(self.db_results_graph), "compounds_{}".format(self.db_name)), key = lambda x: x[0])
@@ -275,14 +275,14 @@ class AnnotationTestCase(unittest.TestCase):
         annotate_isotopes(self.df, to_test_results(db_results_excl_patterns), self.ppm, self.lib_isotopes)
 
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(db_results_excl_patterns), self.db_name,
-                           filter=False, db_in="")
+                           patterns=False, db_in="")
         self.assertEqual(sqlite_count(to_test_results(db_results_excl_patterns), "compounds_{}".format(self.db_name)), 56)
 
         # text file provided
         path_db_txt = os.path.join(os.getcwd(), "beamspy", "data", "db_compounds.txt")
         db_name = "test"
         annotate_compounds(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results), db_name,
-                           filter=True, db_in=path_db_txt)
+                           patterns=True, db_in=path_db_txt)
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "compounds_{}".format(db_name)),
                                 sqlite_records(to_test_data(self.db_results), "compounds_{}".format(db_name)))
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 66)
@@ -293,7 +293,7 @@ class AnnotationTestCase(unittest.TestCase):
             out.write("compound_id\tmolecular_formula\tcompound_name\tadduct\tretention_time\n")
             out.write("HMDB0000263\tC3H5O6P\tPhosphoenolpyruvic acid\t[M+H]+\t118.0\n")
 
-        annotate_compounds(self.df, self.lib_adducts, 100.0, to_test_results(self.db_results), db_name, filter=True,
+        annotate_compounds(self.df, self.lib_adducts, 100.0, to_test_results(self.db_results), db_name, patterns=True,
                            db_in=path_db_txt, rt_tol=5.0)
         self.assertEqual(sqlite_count(to_test_results(self.db_results), "compounds_{}".format(db_name)), 1)
 
@@ -301,7 +301,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         fn_mf = os.path.join(self.path, "beamspy", "data", "db_mf.txt")
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(self.db_results),
-                                    fn_mf, filter=True)
+                                    fn_mf, patterns=True)
 
         self.assertSequenceEqual(sqlite_records(to_test_results(self.db_results), "molecular_formulae"),
                                  sqlite_records(to_test_data(self.db_results), "molecular_formulae"))
@@ -309,7 +309,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         db_mfdb_results = "results_mfdb.sqlite"
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(db_mfdb_results),
-                                    filter=False, rules=True)
+                                    patterns=False, rules=True)
         self.assertSequenceEqual(sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae"),
                                  sqlite_records(to_test_data(db_mfdb_results), "molecular_formulae"))
         self.assertEqual(sqlite_count(to_test_results(db_mfdb_results), "molecular_formulae"), 586)
@@ -319,7 +319,7 @@ class AnnotationTestCase(unittest.TestCase):
         annotate_isotopes(self.df, to_test_results(db_mfdb_results), self.ppm, self.lib_isotopes)
 
         annotate_molecular_formulae(self.df, self.lib_adducts, self.ppm, to_test_results(db_mfdb_results),
-                                    filter=True, rules=False)
+                                    patterns=True, rules=False)
         records = sqlite_records(to_test_results(db_mfdb_results), "molecular_formulae")
         self.assertEqual(len(records), 3869)
         self.assertSequenceEqual(records[897],

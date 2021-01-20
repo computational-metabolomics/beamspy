@@ -880,7 +880,7 @@ def _select_unions_peak_patterns(cursor):
     return records
 
 
-def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https://mfdb.bham.ac.uk", filter=True, rules=True, max_mz=None):
+def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https://mfdb.bham.ac.uk", patterns=True, rules=True, max_mz=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -1118,7 +1118,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https
         mz = float(peaklist["mz"].iloc[i])
         name = str(peaklist["name"].iloc[i])
 
-        if name in names_to_skip and filter:
+        if name in names_to_skip and patterns:
             continue
 
         if max_mz is not None and mz > max_mz:
@@ -1140,7 +1140,7 @@ def annotate_molecular_formulae(peaklist, lib_adducts, ppm, db_out, db_in="https
     return
 
 
-def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True, db_in="", rt_tol=None):
+def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, patterns=True, db_in="", rt_tol=None):
 
     if db_in is None or db_in == "":
         conn_cpds = None
@@ -1408,7 +1408,7 @@ def annotate_compounds(peaklist, lib_adducts, ppm, db_out, db_name, filter=True,
         if min_rt and max_rt:
             records = _select_compounds(cursor_cpds, name, mz, ppm, None, None, None, min_rt, max_rt, 1.0, 0.0)
         else:
-            if name in names_to_skip and filter:
+            if name in names_to_skip and patterns:
                 continue
             records = _select_compounds(cursor_cpds, name, mz, ppm, lib_adducts.lib.keys(), None, None, None, None, 1.0, 0.0)
 
