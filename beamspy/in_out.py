@@ -201,7 +201,6 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", median_inten
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
 
 
-
 def read_peaklist(fn_peaklist, separator="\t",
                   mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
@@ -231,7 +230,10 @@ def read_peaklist(fn_peaklist, separator="\t",
             df_peaklist = df_peaklist[[mapping["mz"], mapping["rt"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "rt", "intensity"]
 
-            names = "M" + df_peaklist["mz"].round().astype(int).astype(str).str.cat(df_peaklist["rt"].round().astype(int).astype(str), sep="T")
+            uids = df_peaklist["mz"].round().astype(int).astype(str).str.cat(df_peaklist["rt"].round().astype(int).astype(str), sep="T")
+            ms = pd.Series(['M'] * len(uids))
+            names = ms.str.cat(uids, sep='')
+
             for n in names.copy():
                 idxs = names.index[names == n].tolist()
                 if len(idxs) > 1:
