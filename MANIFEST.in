@@ -1,7 +1,8 @@
 include README.rst
 include LICENSE
-include requirements*.txt
-include examples/*.*
+include requirements.txt
+include examples/run.py
+include examples/run.sh
 include tests/*.py
 include tests/test_data/*.*
 include tests/test_results/.gitignore

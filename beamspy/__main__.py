@@ -190,7 +190,7 @@ def main():
     parser_am.add_argument('-e', '--skip-patterns', action="store_false",
                             help="Skip applying/using peak patterns (e.g. adduct and isotope patterns) to filter annotations.")
 
-    parser_am.add_argument('-r', '--rt', default=None, type=float, required=True,
+    parser_am.add_argument('-r', '--rt', default=None, type=float,
                            help="Retention time tolerance in seconds.")
 
     #################################
