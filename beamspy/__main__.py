@@ -96,8 +96,8 @@ def main():
     parser_app.add_argument('-a', '--adducts', action='store_true', required=False,
                              help="Annotate adducts.")
 
-    parser_app.add_argument('-b', '--adducts-library', action='append', required=False,
-                             default=[], help="List of adducts.")
+    parser_app.add_argument('-b', '--adducts-library', type=str, default=None, required=False,
+                             help="List of adducts.")
 
     parser_app.add_argument('-e', '--isotopes', action='store_true', required=False,
                              help="Annotate isotopes.")
@@ -250,22 +250,13 @@ def main():
             inp = in_out.read_peaklist(args.peaklist)
 
         if args.adducts:
-            if len(args.adducts_library) > 0 and args.adducts_library is not None:
-                for i, a in enumerate(args.adducts_library):
-                    try:
-                        lib = in_out.read_adducts(a, args.ion_mode)
-                    except:
-                        lib = in_out.read_mass_differences(a, args.ion_mode)
-                    if i > 0:
-                        add = True
-                    else:
-                        add = False
-                    annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+            if args.adducts_library:
+                lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
             else:
                 path = 'data/adducts.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, args.ion_mode)
-                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
+            annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
 
         if args.isotopes:
             if args.isotopes_library:
