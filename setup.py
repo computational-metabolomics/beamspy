@@ -11,8 +11,9 @@ def main():
 
     setuptools.setup(name="beamspy",
         version=beamspy.__version__,
-        description="Python package to annotate LC-MS and DIMS data",
+        description="Putative annotation of metabolites for mass spectrometry-based metabolomics datasets.",
         long_description=open("README.rst").read(),
+        long_description_content_type="text/x-rst",
         author="Ralf Weber",
         author_email="r.j.weber@bham.ac.uk",
         url="https://github.com/computational-metabolomics/beamspy",
