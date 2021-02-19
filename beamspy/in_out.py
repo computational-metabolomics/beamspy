@@ -23,11 +23,11 @@ def read_adducts(filename, ion_mode, separator="\t"):
     adducts.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            adducts.add(row["label"], row["exact_mass"])
+            adducts.add(row["label"], row["exact_mass"], row["charge"])
     return adducts
 
 
@@ -37,11 +37,14 @@ def read_isotopes(filename, ion_mode, separator="\t"):
     isotopes.remove("*")
     for index, row in df.iterrows():
         if "ion_mode" not in row:
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"], row["mass_difference"])
+            isotopes.add(row["label_x"], row["label_y"], row["abundance_x"], row["abundance_y"],
+                         row["mass_difference"], row["charge"])
     return isotopes
 
 
@@ -74,7 +77,7 @@ def read_molecular_formulae(filename, separator="\t", calculate=True, filename_a
     return records
 
 
-def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
+def read_compounds(filename, separator="\t", calculate=True, lib_adducts=[], filename_atoms=""):
 
     if calculate:
         path_nist_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nist_database.txt')
@@ -93,29 +96,26 @@ def read_compounds(filename, separator="\t", calculate=True, filename_atoms=""):
                 record["exact_mass"] = round(pyteomics_mass.calculate_mass(formula=str(str(row.molecular_formula)), mass_data=nist_database),6)
             else:
                 record["exact_mass"] = float(row.exact_mass)
+
             record["compound_id"] = row.compound_id
             record["compound_name"] = row.compound_name
             comp = pyteomics_mass.Composition(str(row.molecular_formula))
             record["molecular_formula"] = composition_to_string(comp)
+
+            if "retention_time" in df.columns:
+                record["retention_time"] = row.retention_time
+            elif "rt" in df.columns:
+                record["retention_time"] = row.rt
+            if "adduct" in df.columns:
+                record["adduct"] = row.adduct
+                if lib_adducts and calculate:
+                    record["exact_mass"] += lib_adducts.lib[row.adduct]["mass"]
+
             records.append(record)
         else:
             Warning("{} Skipped".format(row))
 
     return records
-
-
-def read_multiple_charged_ions(filename, ion_mode, separator="\t"):
-    df = read_csv(filename, sep=separator, float_precision="round_trip")
-    multiple_charges = libraries.MultipleChargedIons()
-    multiple_charges.remove("*")
-    for index, row in df.iterrows():
-        if "ion_mode" not in row:
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-        elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
-            multiple_charges.add(row["label"], row["exact_mass"], row["charge"])
-    return multiple_charges
 
 
 def read_mass_differences(filename, ion_mode, separator="\t"):
@@ -127,7 +127,7 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
             charge_y = row["charge_y"]
         else:
             charge_x = 1
-            charge_y = 2
+            charge_y = 1
         if "ion_mode" not in row:
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
         elif (row["ion_mode"] == "pos" or row["ion_mode"] == "both") and ion_mode == "pos":
@@ -135,6 +135,14 @@ def read_mass_differences(filename, ion_mode, separator="\t"):
         elif (row["ion_mode"] == "neg" or row["ion_mode"] == "both") and ion_mode == "neg":
             mass_differences.add(row["label_x"], row["label_y"], row["mass_difference"], charge_x, charge_y)
     return mass_differences
+
+
+def read_neutral_losses(filename, separator="\t"):
+    df = read_csv(filename, sep=separator, float_precision="round_trip")
+    nls = libraries.NeutralLosses()
+    for index, row in df.iterrows():
+        nls.add(row["label"], row["mass_difference"])
+    return nls
 
 
 def read_xset_matrix(fn_matrix, first_sample, separator="\t", mapping={"mz": "mz", "rt": "rt", "name": "name"}, samples_in_columns=True):
@@ -193,7 +201,6 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", median_inten
     return pd.merge(df_peaklist, df_matrix, how='left', left_on=merge_on, right_on=merge_on)
 
 
-
 def read_peaklist(fn_peaklist, separator="\t",
                   mapping={"name": "name", "mz": "mz", "rt": "rt", "intensity": "intensity"}):
 
@@ -223,7 +230,10 @@ def read_peaklist(fn_peaklist, separator="\t",
             df_peaklist = df_peaklist[[mapping["mz"], mapping["rt"], mapping["intensity"]]]
             df_peaklist.columns = ["mz", "rt", "intensity"]
 
-            names = "M" + df_peaklist["mz"].round().astype(int).astype(str).str.cat(df_peaklist["rt"].round().astype(int).astype(str), sep="T")
+            uids = df_peaklist["mz"].round().astype(int).astype(str).str.cat(df_peaklist["rt"].round().astype(int).astype(str), sep="T")
+            ms = pd.Series(['M'] * len(uids))
+            names = ms.str.cat(uids, sep='')
+
             for n in names.copy():
                 idxs = names.index[names == n].tolist()
                 if len(idxs) > 1:

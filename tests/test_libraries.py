@@ -20,25 +20,19 @@ class LibrariesTestCase(unittest.TestCase):
     def test_read_adducts(self):
         lib_adducts = read_adducts(os.path.join(self.path, "beamspy", "data", "adducts.txt"), "pos")
         self.assertTrue("in library" in lib_adducts.__str__())
-        lib_adducts.add("test", 10)
-        self.assertEqual(lib_adducts.lib["test"], 10)
+        lib_adducts.add("test", 100.0, 1)
+        self.assertEqual(lib_adducts.lib["test"]["mass"], 100.0)
+        self.assertEqual(lib_adducts.lib["test"]["charge"], 1)
 
         lib_adducts.remove("*")
         self.assertEqual(lib_adducts.lib, OrderedDict())
 
-    def test_multiple_charged_ions(self):
-        lib_multiple_charged_ions = read_multiple_charged_ions(os.path.join(self.path, "beamspy", "data", "multiple_charged_ions.txt"), "pos")
-        self.assertTrue("in library" in lib_multiple_charged_ions.__str__())
-
-        lib_multiple_charged_ions.remove("*")
-        self.assertEqual(lib_multiple_charged_ions.lib, OrderedDict())
-
-    def test_mass_differences(self):
-        lib_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "adducts_differences.txt"), "pos")
-        self.assertTrue("in library" in lib_differences.__str__())
-
-        lib_differences.remove("*", "*")
-        self.assertEqual(lib_differences.lib, [])
+    # def test_mass_differences(self):
+    #     lib_differences = read_mass_differences(os.path.join(self.path, "beamspy", "data", "adducts_differences.txt"), "pos")
+    #     self.assertTrue("in library" in lib_differences.__str__())
+    #
+    #     lib_differences.remove("*", "*")
+    #     self.assertEqual(lib_differences.lib, [])
 
     def test_nist_database_to_pyteomics(self):
         nist_database = nist_database_to_pyteomics(os.path.join(self.path, "beamspy", "data", "nist_database.txt"))

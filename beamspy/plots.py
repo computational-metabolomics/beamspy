@@ -114,7 +114,7 @@ def plot_annotations(column_ppm_error, column_adducts, df):
 
     ppm_errors = df[column_ppm_error].dropna()
 
-    sns.boxplot(ppm_errors, ax=ax_box)
+    sns.boxplot(x=ppm_errors, ax=ax_box)
 
     bin_size = 0.1
     bins = np.arange(np.floor(ppm_errors.min()) - bin_size, np.ceil(ppm_errors.max()) + bin_size, bin_size).round(3)
@@ -137,7 +137,7 @@ def plot_annotations(column_ppm_error, column_adducts, df):
     ax_hist.set_title("mean={}; std={}".format(round(mean, 2), round(std, 2)))
     ax_hist.set(xlabel="Ppm error", ylabel="Frequency")
 
-    sns.countplot(df[column_adducts].dropna(), ax=ax_count)
+    sns.countplot(x=df[column_adducts].dropna(), ax=ax_count)
     ax_count.set(xlabel="Adduct", ylabel="Frequency")
 
     plt.setp(ax_box.get_xticklabels(), visible=False)

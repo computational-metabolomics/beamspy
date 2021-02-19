@@ -1,0 +1,17 @@
+name: beamspy
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+ - numpy
+ - scipy
+ - requests
+ - networkx<=2.5
+ - pandas
+ - matplotlib
+ - seaborn
+ - pyteomics<=4.4.1
+ - biopython<=1.78
+ - pyside2=5.13.1
+ - tqdm
+ 

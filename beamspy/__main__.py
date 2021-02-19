@@ -96,8 +96,8 @@ def main():
     parser_app.add_argument('-a', '--adducts', action='store_true', required=False,
                              help="Annotate adducts.")
 
-    parser_app.add_argument('-b', '--adducts-library', action='append', required=False,
-                             default=[], help="List of adducts.")
+    parser_app.add_argument('-b', '--adducts-library', type=str, default=None, required=False,
+                             help="List of adducts.")
 
     parser_app.add_argument('-e', '--isotopes', action='store_true', required=False,
                              help="Annotate isotopes.")
@@ -105,14 +105,14 @@ def main():
     parser_app.add_argument('-f', '--isotopes-library', required=False,
                              help="List of isotopes.")
 
-    parser_app.add_argument('-r', '--multiple-charged-ions', action='store_true', required=False,
-                             help="Annotate multiple-charged ions.")
-
-    parser_app.add_argument('-s', '--multiple-charged-ions-library', required=False,
-                             help="List of multiple charged ions.")
-
     parser_app.add_argument('-o', '--oligomers', action='store_true', required=False,
                              help="Annotate oligomers.")
+
+    parser_app.add_argument('-n', '--neutral-losses', action='store_true', required=False,
+                             help="Annotate neutral losses.")
+
+    parser_app.add_argument('-s', '--neutral-losses-library', required=False,
+                             help="List of neutral losses.")
 
     parser_app.add_argument('-m', '--ion-mode', choices=["pos", "neg"], required=True,
                              help="Ion mode of the libraries.")
@@ -123,7 +123,7 @@ def main():
     parser_app.add_argument('-u', '--max-monomer-units', default=2, type=int, required=False,
                              help="Maximum number of monomer units.")
 
-                             
+
     #################################
     # ANNOTATE MOLECULAR FORMULAE
     #################################
@@ -149,6 +149,12 @@ def main():
     parser_amf.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                             help="Mass tolerance in parts per million.")
 
+    parser_amf.add_argument('-e', '--skip-patterns', action="store_false",
+                            help="Skip applying/using peak patterns (e.g. adduct and isotope patterns) to filter annotations.")
+
+    parser_amf.add_argument('-r', '--skip-rules', action="store_false",
+                            help="Skip heuritic rules to filter annotations.")
+
     parser_amf.add_argument('-z', '--max-mz', type=float, required=False, default=500.0,
                             help="Maximum m/z value to assign molecular formula(e).")
 
@@ -166,7 +172,8 @@ def main():
     parser_am.add_argument('-d', '--db', type=str, required=True,
                            help="Sqlite database to write results.")
 
-    parser_am.add_argument('-c', '--db-compounds', type=str, required=False, help="Metabolite database (reference).")
+    parser_am.add_argument('-c', '--db-compounds', type=str, default="", required=False,
+                           help="Metabolite database (reference).")
 
     parser_am.add_argument('-n', '--db-name', type=str, default="", required=True,
                            help="Name compound / metabolite database (within --db-compounds).")
@@ -179,6 +186,12 @@ def main():
 
     parser_am.add_argument('-p', '--ppm', default=3.0, type=float, required=True,
                            help="Mass tolerance in parts per million.")
+
+    parser_am.add_argument('-e', '--skip-patterns', action="store_false",
+                            help="Skip applying/using peak patterns (e.g. adduct and isotope patterns) to filter annotations.")
+
+    parser_am.add_argument('-r', '--rt', default=None, type=float,
+                           help="Retention time tolerance in seconds.")
 
     #################################
     # SUMMARY RESULTS
@@ -237,57 +250,44 @@ def main():
             inp = in_out.read_peaklist(args.peaklist)
 
         if args.adducts:
-            if len(args.adducts_library) > 0 and args.adducts_library is not None:
-                for i, a in enumerate(args.adducts_library):
-                    try:
-                        lib = in_out.read_adducts(a, args.ion_mode)
-                    except:
-                        lib = in_out.read_mass_differences(a, args.ion_mode)
-                    if i > 0:
-                        add = True
-                    else:
-                        add = False
-                    annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+            if args.adducts_library:
+                lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
             else:
                 path = 'data/adducts.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_adducts(p, args.ion_mode)
-                annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
+            annotation.annotate_adducts(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=False)
 
         if args.isotopes:
-            if args.isotopes_library is not None:
+            if args.isotopes_library:
                 lib = in_out.read_isotopes(args.isotopes_library, args.ion_mode)
-                annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
             else:
                 path = 'data/isotopes.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_isotopes(p, args.ion_mode)
-                annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            annotation.annotate_isotopes(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
-        if args.multiple_charged_ions:
-            if len(args.multiple_charged_ions_library) > 0 and args.multiple_charged_ions_library is not None:
-                for i, m in enumerate(args.multiple_charged_ions_library):
-                    try:
-                        lib = in_out.read_multiple_charged_ions(m, args.ion_mode)
-                    except:
-                        lib = in_out.read_mass_differences(m, args.ion_mode)
-
-                    if i > 0:
-                        add = True
-                    else:
-                        add = False
-
-                    annotation.annotate_multiple_charged_ions(inp, db_out=args.db, ppm=args.ppm, lib=lib, add=add)
+        if args.neutral_losses:
+            if args.neutral_losses_library:
+                lib = in_out.read_neutral_losses(args.neutral_losses_library)
             else:
-                path = 'data/multiple_charged_ions.txt'
+                path = 'data/neutral_losses.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
-                lib = in_out.read_multiple_charged_ions(p, args.ion_mode)
-                
+                lib = in_out.read_neutral_losses(p)
+            annotation.neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+
         if args.oligomers:
-            annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            if args.adducts_library:
+                lib = in_out.read_adducts(args.adducts_library, args.ion_mode)
+            else:
+                path = 'data/adducts.txt'
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+                lib = in_out.read_adducts(p, args.ion_mode)
+
+            annotation.annotate_oligomers(inp, db_out=args.db, ppm=args.ppm, lib=lib, maximum=args.max_monomer_units)
 
     if args.step == "annotate-mf":
-        
+
         if args.intensity_matrix:
             df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         else:
@@ -299,8 +299,8 @@ def main():
             path = 'data/adducts.txt'
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
-
-        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf, max_mz=args.max_mz)
+        annotation.annotate_molecular_formulae(df, ppm=args.ppm, lib_adducts=lib, db_out=args.db, db_in=args.db_mf,
+                                               patterns=args.skip_patterns, rules=args.skip_rules, max_mz=args.max_mz)
 
     if args.step == "annotate-compounds":
         
@@ -315,8 +315,7 @@ def main():
             path = 'data/adducts.txt'
             p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
             lib = in_out.read_adducts(p, args.ion_mode)
-
-        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, db_in="")
+        annotation.annotate_compounds(df, lib_adducts=lib, ppm=args.ppm, db_out=args.db, db_name=args.db_name, patterns=args.skip_patterns, db_in=args.db_compounds, rt_tol=args.rt)
 
     if args.step == "summary-results":
         
@@ -336,10 +335,11 @@ def main():
         from PySide2 import QtWidgets
         from beamspy.gui import BeamsApp
         app = QtWidgets.QApplication(sys.argv)
-        app.setStyle("Fusion")
+        # app.setStyle("Fusion")
         form = BeamsApp()
         form.show()
         sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
