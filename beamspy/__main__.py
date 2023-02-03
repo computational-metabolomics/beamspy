@@ -71,6 +71,9 @@ def main():
     parser_gf.add_argument('-p', '--pvalue-threshold', default=0.01, type=float, required=True,
                            help="Threshold for p-value.")
 
+    parser_gf.add_argument('-o', '--positive', action="store_true",
+                           help="Use positive correlation only otherwise use both positive and negative correlation.")
+
     parser_gf.add_argument('-g', '--gml-file', type=str, required=True,
                            help="Write graph to GraphML format.")
 
@@ -237,7 +240,7 @@ def main():
         df = in_out.combine_peaklist_matrix(args.peaklist, args.intensity_matrix)
         graph = grouping.group_features(df, db_out=args.db, max_rt_diff=args.max_rt_diff,
                                         coeff_thres=args.coeff_threshold, pvalue_thres=args.pvalue_threshold,
-                                        method=args.method, ncpus=args.ncpus)
+                                        method=args.method, positive=args.positive, ncpus=args.ncpus)
         nx.write_gml(graph, str(args.gml_file))
 
     if args.step == "annotate-peak-patterns":

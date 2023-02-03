@@ -25,7 +25,8 @@ def main():
     ion_mode = "pos"
     db_out = "results.sqlite".format(ion_mode)
 
-    graphs = group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.01, method="pearson")
+    # graphs = group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.01, method="pearson")
+    graphs = group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.01, method="pearson", positive=False)
 
     nx.write_gml(graphs, "graphs.gml")
     # graphs = nx.read_gml("graphs.gml")
