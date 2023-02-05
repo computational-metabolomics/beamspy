@@ -27,7 +27,7 @@ class AnnotationTestCase(unittest.TestCase):
 
         self.db_results = "results_annotation.sqlite"
         self.db_results_graph = "results_annotation_graph.sqlite"
-        self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
+        self.graph = group_features(self.df, to_test_results(self.db_results_graph), max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", positive=False, block=5000, ncpus=None)
 
         self.ppm = 2.0
 
