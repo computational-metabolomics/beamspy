@@ -136,7 +136,8 @@ def correlation_graphs(df_coeffs, df):
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_a'], right_on=['name'])
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_b'], right_on=['name'])
     from decimal import Decimal
-    graphs = nx.OrderedDiGraph()
+    # graphs = nx.OrderedDiGraph()  # networkx  version < 3.0
+    graphs = nx.DiGraph()
     for index, row in df_coeffs.iterrows():
         graphs.add_node(str(row["name_a"]), mz=row["mz_x"], intensity=row["intensity_x"], rt=row["rt_x"])
         graphs.add_node(str(row["name_b"]), mz=row["mz_y"], intensity=row["intensity_y"], rt=row["rt_y"])
