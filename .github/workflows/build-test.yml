@@ -50,11 +50,3 @@ jobs:
 
           conda install pytest codecov pytest-cov -c conda-forge
           pytest --cov ./ --cov-config=.coveragerc --cov-report=xml
-
-      - name: Upload code coverage to codecov
-        uses: codecov/codecov-action@v1
-        with:
-          flags: unittests
-          env_vars: OS,PYTHON
-          fail_ci_if_error: true
-          verbose: true
