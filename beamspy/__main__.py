@@ -277,7 +277,7 @@ def main():
                 path = 'data/neutral_losses.txt'
                 p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
                 lib = in_out.read_neutral_losses(p)
-            annotation.neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
+            annotation.annotate_neutral_losses(inp, db_out=args.db, ppm=args.ppm, lib=lib)
 
         if args.oligomers:
             if args.adducts_library:
