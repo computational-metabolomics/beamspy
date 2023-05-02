@@ -44,11 +44,11 @@ jobs:
 
       - name: Test with pytest-cov
         run: |
-
-          python setup.py install
-          beamspy --help
-
           conda install pytest codecov pytest-cov -c conda-forge
+          
+          python -m pip install --no-deps -e .
+          beamspy --help
+          
           pytest --cov ./ --cov-config=.coveragerc --cov-report=xml
 
       - name: Upload code coverage to codecov
