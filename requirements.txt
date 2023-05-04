@@ -1,11 +1,9 @@
 numpy
 scipy
 requests
-networkx
-pandas
+networkx<=2.5
+pandas<=1.5.3
 matplotlib
 seaborn
-pyteomics
-biopython
-pyside2
-tqdm
+pyteomics<=4.4.1
+biopython<=1.78

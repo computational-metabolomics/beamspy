@@ -9,10 +9,8 @@ jobs:
 
     strategy:
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        # python-version: [3.7, 3.8]
-        os: [windows-latest]
-        python-version: ['3.9', '3.10']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10']
 
     env:
       OS: ${{ matrix.os }}
@@ -32,7 +30,7 @@ jobs:
         run: |
 
           python --version
-          conda env update --file environment.yml --name base
+          conda env update --file environment.yml --name __setup_conda
 
       - name: Lint with flake8
         run: |
@@ -47,17 +45,18 @@ jobs:
 
       - name: Test with pytest-cov
         run: |
-
-          python setup.py install
-          beamspy --help
-
           conda install pytest codecov pytest-cov -c conda-forge
+          
+          python -m pip install --no-deps -e .
+          beamspy --help
+          
           pytest --cov ./ --cov-config=.coveragerc --cov-report=xml
 
-      # - name: Upload code coverage to codecov
-      #   uses: codecov/codecov-action@v1
-      #   with:
-      #     flags: unittests
-      #     env_vars: OS,PYTHON
-      #     fail_ci_if_error: true
-      #     verbose: true
+      - name: Upload code coverage to codecov
+        uses: codecov/codecov-action@v1
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          flags: unittests
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          verbose: true

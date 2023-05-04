@@ -3,15 +3,14 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
- - numpy
- - scipy
- - requests
- - networkx
- - pandas
- - matplotlib
- - seaborn
- - pyteomics
- - biopython
- - pyside2
- - tqdm
- 
+  - numpy
+  - scipy
+  - requests
+  - networkx<=2.5
+  - pandas<=1.5.3
+  - matplotlib
+  - seaborn
+  - pyteomics<=4.4.1
+  - biopython<=1.78
+  - pyside2
+  - tqdm
