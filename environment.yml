@@ -14,4 +14,3 @@ dependencies:
   - biopython<=1.78
   - pyside2
   - tqdm
-  

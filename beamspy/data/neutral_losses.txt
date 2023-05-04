@@ -1,1 +1,3 @@
-label	mass_differenceH2O	18.010565CO	27.994915
+label	mass_difference
+H2O	18.010565
+CO	27.994915

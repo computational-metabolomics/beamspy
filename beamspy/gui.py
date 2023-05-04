@@ -188,6 +188,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_grouping_ncpus.setEnabled(False)
             self.doubleSpinBox_ncpus.setEnabled(False)
             self.doubleSpinBox_block.setEnabled(False)
+            self.checkBox_positive_correlation.setEnabled(True)
         else:
             self.label_max_rt.setEnabled(True)
             self.doubleSpinBox_max_rt.setEnabled(True)
@@ -201,6 +202,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
             self.label_grouping_ncpus.setEnabled(True)
             self.doubleSpinBox_ncpus.setEnabled(True)
             self.doubleSpinBox_block.setEnabled(True)
+            self.checkBox_positive_correlation.setEnabled(True)
         self.source_graph_file()
 
     def annotate_peak_patterns(self):
@@ -355,6 +357,7 @@ class BeamsApp(QtWidgets.QMainWindow, form.Ui_MainWindow):
                                             coeff_thres=self.doubleSpinBox_coefficent.value(),
                                             pvalue_thres=self.doubleSpinBox_p_value.value(),
                                             method=method,
+                                            positive=self.checkBox_positive_correlation.isChecked(),
                                             block=int(self.doubleSpinBox_block.value()),
                                             ncpus=int(self.doubleSpinBox_ncpus.value()))
             nx.write_gml(graph, str(self.lineEdit_graph.text()))

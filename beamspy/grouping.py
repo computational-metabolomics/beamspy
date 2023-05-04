@@ -6,7 +6,7 @@ from beamspy import statistics
 import networkx as nx
 
 
-def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None):
+def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", positive=True, block=5000, ncpus=None):
 
     conn = sqlite3.connect(db_out)
     cursor = conn.cursor()
@@ -25,7 +25,7 @@ def group_features(df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.
                    mz_diff REAL DEFAULT NULL,                 
                    PRIMARY KEY (peak_id_a, peak_id_b));""")
 
-    df_coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, block, ncpus)
+    df_coeffs = statistics.correlation_coefficients(df, max_rt_diff, coeff_thres, pvalue_thres, method, positive, block, ncpus)
     graph = statistics.correlation_graphs(df_coeffs, df)
     sub_graphs = list(graph.subgraph(c) for c in nx.weakly_connected_components(graph))
     for i in range(len(sub_graphs)):
