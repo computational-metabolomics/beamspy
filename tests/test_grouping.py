@@ -16,7 +16,7 @@ class GroupFeaturesTestCase(unittest.TestCase):
     def test_group_features(self):
         fn_sql = "results_pearson.sqlite"
         db_out = to_test_results(fn_sql)
-        group_features(self.df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
+        group_features(self.df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="pearson", positive=False, block=5000, ncpus=None)
 
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
@@ -26,7 +26,7 @@ class GroupFeaturesTestCase(unittest.TestCase):
 
         fn_sql = "results_pearson_all.sqlite"
         db_out = to_test_results(fn_sql)
-        group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", block=5000, ncpus=None)
+        group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", positive=False, block=5000, ncpus=None)
 
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
@@ -36,7 +36,7 @@ class GroupFeaturesTestCase(unittest.TestCase):
 
         fn_sql = "results_pearson_all.sqlite"
         db_out = to_test_results(fn_sql)
-        group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", block=20, ncpus=1)
+        group_features(self.df, db_out, max_rt_diff=200.0, coeff_thres=0.0, pvalue_thres=1.0, method="pearson", positive=False, block=20, ncpus=1)
 
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
@@ -46,7 +46,7 @@ class GroupFeaturesTestCase(unittest.TestCase):
 
         fn_sql = "results_spearman.sqlite"
         db_out = to_test_results(fn_sql)
-        group_features(self.df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="spearman", block=5000, ncpus=None)
+        group_features(self.df, db_out, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=1.0, method="spearman", positive=False, block=5000, ncpus=None)
         records = sqlite_records(to_test_results(fn_sql), "groups")
         records_comp = sqlite_records(to_test_data(fn_sql), "groups")
 

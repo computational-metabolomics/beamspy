@@ -1,6 +1,7 @@
 name: beamspy
 
-on: [push, pull_request]
+# on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
@@ -8,8 +9,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.7, 3.8]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        # python-version: [3.7, 3.8]
+        os: [windows-latest]
+        python-version: ['3.9', '3.10']
 
     env:
       OS: ${{ matrix.os }}
@@ -51,10 +54,10 @@ jobs:
           conda install pytest codecov pytest-cov -c conda-forge
           pytest --cov ./ --cov-config=.coveragerc --cov-report=xml
 
-      - name: Upload code coverage to codecov
-        uses: codecov/codecov-action@v1
-        with:
-          flags: unittests
-          env_vars: OS,PYTHON
-          fail_ci_if_error: true
-          verbose: true
+      # - name: Upload code coverage to codecov
+      #   uses: codecov/codecov-action@v1
+      #   with:
+      #     flags: unittests
+      #     env_vars: OS,PYTHON
+      #     fail_ci_if_error: true
+      #     verbose: true

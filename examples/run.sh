@@ -8,7 +8,8 @@ beamspy group-features \
 --max-rt-diff 5.0 \
 --method pearson \
 --coeff-threshold 0.7 \
---pvalue-threshold 0.01
+--pvalue-threshold 0.01 \
+--positive
 
 beamspy annotate-peak-patterns \
 --peaklist ../tests/test_data/peaklist_lcms_pos_theoretical.txt \
