@@ -189,9 +189,9 @@ def combine_peaklist_matrix(fn_peaklist, fn_matrix, separator="\t", median_inten
 
     if mapping["intensity"] not in df_peaklist.columns:
         if median_intensity:
-            df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True), index=df_matrix.index)
+            df_peaklist["intensity"] = pd.Series(df_matrix.median(axis=1, skipna=True, numeric_only=True), index=df_matrix.index)
         else:
-            df_peaklist["intensity"] = pd.Series(df_matrix.mean(axis=1, skipna=True), index=df_matrix.index)
+            df_peaklist["intensity"] = pd.Series(df_matrix.mean(axis=1, skipna=True, numeric_only=True), index=df_matrix.index)
 
     if len(df_peaklist[mapping["name"]].unique()) != len(df_peaklist[mapping["name"]]):
         raise ValueError("Peaklist: Values column '{}' are not unique".format(mapping["name"]))

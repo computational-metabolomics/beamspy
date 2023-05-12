@@ -52,7 +52,7 @@ def _spearmanr(pairs):
     return temp
 
 
-def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.05, method="pearson", block=5000, ncpus=None):
+def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=0.05, method="pearson", positive=True, block=5000, ncpus=None):
     if ["name", "mz", "rt"] == list(df.columns.values[0:3]):
         ncols = 4
         df = df.sort_values(['rt', 'mz']).reset_index(drop=True)
@@ -103,10 +103,13 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
                     if len(pairs) == block * ncpus:
                         #print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
                         coeffs = _cc_pp_(pairs, method, ncpus)
+                        coe = []
                         for k in range(len(coeffs)):
                             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
                                 s = pd.Series([peaks[k][0], peaks[k][1], round(coeffs[k][0], 2), coeffs[k][1]], index=column_names)
-                                df_coeffs = df_coeffs.append(s, ignore_index=True) # pandas append
+                                coe.append(s)
+                        tmp = pd.DataFrame(coe, columns=column_names)
+                        df_coeffs = pd.concat([df_coeffs, tmp], ignore_index=True)
                         pairs, peaks = [], []
             else:
                 break
@@ -114,10 +117,18 @@ def correlation_coefficients(df, max_rt_diff=5.0, coeff_thres=0.7, pvalue_thres=
     if len(pairs) > 0:
         #print("Calculating correlations for {} pairs (subset)".format(len(pairs)))
         coeffs = _cc_pp_(pairs, method, ncpus)
+        coe = []
         for k in range(len(coeffs)):
             if abs(coeffs[k][0]) > coeff_thres and (abs(coeffs[k][1]) < pvalue_thres or pvalue_thres is None):
                 s = pd.Series([peaks[k][0], peaks[k][1], round(coeffs[k][0], 2), coeffs[k][1]], index=column_names)
-                df_coeffs = df_coeffs.append(s, ignore_index=True)
+                coe.append(s)
+        tmp = pd.DataFrame(coe, columns=column_names)
+        df_coeffs = pd.concat([df_coeffs, tmp], ignore_index=True)
+
+    # filter
+    if positive:
+        df_coeffs = df_coeffs[df_coeffs['r_value'] > 0].reset_index(drop=True)
+
     return df_coeffs
 
 
@@ -125,7 +136,8 @@ def correlation_graphs(df_coeffs, df):
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_a'], right_on=['name'])
     df_coeffs = df_coeffs.merge(df[["name", "mz", "intensity", "rt"]], how='left', left_on=['name_b'], right_on=['name'])
     from decimal import Decimal
-    graphs = nx.OrderedDiGraph()
+    # graphs = nx.OrderedDiGraph()  # networkx  version < 3.0
+    graphs = nx.DiGraph()
     for index, row in df_coeffs.iterrows():
         graphs.add_node(str(row["name_a"]), mz=row["mz_x"], intensity=row["intensity_x"], rt=row["rt_x"])
         graphs.add_node(str(row["name_b"]), mz=row["mz_y"], intensity=row["intensity_y"], rt=row["rt_y"])

@@ -1615,7 +1615,8 @@ def summary(df, db, single_row=False, single_column=False, convert_rt=None, ndig
 
         records = [(str(record[0]), str(record[1])) for record in cursor.fetchall()]
 
-        G = nx.OrderedDiGraph()
+        # G = nx.OrderedDiGraph()  # networkx version < 3.0
+        G = nx.DiGraph()
         G.add_edges_from(records)
 
         graphs = list(G.subgraph(c) for c in nx.weakly_connected_components(G))

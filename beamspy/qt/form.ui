@@ -478,24 +478,58 @@
           <number>5</number>
          </property>
          <property name="horizontalSpacing">
-          <number>-1</number>
+          <number>6</number>
          </property>
          <property name="verticalSpacing">
           <number>5</number>
          </property>
-         <item row="9" column="5">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_block">
-           <property name="decimals">
-            <number>0</number>
-           </property>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_max_rt">
            <property name="maximum">
-            <double>100000000.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>1000.000000000000000</double>
+            <double>9999999.000000000000000</double>
            </property>
            <property name="value">
-            <double>5000.000000000000000</double>
+            <double>5.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4">
+          <widget class="QLabel" name="label_grouping_ncpus">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>cpus:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="4">
+          <widget class="QLabel" name="label_grouping_block">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Block size:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_max_rt">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Maximum RT difference (sec):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="label_tool_coefficient">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Coefficent threshold:</string>
            </property>
           </widget>
          </item>
@@ -515,17 +549,7 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="2">
-          <widget class="QLabel" name="label_grouping_method">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Grouping method:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
+         <item row="10" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_coefficent">
            <property name="maximum">
             <double>1.000000000000000</double>
@@ -559,37 +583,7 @@
            </property>
           </widget>
          </item>
-         <item row="9" column="2">
-          <widget class="QLabel" name="label_tool_p_value">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>P-value threshold:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_max_rt">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Maximum RT difference (sec):</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_max_rt">
-           <property name="maximum">
-            <double>9999999.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>5.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="3">
+         <item row="10" column="3">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_p_value">
            <property name="decimals">
             <number>10</number>
@@ -605,13 +599,32 @@
            </property>
           </widget>
          </item>
-         <item row="9" column="0">
-          <widget class="QLabel" name="label_tool_coefficient">
+         <item row="10" column="5">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_block">
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <double>100000000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>5000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLabel" name="label_grouping_method">
            <property name="enabled">
             <bool>true</bool>
            </property>
            <property name="text">
-            <string>Coefficent threshold:</string>
+            <string>Grouping method:</string>
+           </property>
+           <property name="indent">
+            <number>-1</number>
            </property>
           </widget>
          </item>
@@ -629,23 +642,26 @@
            </item>
           </widget>
          </item>
-         <item row="3" column="4">
-          <widget class="QLabel" name="label_grouping_ncpus">
+         <item row="10" column="2">
+          <widget class="QLabel" name="label_tool_p_value">
            <property name="enabled">
             <bool>true</bool>
            </property>
            <property name="text">
-            <string>cpus:</string>
+            <string>P-value threshold:</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="4">
-          <widget class="QLabel" name="label_grouping_block">
+         <item row="11" column="0">
+          <widget class="QCheckBox" name="checkBox_positive_correlation">
            <property name="enabled">
             <bool>true</bool>
            </property>
            <property name="text">
-            <string>Block size:</string>
+            <string>Positive Correlation</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
